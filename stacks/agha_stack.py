@@ -116,7 +116,6 @@ class AghaStack(core.Stack):
             environment={
                 'STAGING_BUCKET': staging_bucket.bucket_name,
                 'STORE_BUCKET': store_bucket.bucket_name,
-                'DEPLOY_ENV': props['deploy_env'],
             },
             role=s3_event_recorder_lambda_role
         )
