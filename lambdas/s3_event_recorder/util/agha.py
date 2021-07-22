@@ -9,6 +9,7 @@ MD5_PATTERN = re.compile("[0-9a-f]{32}")
 FLAGSHIPS = ["ACG", "BM", "CARDIAC", "CHW", "EE", "GI", "HIDDEN", "ICCON", "ID", "KidGen", "LD", "MCD", "MITO", "NMD"]
 STAGING_BUCKET = 'agha-gdr-staging'
 STORE_BUCKET = 'agha-gdr-store'
+DEPLOY_ENV = os.environ.get('DEPLOY_ENV')
 
 
 class FileType(Enum):
@@ -65,13 +66,10 @@ def get_file_type(file: str) -> FileType:
 
 
 def get_flagship_from_key(s3key: str) -> str:
-    # the S3 key has to start with the flagship abbreviation
+    # The S3 key must be prefixed with a known flagship abbreviation
+    # Alternatively, we allow S3 keys with a 'DEV' prefix if we're on the dev account
     fs = s3key.split("/")[0]
-    if fs not in FLAGSHIPS:
+    if fs not in FLAGSHIPS and not (DEPLOY_ENV == 'dev' and fs == 'DEV'):
         raise ValueError(f"Unsupported flagship {fs} in S3 key {s3key}!")
 
     return fs
-
-
-
-

@@ -24,6 +24,7 @@ aws_env = {
 }
 
 agha_props = {
+    'deploy_env': 'dev',
     'namespace': 'agha',
     'staging_bucket': staging_bucket,
     'store_bucket': store_bucket,
