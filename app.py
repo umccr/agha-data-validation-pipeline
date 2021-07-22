@@ -7,12 +7,12 @@ from stacks.agha_stack import AghaStack
 
 ssm_client = boto3.client('ssm')
 
-def get_ssm_parameter_value(name):
-    return ssm_client.get_parameter(Name=name)['Parameter']['Value']
+def get_ssm_parameter_value(name, decrypt=False):
+    return ssm_client.get_parameter(Name=name, WithDecryption=decrypt)['Parameter']['Value']
 
 staging_bucket = get_ssm_parameter_value('/cdk/agha/staging_bucket')
 store_bucket = get_ssm_parameter_value('/cdk/agha/store_bucket')
-slack_host = get_ssm_parameter_value('/slack/webhook/id')
+slack_host = get_ssm_parameter_value('/slack/webhook/id', decrypt=True)
 slack_channel = get_ssm_parameter_value('/cdk/agha/slack_channel')
 manager_email = get_ssm_parameter_value('/cdk/agha/manager_email')
 sender_email = get_ssm_parameter_value('/cdk/agha/sender_email')
