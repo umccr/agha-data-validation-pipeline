@@ -16,6 +16,7 @@ slack_host = get_ssm_parameter_value('/slack/webhook/host')
 slack_channel = get_ssm_parameter_value('/cdk/agha/slack_channel')
 manager_email = get_ssm_parameter_value('/cdk/agha/manager_email')
 sender_email = get_ssm_parameter_value('/cdk/agha/sender_email')
+deploy_env = 'dev'
 
 # retrieve AWS details from currently active AWS profile/credentials
 aws_env = {
@@ -24,7 +25,7 @@ aws_env = {
 }
 
 agha_props = {
-    'deploy_env': 'dev',
+    'deploy_env': deploy_env,
     'namespace': 'agha',
     'staging_bucket': staging_bucket,
     'store_bucket': store_bucket,

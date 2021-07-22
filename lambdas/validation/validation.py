@@ -14,6 +14,7 @@ logger.setLevel(logging.INFO)
 
 MANIFEST_REQUIRED_COLUMNS = ('filename', 'checksum', 'agha_study_id')
 AWS_REGION = boto3.session.Session().region_name
+DEPLOY_ENV = os.environ.get('DEPLOY_ENV')
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 SLACK_HOST = os.environ.get('SLACK_HOST')
 SLACK_CHANNEL = os.environ.get('SLACK_CHANNEL')
@@ -275,21 +276,23 @@ def handler(event, context):
 
     print(f"Sending validation messages to Slack and Email.")
     print(validation_messages)
-    slack_response = call_slack_webhook(
-        topic="AGHA submission quick validation",
-        title=f"Submission: {submission_prefix} ({name})",
-        message='\n'.join(validation_messages)
-    )
-    print(f"Slack call response: {slack_response}")
+    # NOTE(SW): disable Slack and email notifications on dev stack for now (20210722)
+    if DEPLOY_ENV != 'dev':
+        slack_response = call_slack_webhook(
+            topic="AGHA submission quick validation",
+            title=f"Submission: {submission_prefix} ({name})",
+            message='\n'.join(validation_messages)
+        )
+        print(f"Slack call response: {slack_response}")
 
-    print(f"Sending email to {name}/{email}")
-    response = send_email(
-        recipients=[MANAGER_EMAIL, email],
-        sender=SENDER_EMAIL,
-        subject_text=EMAIL_SUBJECT,
-        body_html=make_email_body_html(
-            submission=submission_prefix,
-            submitter=name,
-            messages=validation_messages)
-    )
-    print(f"Email send response: {response}")
+        print(f"Sending email to {name}/{email}")
+        response = send_email(
+            recipients=[MANAGER_EMAIL, email],
+            sender=SENDER_EMAIL,
+            subject_text=EMAIL_SUBJECT,
+            body_html=make_email_body_html(
+                submission=submission_prefix,
+                submitter=name,
+                messages=validation_messages)
+        )
+        print(f"Email send response: {response}")

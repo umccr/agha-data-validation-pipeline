@@ -82,7 +82,8 @@ class AghaStack(core.Stack):
                 'SLACK_HOST': props['slack_host'],
                 'SLACK_CHANNEL': props['slack_channel'],
                 'MANAGER_EMAIL': props['manager_email'],
-                'SENDER_EMAIL': props['sender_email']
+                'SENDER_EMAIL': props['sender_email'],
+                'DEPLOY_ENV': props['deploy_env'],
             },
             role=validation_lambda_role,
             layers=[
