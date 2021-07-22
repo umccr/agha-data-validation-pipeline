@@ -79,11 +79,12 @@ class AghaStack(core.Stack):
             code=lmbda.Code.from_asset('lambdas/validation'),
             environment={
                 'STAGING_BUCKET': staging_bucket.bucket_name,
+                'SLACK_NOTIFY': props['slack_notify'],
+                'EMAIL_NOTIFY': props['email_notify'],
                 'SLACK_HOST': props['slack_host'],
                 'SLACK_CHANNEL': props['slack_channel'],
                 'MANAGER_EMAIL': props['manager_email'],
                 'SENDER_EMAIL': props['sender_email'],
-                'DEPLOY_ENV': props['deploy_env'],
             },
             role=validation_lambda_role,
             layers=[
