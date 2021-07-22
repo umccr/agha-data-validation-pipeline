@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import os
 from aws_cdk import core
 import boto3
@@ -8,8 +7,15 @@ from stacks.agha_stack import AghaStack
 
 ssm_client = boto3.client('ssm')
 
-slack_host = ssm_client.get_parameter(Name='/slack/webhook/host')['Parameter']['Value']
-slack_channel = ssm_client.get_parameter(Name='/slack/channel')['Parameter']['Value']
+def get_ssm_parameter_value(name):
+    return ssm_client.get_parameter(Name=name)['Parameter']['Value']
+
+staging_bucket = get_ssm_parameter_value(name='/cdk/agha/staging_bucket')
+store_bucket = get_ssm_parameter_value(name='/cdk/agha/store_bucket')
+slack_host = get_ssm_parameter_value(name='/slack/webhook/host')
+slack_channel = get_ssm_parameter_value(name='/slack/channel')
+manager_email = get_ssm_parameter_value(name='/cdk/agha/manager_email')
+sender_email = get_ssm_parameter_value(name='/cdk/agha/sender_email')
 
 # retrieve AWS details from currently active AWS profile/credentials
 aws_env = {
@@ -19,14 +25,13 @@ aws_env = {
 
 agha_props = {
     'namespace': 'agha',
-    'staging_bucket': 'agha-gdr-staging',
-    'store_bucket': 'agha-gdr-store',
+    'staging_bucket': staging_bucket,
+    'store_bucket': store_bucket,
     'slack_host': slack_host,
     'slack_channel': slack_channel,
-    'manager_email': 'sarah.casauria@mcri.edu.au',
-    'sender_email': 'services@umccr.org'
+    'manager_email': manager_email,
+    'sender_email': sender_email,
 }
-
 
 app = core.App()
 
