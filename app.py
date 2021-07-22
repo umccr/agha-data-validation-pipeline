@@ -12,8 +12,8 @@ def get_ssm_parameter_value(name):
 
 staging_bucket = get_ssm_parameter_value(name='/cdk/agha/staging_bucket')
 store_bucket = get_ssm_parameter_value(name='/cdk/agha/store_bucket')
-slack_host = get_ssm_parameter_value(name='/slack/webhook/host')
-slack_channel = get_ssm_parameter_value(name='/slack/channel')
+slack_host = get_ssm_parameter_value(name='/slack/webhook/id')
+slack_channel = get_ssm_parameter_value(name='/cdk/agha/slack_channel')
 manager_email = get_ssm_parameter_value(name='/cdk/agha/manager_email')
 sender_email = get_ssm_parameter_value(name='/cdk/agha/sender_email')
 
