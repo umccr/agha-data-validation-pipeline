@@ -31,7 +31,7 @@ ssm_client = boto3.client('ssm')
 iam_client = boto3.client('iam')
 ses_client = boto3.client('ses',region_name=AWS_REGION)
 SLACK_WEBHOOK_ENDPOINT = ssm_client.get_parameter(
-    Name='/slack/webhook/id',
+    Name='/slack/webhook/endpoint',
     WithDecryption=True
     )['Parameter']['Value']
 
