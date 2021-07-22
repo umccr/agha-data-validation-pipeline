@@ -223,7 +223,7 @@ def handler(event, context):
         bucket: str = s3_record['s3']['bucket']['name']
         if s3key.endswith('manifest.txt') and 'ObjectCreated' in event_name:
             # we are only interested in new/created manifests of the staging bucket
-            if bucket == 'agha-gdr-staging':
+            if bucket == STAGING_BUCKET:
                 manifest_records.append(s3_record)
         else:
             non_manifest_records.append(s3_record)

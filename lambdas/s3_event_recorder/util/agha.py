@@ -7,8 +7,7 @@ AGHA_ID_PATTERN = re.compile("A\d{7,8}(?:_mat|_pat|_R1|_R2|_R3)?|unknown")
 MD5_PATTERN = re.compile("[0-9a-f]{32}")
 
 FLAGSHIPS = ["ACG", "BM", "CARDIAC", "CHW", "EE", "GI", "HIDDEN", "ICCON", "ID", "KidGen", "LD", "MCD", "MITO", "NMD"]
-STAGING_BUCKET = 'agha-gdr-staging'
-STORE_BUCKET = 'agha-gdr-store'
+STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 DEPLOY_ENV = os.environ.get('DEPLOY_ENV')
 
 
