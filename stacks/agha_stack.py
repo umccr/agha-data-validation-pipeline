@@ -1,6 +1,10 @@
 from aws_cdk import (
-    aws_lambda as lmbda,
+    aws_batch as batch,
+    aws_dynamodb as dynamodb,
+    aws_ec2 as ec2,
+    aws_ecs as ecs,
     aws_iam as iam,
+    aws_lambda as lmbda,
     aws_s3 as s3,
     core
 )
@@ -27,6 +31,124 @@ class AghaStack(core.Stack):
             id="GdrStoreBucket",
             bucket_name=props['store_bucket']
         )
+
+        ################################################################################
+        # DynamoDB
+
+        # TODO(SW): move this to shared location, add as layer to appropriate lambdas
+        TABLE_KEY_SCHEMA = {
+            'partition': {'attr_name': 's3_bucket', 'attr_type': dynamodb.AttributeType.STRING},
+            'sort':      {'attr_name': 'sort_key',  'attr_type': dynamodb.AttributeType.STRING},
+        }
+
+        dynamodb_table = dynamodb.Table(
+            self,
+            'DynamoDBTable',
+            table_name='agha-file-validation',
+            partition_key=dynamodb.Attribute(
+                name=TABLE_KEY_SCHEMA['partition']['attr_name'],
+                type=TABLE_KEY_SCHEMA['partition']['attr_type'],
+            ),
+            sort_key=dynamodb.Attribute(
+                name=TABLE_KEY_SCHEMA['sort']['attr_name'],
+                type=TABLE_KEY_SCHEMA['sort']['attr_type'],
+            ),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+        )
+
+        ################################################################################
+        # Batch
+
+        # TODO:
+        # Launch template: ec2.CfnLaunchTemplate (see README.md)
+        #  - probably only need job template
+
+        vpc = ec2.Vpc.from_lookup(
+            self,
+            'MainVPC',
+            tags={'Name': 'main-vpc', 'Stack': 'networking'},
+        )
+
+        machine_image = ec2.MachineImage.latest_amazon_linux(
+            cpu_type=ec2.AmazonLinuxCpuType.X86_64,
+            edition=ec2.AmazonLinuxEdition.STANDARD,
+            generation=ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
+            storage=ec2.AmazonLinuxStorage.GENERAL_PURPOSE,
+            virtualization=ec2.AmazonLinuxVirt.HVM,
+        )
+
+        # NOTE(SW): may want to restrict as ro with write perms to specific directory for
+        # emergency results write.
+        # Would the following work or conflict?
+        # AWS managed policy:
+        #   iam.ManagedPolicy.from_aws_managed_policy_name('AmazonS3ReadOnlyAccess'),
+        # Add policy actions:
+        #   actions=['s3:PutBucketPolicy'],
+        #   resources=[f'arn:aws:s3:::{staging_bucket.bucket_name}/{results_json_dir}']
+        batch_instance_role = iam.Role(
+            self,
+            'BatchInstanceRole',
+            assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonS3FullAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonSSMManagedInstanceCore'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AmazonEC2ContainerServiceforEC2Role'),
+            ]
+        )
+
+        batch_instance_profile = iam.CfnInstanceProfile(
+            self,
+            'BatchInstanceProfile',
+            roles=[batch_instance_role.role_name],
+            instance_profile_name='BatchInstanceProfile',
+        )
+
+        batch_spot_fleet_role = iam.Role(
+            self,
+            'BatchSpotFleetRole',
+            assumed_by=iam.ServicePrincipal('spotfleet.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AmazonEC2ContainerServiceforEC2Role'),
+            ]
+        )
+
+        # NOTE(SW): this should be generalised and added as a config option
+        batch_security_group = ec2.SecurityGroup.from_security_group_id(
+            self,
+            'SecruityGroupOutBoundOnly',
+            'sg-0e4269cd9c7c1765a',
+        )
+
+        batch_compute_environment = batch.ComputeEnvironment(
+            self,
+            'BatchComputeEnvironment',
+            compute_environment_name='agha-file-validation-compute-environment',
+            compute_resources=batch.ComputeResources(
+                vpc=vpc,
+                allocation_strategy=batch.AllocationStrategy.SPOT_CAPACITY_OPTIMIZED,
+                desiredv_cpus=0,
+                image=machine_image,
+                instance_role=batch_instance_profile.ref,
+                maxv_cpus=16,
+                security_groups=[batch_security_group],
+                spot_fleet_role=batch_spot_fleet_role,
+                type=batch.ComputeResourceType.SPOT,
+            )
+        )
+
+        job_queue = batch.JobQueue(
+            self,
+            'BatchJobQueue',
+            job_queue_name='agha-file-validation-job-queue',
+            compute_environments=[
+                batch.JobQueueComputeEnvironment(
+                    compute_environment=batch_compute_environment,
+                    order=1
+                )
+            ]
+        )
+
+        # TODO(SW): add job definition
 
         ################################################################################
         # Lambda general
