@@ -207,7 +207,7 @@ def perform_manifest_validation(manifest_df, submission_prefix, validation_messa
     if files_not_on_s3:
         messages_error.append('ERROR: files listed in manifest were absent from S3')
     # NOTE(SW): failing on this might be too strict; we may want to re-run validation on some
-    # files in-place. Though this would probably be trigger through a different entry point.
+    # files in-place. Though this would probably be triggered through a different entry point.
     # Strict manifest validation could be appropriate here in that case.
     if files_not_in_manifeset:
         messages_error.append('ERROR: files found on S3 absent from manifest.tsv')
