@@ -9,8 +9,6 @@ import boto3
 
 
 # TODO(SW): move STAGING_BUCKET entirely to Lambda function
-# TODO(SW): move email subject to Lambda function
-# TODO(SW): for each global env/ssm variable and AWS client, ensure they are defined
 
 
 # Set logging to info level
