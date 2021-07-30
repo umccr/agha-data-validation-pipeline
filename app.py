@@ -30,6 +30,8 @@ aws_env = {
 
 agha_props = {
     'namespace': 'agha',
+    # NOTE(SW): this will be a Docker image containing all necessary software tools
+    'container_image': 'NOT_YET_DEFINED',
     'staging_bucket': staging_bucket,
     'store_bucket': store_bucket,
     'slack_notify': slack_notify,

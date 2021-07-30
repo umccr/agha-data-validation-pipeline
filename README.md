@@ -65,6 +65,12 @@ command.
 ### agha_stack
 This stack contains a Lambda to run AGHA submission validations comparing the submitted `manifest.txt` file to the content of the corresponding S3 "folder".
 
-NOTE: this stack deploys a Lambda layer to provide `pandas` support to the Lambda. This requires that the pandas deployment package is build prior to deploying the stack.
-
-In the `lambdas/layers/pandas` direcctory execute the `get_layer_packages.sh` script, which will generate the `lambdas/layers/pandas/python37-pandas.zip` referenced in the stack.
+#### Lambda layer requirement
+This stack deploys Lambda layers to provide runtime code to the Lambda function. Consequently, the Lambda layers must be
+built prior to stack deployment. This is done by running `build_lambda_layers.sh` on each Lambda layer directory in
+`lambda/layers/`:
+```bash
+for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d); do
+  ./build_lambda_layers.sh ${dir};
+done
+```

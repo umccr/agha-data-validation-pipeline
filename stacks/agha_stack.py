@@ -59,10 +59,6 @@ class AghaStack(core.Stack):
         ################################################################################
         # Batch
 
-        # TODO:
-        # Launch template: ec2.CfnLaunchTemplate (see README.md)
-        #  - probably only need job template
-
         vpc = ec2.Vpc.from_lookup(
             self,
             'MainVPC',
@@ -119,6 +115,30 @@ class AghaStack(core.Stack):
             'sg-0e4269cd9c7c1765a',
         )
 
+        block_device_mappings = [
+            ec2.CfnLaunchTemplate.BlockDeviceMappingProperty(
+                device_name='/dev/xvdcz',
+                ebs=ec2.CfnLaunchTemplate.EbsProperty(
+                    encrypted=True,
+                    volume_size=100,
+                    volume_type='gp2'
+                )
+            ),
+        ]
+
+        batch_launch_template = ec2.CfnLaunchTemplate(
+            self,
+            'BatchLaunchTemplate',
+            launch_template_name='agha-launch-template',
+            launch_template_data=ec2.CfnLaunchTemplate.LaunchTemplateDataProperty(
+                block_device_mappings=block_device_mappings,
+            ),
+        )
+
+        batch_launch_template_spec = batch.LaunchTemplateSpecification(
+            launch_template_name=batch_launch_template.launch_template_name,
+        )
+
         batch_compute_environment = batch.ComputeEnvironment(
             self,
             'BatchComputeEnvironment',
@@ -129,6 +149,7 @@ class AghaStack(core.Stack):
                 desiredv_cpus=0,
                 image=machine_image,
                 instance_role=batch_instance_profile.ref,
+                launch_template=batch_launch_template_spec,
                 maxv_cpus=16,
                 security_groups=[batch_security_group],
                 spot_fleet_role=batch_spot_fleet_role,
@@ -148,23 +169,35 @@ class AghaStack(core.Stack):
             ]
         )
 
-        # TODO(SW): add job definition
+        batch_job_definition = batch.JobDefinition(
+            self,
+            'BatchJobDefinition',
+            job_definition_name='agha-file-validation',
+            container=batch.JobDefinitionContainer(
+                image=ecs.ContainerImage.from_registry(name=props['container_image']),
+                command=['True'],
+                memory_limit_mib=1000,
+                vcpus=1,
+            ),
+        )
 
         ################################################################################
         # Lambda general
 
-        pandas_layer = lmbda.LayerVersion(
+        runtime_layer = lmbda.LayerVersion(
             self,
-            "PandasLambdaLayer",
-            code=lmbda.Code.from_asset("lambdas/layers/pandas/python37-pandas.zip"),
-            compatible_runtimes=[lmbda.Runtime.PYTHON_3_7],
-            description="A pandas layer for python 3.7"
+            "RuntimeLambdaLayer",
+            code=lmbda.Code.from_asset("lambdas/layers/runtime/python38-runtime.zip"),
+            compatible_runtimes=[lmbda.Runtime.PYTHON_3_8],
+            description="A runtime layer for python 3.8"
         )
 
-        scipy_layer = lmbda.LayerVersion.from_layer_version_arn(
+        shared_layer = lmbda.LayerVersion(
             self,
-            id="SciPyLambdaLayer",
-            layer_version_arn='arn:aws:lambda:ap-southeast-2:817496625479:layer:AWSLambda-Python37-SciPy1x:20'
+            "SharedLambdaLayer",
+            code=lmbda.Code.from_asset("lambdas/layers/shared/python38-shared.zip"),
+            compatible_runtimes=[lmbda.Runtime.PYTHON_3_8],
+            description="A shared layer for python 3.8"
         )
 
         ################################################################################
@@ -196,7 +229,7 @@ class AghaStack(core.Stack):
             'ValidationLambda',
             function_name=f"{props['namespace']}_validation_lambda",
             handler='validation.handler',
-            runtime=lmbda.Runtime.PYTHON_3_7,
+            runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
             code=lmbda.Code.from_asset('lambdas/validation'),
             environment={
@@ -210,8 +243,8 @@ class AghaStack(core.Stack):
             },
             role=validation_lambda_role,
             layers=[
-                pandas_layer,
-                scipy_layer
+                runtime_layer,
+                shared_layer,
             ]
         )
 
@@ -233,7 +266,7 @@ class AghaStack(core.Stack):
             'S3EventRecorderLambda',
             function_name=f"{props['namespace']}_s3_event_recorder_lambda",
             handler='s3_event_recorder.handler',
-            runtime=lmbda.Runtime.PYTHON_3_7,
+            runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
             code=lmbda.Code.from_asset('lambdas/s3_event_recorder'),
             environment={
@@ -270,7 +303,7 @@ class AghaStack(core.Stack):
             'FolderLockLambda',
             function_name=f"{props['namespace']}_folder_lock_lambda",
             handler='folder_lock.handler',
-            runtime=lmbda.Runtime.PYTHON_3_7,
+            runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
             code=lmbda.Code.from_asset('lambdas/folder_lock'),
             environment={
@@ -308,7 +341,7 @@ class AghaStack(core.Stack):
             'S3EventRouterLambda',
             function_name=f"{props['namespace']}_s3_event_router_lambda",
             handler='s3_event_router.handler',
-            runtime=lmbda.Runtime.PYTHON_3_7,
+            runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(20),
             code=lmbda.Code.from_asset('lambdas/s3_event_router'),
             environment={
