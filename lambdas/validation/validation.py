@@ -75,6 +75,12 @@ def handler(event, context):
         with_decryption=True
     )
 
+    # Check we can access the staging bucket
+    if STAGING_BUCKET not in buckets:
+        buckets_str = '\r\t'.join(buckets)
+        LOGGER.critical(f'could not find S3 bucket \'{STAGING_BUCKET}\', got:\r{buckets_str}')
+        sys.exit(1)
+
     # Parse event data and get record
     record = process_event_data(event)
     data = Submission(record)

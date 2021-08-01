@@ -8,9 +8,6 @@ import sys
 import boto3
 
 
-# TODO(SW): move STAGING_BUCKET entirely to Lambda function
-
-
 # Set logging to info level
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
@@ -122,15 +119,11 @@ def check_iam():
 
 
 def check_s3():
-    check_defined('CLIENT_S3', 'STAGING_BUCKET')
+    check_defined('CLIENT_S3')
     try:
         buckets = CLIENT_S3.list_buckets()
     except Exception as e:
         LOGGER.critical(f'could access S3 buckets:\r{e}')
-        sys.exit(1)
-    if STAGING_BUCKET not in buckets:
-        buckets_str = '\r\t'.join(buckets)
-        LOGGER.critical(f'could not find S3 bucket \'{STAGING_BUCKET}\', got:\r{buckets_str}')
         sys.exit(1)
 
 
