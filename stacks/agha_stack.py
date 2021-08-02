@@ -201,11 +201,11 @@ class AghaStack(core.Stack):
         )
 
         ################################################################################
-        # Process manifest Lambda
+        # Manifest processor Lambda
 
-        process_manifest_lambda_role = iam.Role(
+        manifest_processor_lambda_role = iam.Role(
             self,
-            'ProcessManifestLambdaRole',
+            'ManifestProcessorLambdaRole',
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole'),
@@ -214,7 +214,7 @@ class AghaStack(core.Stack):
                 iam.ManagedPolicy.from_aws_managed_policy_name('IAMReadOnlyAccess')
             ]
         )
-        process_manifest_lambda_role.add_to_policy(
+        manifest_processor_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
                     "ses:SendEmail",
@@ -224,14 +224,14 @@ class AghaStack(core.Stack):
             )
         )
 
-        process_manifest_lambda = lmbda.Function(
+        manifest_processor_lambda = lmbda.Function(
             self,
-            'ProcessManifestLambda',
-            function_name=f"{props['namespace']}_process_manifest_lambda",
-            processr='process_manifest.processr',
+            'ManifestProcessorLambda',
+            function_name=f"{props['namespace']}_manifest_processor_lambda",
+            handler='manifest_processor.handler',
             runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
-            code=lmbda.Code.from_asset('lambdas/process_manifest'),
+            code=lmbda.Code.from_asset('lambdas/manifest_processor'),
             environment={
                 'STAGING_BUCKET': staging_bucket.bucket_name,
                 'DYNAMODB_TABLE': props['dynamodb_table'],
@@ -244,7 +244,7 @@ class AghaStack(core.Stack):
                 'MANAGER_EMAIL': props['manager_email'],
                 'SENDER_EMAIL': props['sender_email'],
             },
-            role=process_manifest_lambda_role,
+            role=manifest_processor_lambda_role,
             layers=[
                 runtime_layer,
                 shared_layer,
