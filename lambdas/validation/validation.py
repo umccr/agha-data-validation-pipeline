@@ -20,11 +20,11 @@ MESSAGES_STORE = list()
 # Set with error handling
 STAGING_BUCKET = None
 DYNAMODB_TABLE = None
+BATCH_QUEUE_NAME = None
+JOB_DEFINITION_NAME = None
 
-# Email subject
+# Other
 EMAIL_SUBJECT = '[AGHA service] Submission received'
-
-# Set required manifest columns
 MANIFEST_REQUIRED_COLUMNS = {'filename', 'checksum', 'agha_study_id'}
 
 
@@ -42,6 +42,8 @@ class SubmissionData:
         self.manifest_key = str()
 
         self.manifest_data = pd.DataFrame()
+        self.manifest_files = list()
+        self.extra_files = list()
 
 
 def handler(event, context):
@@ -53,6 +55,8 @@ def handler(event, context):
     # Lambda-specific
     STAGING_BUCKET = shared.get_environment_variable('STAGING_BUCKET')
     DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
+    BATCH_QUEUE_NAME = shared.get_environment_variable('BATCH_QUEUE_NAME')
+    JOB_DEFINITION_NAME = shared.get_environment_variable('JOB_DEFINITION_NAME')
     # Shared
     shared.SLACK_NOTIFY = shared.get_environment_variable('SLACK_NOTIFY')
     shared.EMAIL_NOTIFY = shared.get_environment_variable('EMAIL_NOTIFY')
@@ -75,10 +79,23 @@ def handler(event, context):
         with_decryption=True
     )
 
+    # Perform some checks before processing begins
     # Check we can access the staging bucket
-    if STAGING_BUCKET not in buckets:
+    response = CLIENT_S3.list_buckets()
+    buckets_available = response.get('Buckets', list())
+    if STAGING_BUCKET not in buckets_available:
         buckets_str = '\r\t'.join(buckets)
         LOGGER.critical(f'could not find S3 bucket \'{STAGING_BUCKET}\', got:\r{buckets_str}')
+        sys.exit(1)
+    # Check job definition exists
+    response = CLIENT_BATCH.describe_job_definitions(jobDefinitionName=JOB_DEFINITION_NAME)
+    job_definitions = response.get('jobDefinitions', list())
+    if not job_definitions:
+        LOGGER.critical(f'could not find job definition \'{JOB_DEFINITION_NAME}\'')
+        sys.exit(1)
+    elif len(job_definitions) > 1:
+        job_definition_names = [jd.get('jobDefinitionName') for jd in job_definitions]
+        LOGGER.critical(f'got more than one job definition:\r{job_definition_names}')
         sys.exit(1)
 
     # Parse event data and get record
@@ -101,12 +118,21 @@ def handler(event, context):
 
     # Collect manifest data and then validate
     data.manifest_data = retrieve_manifest_data(data)
-    validate_manfiest_data(data)
+    data.manifest_files, data.extra_files = validate_manfiest_data(data)
 
     # Process each record
-    # NOTE: assuming all listed in manifest exist
-    for row in data.manifest_data.itertuples():
-        process_manifest_entry(row)
+    # NOTE(SW): this logic ignores files that are on S3 but absent from manifest
+    for manifest_file in data.manifest_files:
+        process_manifest_entry(manifest_file, data)
+
+    # If any submission sucessful, enable CloudWatch event (scheduled to run lambda every n
+    # minutes). This lambda will:
+    #   1. check how mnay jobs are running for a group
+    #   2. if at least one running, do nothing
+    #   3. if none are running, query results and send email
+
+    # Alternatively, we just enable the above regardless to allow handling an notification of any
+    # Batch failures i.e. if all fail to submit that will then be reported
 
 
 def process_event_data(event):
@@ -155,7 +181,7 @@ def retrieve_manifest_data(data):
         notify_and_exit(data)
     try:
         manifest_str = io.BytesIO(manifest_obj['Body'].read())
-        manifest_data = pd.read_csv(manifest_str, sep='\t', encoding='utf8')
+        manifest_data = pd.read_csv(manifest_str, sep='\t', index_col='filename', encoding='utf8')
     except Exception as e:
         message = f'could not convert manifest into DataFrame:\r{e}'
         log_and_store_message(message, level='critical')
@@ -179,31 +205,31 @@ def validate_manifest(data):
     log_and_store_message(f'Entries in manifest: {len(data.manifest_data)}')
     # Files present on S3
     message_text = f'Entries on S3 (including manifest)'
-    files_present_s3 = set(get_listing(data.submission_prefix))
-    log_and_store_file_message(message_text, files_present_s3)
+    files_s3 = get_s3_filenames(data.bucket_name, data.submission_prefix)
+    log_and_store_file_message(message_text, files_s3)
     # Files missing from S3
-    manifest_files = set(manifest_df['filename'].to_list())
-    files_not_on_s3 = manifest_files.difference(files_present_s3)
+    files_manifest = set(manifest_df['filename'].to_list())
+    files_missing_from_s3 = files_manifest.difference(files_s3)
     message_text = f'Entries in manifest, but not on S3'
-    log_and_store_file_message(message_text, files_not_on_s3)
+    log_and_store_file_message(message_text, files_missing_from_s3)
     # Extra files present on S3
-    files_not_in_manifeset = files_present_s3.difference(manifest_files)
+    files_missing_from_manifest = files_s3.difference(files_manifest)
     message_text = f'Entries on S3, but not in manifest'
-    log_and_store_file_message(message_text, files_not_in_manifeset)
+    log_and_store_file_message(message_text, files_missing_from_manifest)
     # Files present in manifest *and* S3
-    files_in_both = manifest_files.intersection(files_present_s3)
+    files_matched = files_manifest.intersection(files_s3)
     message_text = f'Entries common in manifest and S3'
-    log_and_store_file_message(message_text, files_in_both)
+    log_and_store_file_message(message_text, files_matched)
     # Fail if there are extra files (other than manifest.txt) or missing files
-    if 'manifest.txt' in files_not_in_manifeset:
-        files_not_in_manifeset.remove('manifest.txt')
+    if 'manifest.txt' in files_missing_from_manifest:
+        files_missing_from_s3.remove('manifest.txt')
     messages_error = list()
-    if files_not_on_s3:
+    if files_missing_from_s3:
         messages_error.append('files listed in manifest were absent from S3')
     # NOTE(SW): failing on this might be too strict; we may want to re-run validation on some
     # files in-place. Though this would probably be triggered through a different entry point.
     # Strict manifest validation could be appropriate here in that case.
-    if files_not_in_manifeset:
+    if files_missing_from_manifest:
         messages_error.append('files found on S3 absent from manifest.tsv')
     if messages_error:
         plurality = 'message' if len(manifest_error_messages) == 1 else 'messages'
@@ -223,28 +249,87 @@ def validate_manifest(data):
         data.submitter_email,
         data.submission_prefix,
     )
+    # NOTE(SW): returning files that are on S3 and (1) in manifest, and (2) not in manifest. This
+    # will allow flexbility in the future for any refactor if we decide to modify handling of
+    # missing files
+    return list(files_matched), list(files_missing_from_manifest)
 
 
-def process_manifest_entry(row, data):
-    # Get file path
-
+def process_manifest_entry(filename, data, job_definition):
     # Construct partition key and sort key
+    study_id = data.manifest_data['agha_study_id'].loc[filename]
+    key_partition = f'{study_id}_{filename}'
 
-    # Perform dynamodb lookup, branch:
-    #   - exists: log, update keys, continue on 'doesn't exist' branch
-    #   - doesn't exist: create new record with keys
-    # NOTE: must decide behaviour for 'exists' branch:
+    # Get sort key
+    # NOTE(SW): currently creating new record if previous one exists. Could modify this behaviour
+    # here to:
     #   - ignore and overwrite
     #   - set new keys, create new record
     #   - keep record and recompute only missing values
     #   - keep record and some specified set of values
     #   - allow user to have some choice
 
-    # Compute required jobs
+    # TODO: implement this function with correct looping/pagination. option sort key
+    records = get_records(key_partition)
+    # TODO: refactor as single function
+    if records:
+        records_current = [r for r in records if r['in_use']]
+        assert len(records_current) == 1
+        [record_current] = records_current
+        file_number = record_current['file_number'] += 1
+    else:
+        file_number = 1
+    sort_key = f'{filename}_{file_number}'
 
-    # Get job definition
+    # Compute required jobs
+    # NOTE(SW): given the above behaviour of creating new records if previous exists, we will
+    # always need to run all jobs. Hardcode here for now.
+    tasks = ['checksum', 'validate_file_type', 'indexing']
+
+    # Construct command for Batch job
+    command = textwrap.dedent(f'''
+        validate_file.py \
+          --partition_key {partition_key} \
+          --sort_key {sort_key} \
+          --tasks {tasks}
+    ''')
+
     # Submit Batch job
-    # NOTE: code for this could be placed in the shared Lambda layer
+    job_name = f'agha_validation__{key_partition}__{key_sort}'
+    response = client.submit_job(
+        jobName=job_name,
+        jobQueue=aws.BATCH_QUEUE,
+        jobDefinition=JOB_DEFINITION_NAME,
+        containerOverrides={'memory': 4000, 'command': ['bash', '-o', 'pipefail', '-c', command]},
+    )
+
+
+def get_s3_object_metadata(bucket, prefix):
+    results = list()
+    response = S3_CLIENT.list_objects_v2(
+        Bucket='umccr-temp-dev',
+        Prefix=prefix
+    )
+    if not (object_mdata := response['Contents']):
+        message = f'could not retrieve files from S3 at s3://{bucket}{prefix}'
+        log_and_store_message(message, level='critical')
+        notify_and_exit(data)
+    else:
+        results.extend(object_mdata)
+    while response['IsTruncated']:
+        token = response['NextContinuationToken']
+        response = S3_CLIENT.list_objects_v2(
+            Bucket='umccr-temp-dev',
+            Prefix=prefix,
+            ContinuationToken=token
+        )
+        results.extend(object_mdata)
+    return results
+
+
+def list_s3_objects(bucket, prefix):
+    object_metadata = get_s3_object_metadata(bucket, prefix)
+    return [os.path.basename(md.get('Key')) for md in object_metadata]
 
 
 def get_listing(prefix: str):

@@ -160,7 +160,7 @@ class AghaStack(core.Stack):
         job_queue = batch.JobQueue(
             self,
             'BatchJobQueue',
-            job_queue_name='agha-file-validation-job-queue',
+            job_queue_name=props['job_definition_name'],
             compute_environments=[
                 batch.JobQueueComputeEnvironment(
                     compute_environment=batch_compute_environment,
@@ -172,7 +172,7 @@ class AghaStack(core.Stack):
         batch_job_definition = batch.JobDefinition(
             self,
             'BatchJobDefinition',
-            job_definition_name='agha-file-validation',
+            job_definition_name=props['job_definition_name'],
             container=batch.JobDefinitionContainer(
                 image=ecs.ContainerImage.from_registry(name=props['container_image']),
                 command=['True'],
@@ -234,6 +234,9 @@ class AghaStack(core.Stack):
             code=lmbda.Code.from_asset('lambdas/validation'),
             environment={
                 'STAGING_BUCKET': staging_bucket.bucket_name,
+                'DYNAMODB_TABLE': props['dynamodb_table'],
+                'JOB_DEFINITION_NAME': props['job_definition_name'],
+                'BATCH_QUEUE_NAME': props['batch_queue_name'],
                 'SLACK_NOTIFY': props['slack_notify'],
                 'EMAIL_NOTIFY': props['email_notify'],
                 'SLACK_HOST': props['slack_host'],
