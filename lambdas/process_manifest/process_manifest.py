@@ -81,14 +81,14 @@ def handler(event, context):
 
     # Perform some checks before processing begins
     # Check we can access the staging bucket
-    response = CLIENT_S3.list_buckets()
+    response = shared.CLIENT_S3.list_buckets()
     buckets_available = response.get('Buckets', list())
     if STAGING_BUCKET not in buckets_available:
         buckets_str = '\r\t'.join(buckets)
         LOGGER.critical(f'could not find S3 bucket \'{STAGING_BUCKET}\', got:\r{buckets_str}')
         sys.exit(1)
     # Check job definition exists
-    response = CLIENT_BATCH.describe_job_definitions(jobDefinitionName=JOB_DEFINITION_NAME)
+    response = shared.CLIENT_BATCH.describe_job_definitions(jobDefinitionName=JOB_DEFINITION_NAME)
     job_definitions = response.get('jobDefinitions', list())
     if not job_definitions:
         LOGGER.critical(f'could not find job definition \'{JOB_DEFINITION_NAME}\'')
@@ -125,14 +125,13 @@ def handler(event, context):
     for manifest_file in data.manifest_files:
         process_manifest_entry(manifest_file, data)
 
-    # If any submission sucessful, enable CloudWatch event (scheduled to run lambda every n
-    # minutes). This lambda will:
-    #   1. check how mnay jobs are running for a group
-    #   2. if at least one running, do nothing
-    #   3. if none are running, query results and send email
-
-    # Alternatively, we just enable the above regardless to allow handling an notification of any
-    # Batch failures i.e. if all fail to submit that will then be reported
+    # Enable CloudWatch event (scheduled to run lambda every n minutes). This lambda will:
+    #   1. check how many jobs are running for a submission group
+    #   2. if at least one job running, do nothing except check for dynamodb consistency
+    #       - check consistency with database? might be expensive, relatively speaking
+    #       - only for completed status
+    #       - ignore jobs that have finished within couple minutes to avoid racing updates
+    #   3. if no jobs are running, query results and send email
 
 
 def process_event_data(event):
@@ -174,7 +173,7 @@ def process_event_data(event):
 def retrieve_manifest_data(data):
     LOGGER.info(f'Getting manifest from: {data.bucket_name}/{data.manifest_key}')
     try:
-        manifest_obj = S3_CLIENT.get_object(Bucket=data.bucket_name, Key=data.manifest_key)
+        manifest_obj = shared.CLIENT_S3.get_object(Bucket=data.bucket_name, Key=data.manifest_key)
     except botocore.exceptions.ClientError as e:
         message = f'could not retrieve manifest data from S3:\r{e}'
         log_and_store_message(message, level='critical')
@@ -287,18 +286,21 @@ def process_manifest_entry(filename, data, job_definition):
     tasks = ['checksum', 'validate_file_type', 'indexing']
 
     # Construct command for Batch job
+    # NOTE(SW): bucket must be passed to test S3 upload withing Batch script
     command = textwrap.dedent(f'''
         validate_file.py \
           --partition_key {partition_key} \
           --sort_key {sort_key} \
-          --tasks {tasks}
+          --tasks {tasks} \
+          --bucket {STAGING_BUCKET} \
+          --dynamodb_table {DYNAMODB_TABLE}
     ''')
 
     # Submit Batch job
     job_name = f'agha_validation__{key_partition}__{key_sort}'
     response = client.submit_job(
         jobName=job_name,
-        jobQueue=aws.BATCH_QUEUE,
+        jobQueue=BATCH_QUEUE_NAME,
         jobDefinition=JOB_DEFINITION_NAME,
         containerOverrides={'memory': 4000, 'command': ['bash', '-o', 'pipefail', '-c', command]},
     )
@@ -306,11 +308,11 @@ def process_manifest_entry(filename, data, job_definition):
 
 def get_s3_object_metadata(bucket, prefix):
     results = list()
-    response = S3_CLIENT.list_objects_v2(
+    response = shared.CLIENT_S3.list_objects_v2(
         Bucket='umccr-temp-dev',
         Prefix=prefix
     )
-    if not (object_mdata := response['Contents']):
+    if not (object_mdata := response.get('Contents')):
         message = f'could not retrieve files from S3 at s3://{bucket}{prefix}'
         log_and_store_message(message, level='critical')
         notify_and_exit(data)
@@ -318,7 +320,7 @@ def get_s3_object_metadata(bucket, prefix):
         results.extend(object_mdata)
     while response['IsTruncated']:
         token = response['NextContinuationToken']
-        response = S3_CLIENT.list_objects_v2(
+        response = shared.CLIENT_S3.list_objects_v2(
             Bucket='umccr-temp-dev',
             Prefix=prefix,
             ContinuationToken=token
@@ -330,26 +332,6 @@ def get_s3_object_metadata(bucket, prefix):
 def list_s3_objects(bucket, prefix):
     object_metadata = get_s3_object_metadata(bucket, prefix)
     return [os.path.basename(md.get('Key')) for md in object_metadata]
-
-
-def get_listing(prefix: str):
-    # get the S3 object listing for the prefix
-    files = list()
-    file_batch = S3_CLIENT.list_objects_v2(
-        Bucket=STAGING_BUCKET,
-        Prefix=prefix
-    )
-    if file_batch.get('Contents'):
-        files.extend(extract_filenames(file_batch['Contents']))
-    while file_batch['IsTruncated']:
-        token = file_batch['NextContinuationToken']
-        file_batch = S3_CLIENT.list_objects_v2(
-            Bucket=STAGING_BUCKET,
-            Prefix=prefix,
-            ContinuationToken=token
-        )
-        files.extend(extract_filenames(file_batch['Contents']))
-    return files
 
 
 def extract_filenames(listing: list):
