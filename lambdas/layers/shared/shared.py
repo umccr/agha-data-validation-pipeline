@@ -106,17 +106,6 @@ def make_email_body_html(submission, submitter, messages):
     return body_html
 
 
-def get_record(partition_key, sort_key, dynamodb_table):
-    response = dynamodb_table.get_item(
-        Key={'partition_key': partition_key, 'sort_key': sort_key}
-    )
-    if 'Item' not in response:
-        msg_key_text = f'partition key {partition_key} and sort key {sort_key}'
-        LOGGER.critical(f'could not retrieve DynamoDB entry with {msg_key_text}')
-        sys.exit(1)
-    return response.get('Item')
-
-
 def execute_command(command):
     process_result = subprocess.run(
         command,

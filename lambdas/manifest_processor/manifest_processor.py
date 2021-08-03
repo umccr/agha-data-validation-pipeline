@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+# NOTE(SW): since we're no longer aiming for full automation, it is probably a better idea just to
+# completely decouple from dynamodb and only interact with it during result ingestion, which will
+# occur in a specific lambda triggered by S3 events or Batch events (captured through CloudWatch).
+
 import io
 import json
 import os
@@ -29,19 +34,39 @@ SLACK_CHANNEL = None
 EMAIL_RECIPIENTS = None
 EMAIL_SENDER = None
 
-# AWS clients
+# AWS clients, resources
 CLIENT_BATCH = None
-CLIENT_DYNAMODB = None
 CLIENT_IAM = None
 CLIENT_S3 = None
 CLIENT_SES = None
 CLIENT_SSM = None
+RESOURCE_DYNAMODB = None
 
 # Email/name regular expressions
-AWS_ID_PATTERN = '[0-9A-Z]{21}'
-EMAIL_PATTERN = '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
-USER_RE = re.compile(f'AWS:({AWS_ID_PATTERN})')
-SSO_RE = re.compile(f'AWS:({AWS_ID_PATTERN}):({EMAIL_PATTERN})')
+AWS_ID_RE = '[0-9A-Z]{21}'
+EMAIL_RE = '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+USER_RE = re.compile(f'AWS:({AWS_ID_RE})')
+SSO_RE = re.compile(f'AWS:({AWS_ID_RE}):({EMAIL_RE})')
+
+# Manifest field validation related
+AGHA_ID_RE = re.compile('^A\d{7,8}(?:_mat|_pat|_R1|_R2|_R3)?$|^unknown$')
+MD5_RE = re.compile('^[0-9a-f]{32}$')
+FLAGSHIPS = {
+    'ACG',
+    'BM',
+    'CARDIAC',
+    'CHW',
+    'EE',
+    'GI',
+    'HIDDEN',
+    'ICCON',
+    'ID',
+    'KidGen',
+    'LD',
+    'MCD',
+    'MITO',
+    'NMD'
+}
 
 # Other
 EMAIL_SUBJECT = '[AGHA service] Submission received'
@@ -56,6 +81,7 @@ class SubmissionData:
 
         self.submitter_name = str()
         self.submitter_email = str()
+        self.flagship = str()
 
         self.submission_prefix = str()
         self.bucket_name = str()
@@ -85,13 +111,13 @@ def handler(event, context):
     MANAGER_EMAIL = shared.get_environment_variable('MANAGER_EMAIL')
     SENDER_EMAIL = shared.get_environment_variable('SENDER_EMAIL')
 
-    # Get AWS clients
+    # Get AWS clients, resources
     CLIENT_BATCH = shared.get_client('batch')
-    CLIENT_DYNAMODB = shared.get_client('dynamodb')
     CLIENT_IAM = shared.get_client('iam')
     CLIENT_S3 = shared.get_client('s3')
     CLIENT_SES = shared.get_client('ses')
     CLIENT_SSM = shared.get_client('ssm')
+    RESOURCE_DYNAMODB = boto3.resource('dynamodb').dynamodb.Table(DYNAMODB_TABLE)
 
     # Get SSM value
     SLACK_WEBHOOK_ENDPOINT = shared.get_ssm_parameter(
@@ -118,14 +144,45 @@ def handler(event, context):
     data.submission_prefix = os.path.dirname(manifest_key)
     LOGGER.info(f'Submission with prefix: {data.submission_prefix}')
 
+    # Obtain flagship from S3 key and require it to be a known value
+    data.flagship, *others = os.path.split(data.manifest_key)
+    if data.flagship not in FLAGSHIPS:
+        flagships_str = '\r\t'.join(FLAGSHIP)
+        message = f'got unrecognised flagship \'{data.flagship}\', expected one from:\r{flagships_str}'
+        log_and_store_message(message, level='critical')
+        notify_and_exit(data)
+
+    # NOTE(SW): here validation for upload subdirectory will be performed, requiring:
+    #   - s3://<bucket>/<flagship>/<date>_<n>/{manifest.txt,*bam,*vcf.gz,etc}
+    # where <date>_<n> is the upload subdirectory with format YYYYMMDD and where <n> is an
+    # incremental counter to avoid colisions for multiple same-day deposits.
+
     # Collect manifest data and then validate
     data.manifest_data = retrieve_manifest_data(data)
     data.manifest_files, data.extra_files = validate_manfiest_data(data)
 
-    # Process each record
+    # Process each record and prepare Batch commands
+
+    # NOTE(SW): Batch job submission is not done within the loop to avoid a sitation where some job
+    # submissions may succeed and then one fails, causing the remainingi jobs to be not processed
+    # at all. The current strategy is essentially 'all or nothing'.
+
     # NOTE(SW): this logic ignores files that are on S3 but absent from manifest
+
+    batch_job_data = list()
     for manifest_file in data.manifest_files:
-        process_manifest_entry(manifest_file, data)
+        job_data = process_manifest_entry(manifest_file, data)
+        batch_job_data.append(job_data)
+
+    # Submit Batch jobs
+    for job_data in batch_job_data:
+        command = ['bash', '-o', 'pipefail', '-c', job_data['command']]
+        response = client.submit_job(
+            jobName=job_data['name'],
+            jobQueue=BATCH_QUEUE_NAME,
+            jobDefinition=JOB_DEFINITION_NAME,
+            containerOverrides={'memory': 4000, 'command': command}
+        )
 
 
 def process_event_data(event):
@@ -193,7 +250,7 @@ def validate_manifest(data):
         log_and_store_message(f'{message_base}\r{cmissing_str}\rGot:\r{cfound_str}', level='critical')
         notify_and_exit(data)
 
-    # Entry validation
+    # File discovery
     # Entry count
     log_and_store_message(f'Entries in manifest: {len(data.manifest_data)}')
     # Files present on S3
@@ -224,6 +281,19 @@ def validate_manifest(data):
     # Strict manifest validation could be appropriate here in that case.
     if files_missing_from_manifest:
         messages_error.append('files found on S3 absent from manifest.tsv')
+
+    # Field validation
+    for row in data.manifest_data.itertuples():
+        # Study ID
+        if not AGHA_ID_RE.match(row.agha_study_id):
+            message = f'got malformed AGHA study ID for {row.index} ({row.agha_study_id})'
+            messages_error.append(message)
+        # Checksum
+        if not MD5_RE.match(row.agha_study_id):
+            message = f'got malformed MD5 checksum for {row.index} ({row.checksum})'
+            messages_error.append(message)
+
+    # Check for errors
     if messages_error:
         plurality = 'message' if len(manifest_error_messages) == 1 else 'messages'
         errors = '\t\r'.join(manifest_error_messages)
@@ -249,11 +319,16 @@ def validate_manifest(data):
 
 
 def process_manifest_entry(filename, data, job_definition):
-    # Construct partition key and sort key
-    study_id = data.manifest_data['agha_study_id'].loc[filename]
+    # NOTE(SW): it is not clear whether study id and filename is sufficiently unique. May need to
+    # also include submission subdir (i.e. the date of upload). The answer should become apparent
+    # when/after testing real data.
+
+    # Grab file info, and construct partition key
+    file_info = data.manifest_data.loc[filename]
+    study_id = file_info['agha_study_id']
     key_partition = f'{study_id}_{filename}'
 
-    # Get sort key
+    # Get sort key and create record
     # NOTE(SW): currently creating new record if previous one exists. Could modify this behaviour
     # here to:
     #   - ignore and overwrite
@@ -261,28 +336,26 @@ def process_manifest_entry(filename, data, job_definition):
     #   - keep record and recompute only missing values
     #   - keep record and some specified set of values
     #   - allow user to have some choice
+    file_number, records_existing = get_existing_records_and_filenumber(filename, key_partition)
+    key_sort = f'{filename}_{file_number}'
+    s3_key = os.path.join(data.submission_prefix, filename)
+    create_record(
+        key_partition,
+        key_sort,
+        data.flagship,
+        s3_key,
+        file_number,
+        file_info,
+        records_existing
+    )
 
-    # TODO: implement this function with correct looping/pagination. option sort key
-    records = get_records(key_partition)
-    # TODO: refactor as single function
-    if records:
-        records_current = [r for r in records if r['in_use']]
-        assert len(records_current) == 1
-        [record_current] = records_current
-        file_number = record_current['file_number'] += 1
-    else:
-        file_number = 1
-    sort_key = f'{filename}_{file_number}'
-
-    # TODO(SW): create records
-
-    # Compute required jobs
+    # Determine required jobs
     # NOTE(SW): given the above behaviour of creating new records if previous exists, we will
     # always need to run all jobs. Hardcode here for now.
     tasks = ['checksum', 'validate_file_type', 'indexing']
 
-    # Construct command for Batch job
-    # NOTE(SW): bucket must be passed to test S3 upload withing Batch script
+    # Construct command and job name
+    name = f'agha_validation__{key_partition}__{key_sort}'
     command = textwrap.dedent(f'''
         validate_file.py \
           --partition_key {partition_key} \
@@ -290,15 +363,7 @@ def process_manifest_entry(filename, data, job_definition):
           --tasks {tasks} \
           --dynamodb_table {DYNAMODB_TABLE}
     ''')
-
-    # Submit Batch job
-    job_name = f'agha_validation__{key_partition}__{key_sort}'
-    response = client.submit_job(
-        jobName=job_name,
-        jobQueue=BATCH_QUEUE_NAME,
-        jobDefinition=JOB_DEFINITION_NAME,
-        containerOverrides={'memory': 4000, 'command': ['bash', '-o', 'pipefail', '-c', command]},
-    )
+    return {'name': name, 'command': command}
 
 
 def get_s3_object_metadata(bucket, prefix):
@@ -334,6 +399,90 @@ def extract_filenames(listing: list):
     for item in listing:
         filenames.append(os.path.basename(item['Key']))
     return filenames
+
+
+def get_sort_key_and_existing_records(filename, key_partition):
+    records = get_records(key_partition)
+    if records:
+        records_current = [r for r in records if r['in_use']]
+        assert len(records_current) == 1
+        [record_current] = records_current
+        file_number = record_current['file_number'] += 1
+    else:
+        file_number = 1
+    return file_number, records
+
+
+def get_records(partition_key):
+    records = list()
+    response = DYNAMODB_TABLE.query(
+        KeyConditionExpression=boto3.dynamodb.conditions.Key('partition_key').eq(partition_key)
+    )
+    if 'Items' not in response:
+        message_key = f'partition key ({partition_key}) and sort key ({sort_key}) in {DYNAMODB_TABLE}'
+        message = f'could not any records using {message_key}'
+        log_and_store_message(message, level='critical')
+        notify_and_exit(data)
+    else:
+        records.extend(response.get('Items'))
+    while last_result_key := response.get('LastEvaluatedKey'):
+        response = DYNAMODB_TABLE.query(
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('partition_key').eq(partition_key),
+            ExclusiveStartKey=last_result_key,
+        )
+        records.extend(response.get('Items'))
+    return records
+
+
+def create_record(
+    key_partition,
+    key_sort,
+    flagship,
+    s3_key,
+    file_number,
+    file_info,
+    records_existing
+):
+    # Set old records to inactive
+    for record in records_existing:
+        response = RESOURCE_DYNAMODB.update_item(
+            Key={
+                key_partition: item[key_partition],
+                key_sort: item[key_sort],
+            },
+            UpdateExpression='set active=:a',
+            ExpressionAttributeValues={':a': False},
+        )
+    # Create new record
+    record = {
+        'partition_key': key_partition,
+        'sort_key': key_sort,
+        'active': True,
+        'study_id': file_info['agha_study_id'],
+        'flagship': flagship,
+        'filename': file_info['filename'],
+        'file_number': file_number,
+        's3_bucket': STAGING_BUCKET,
+        's3_key': s3_key,
+        # Checksum
+        'provided_checksum': file_info['checksum'],
+        'calculated_checksum': 'not run',
+        'validated_checksum': 'not run',
+        # File type
+        'calculated_filetype': 'not run',
+        'validated_filetype': 'not run',
+        # Index
+        # NOTE(SW): disallowing indices for now
+        'has_index': False,
+        'index_result': 'not run',
+        'index_file_name': 'na',
+        'index_s3_bucket': 'na',
+        'index_s3_key': 'na',
+        # Misc
+        'validation_result': 'not determined',
+        'excluded': False,
+    }
+    RESOURCE_DYNAMODB.put_item(Item=fixture)
 
 
 def log_and_store_file_message(message_text, files):

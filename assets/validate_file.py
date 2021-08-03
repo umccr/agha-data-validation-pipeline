@@ -18,7 +18,6 @@ RESULTS_DATA = {
     'provided_checksum': 'not retrieved',
     'calculated_checksum': 'not run',
     'validated_checksum': 'not run',
-    'provided_filetype': 'not retrieved',
     'calculated_filetype': 'not run',
     'validated_filetype': 'not run',
     'provided_index': 'not retrieved',
@@ -26,6 +25,7 @@ RESULTS_DATA = {
     'index_filename': 'na',
     'index_s3_bucket': 'na',
     'index_s3_key': 'na'
+    'validation_result': 'not determined'
 }
 RESULTS_S3_BUCKET = 'umccr-agha-test-dev'
 RESULTS_S3_KEY_PREFIX = 'result_files/'
@@ -77,13 +77,11 @@ def main():
     # Get file info and load into results store
     file_info = shared.get_record(args.partition_key, args.sort_key)
     RESULTS_DATA['provided_checksum'] = file_info['provided_checksum']
-    RESULTS_DATA['provided_filetype'] = file_info['provided_filetype']
     RESULTS_DATA['provided_index'] = file_info['has_index']
     RESULTS_DATA['index_s3_bucket'] = file_info['index_s3_bucket']
     RESULTS_DATA['index_s3_key'] = file_info['index_s3_key']
     # Print file info to log
-    msg_list = [f'{k}: {record[k]}' for k in sorted(file_info)]
-    msg = '\r\t'.join(msg_list)
+    msg_list = [f'{k}: {record[k]}' for k in sorted(file_info)] msg = '\r\t'.join(msg_list)
     LOGGER.info(f'got record:\r{msg}'
 
     # Stage file from S3 and then validate
@@ -97,8 +95,34 @@ def main():
         index_fp, index_s3_bucket, index_s3_key = run_indexing(fp_local, file_info)
         S3_CLIENT.upload_file(index_fp, index_s3_bucket, index_s3_key)
 
+    # Set whether the file was validated (unpack for clarity)
+    valid_cs = RESULTS_DATA['validated_checksum']
+    valid_ft = RESULTS_DATA['validated_filetype']
+    # Branches:
+    #   - true:
+    #       - index *not* provided but indexed successfully
+    #       - index provided and indexing *not* attempted
+    #   - false:
+    #       - index *not* provided and indexing *failed*
+    #       - index provided and indexed successuflly (this should *never* occur)
+    ix_succeeded = RESULTS_DATA['index_result'] == 'succeeded'
+    valid_ix = not (not RESULTS_DATA['provided_index'] ^ ix_succeeded)
+    vresult = valid_cs and valid_ft and valid_ix
+    RESULTS_DATA['validation_result'] = 'valid' if vresult else 'not valid'
+
     # Write completed result to log and S3
     write_results_s3(file_info)
+
+
+def get_record(partition_key, sort_key, dynamodb_table):
+    response = dynamodb_table.get_item(
+        Key={'partition_key': partition_key, 'sort_key': sort_key}
+    )
+    if 'Item' not in response:
+        msg_key_text = f'partition key {partition_key} and sort key {sort_key}'
+        LOGGER.critical(f'could not retrieve DynamoDB entry with {msg_key_text}')
+        sys.exit(1)
+    return response.get('Item')
 
 
 def stage_file(s3_bucket, s3_key, filename):
@@ -125,7 +149,7 @@ def run_checksum(fp, file_info):
     if RESULTS_DATA['provided_checksum'] == RESULTS_DATA['calculated_checksum']:
         RESULTS_DATA['validated_checksum'] = 'valid'
     else:
-        RESULTS_DATA['validated_checksum'] = 'invalid'
+        RESULTS_DATA['validated_checksum'] = 'not valid'
     # Log results
     provided_str = f'provided:   {RESULTS_DATA["provided_checksum"]}'
     calculated_str  = f'calculated: {RESULTS_DATA["calculated_checksum"]}'
@@ -163,18 +187,12 @@ def run_file_type_validation(fp, file_info):
         RESULTS_DATA['validated_filetype'] = 'failed'
         write_results_s3(file_info)
         sys.exit(1)
-    elif file_info['provided_filetype'] != file_type.value:
-        LOGGER.info('file type does not match file type infered from extension')
-        RESULTS_DATA['validated_filetype'] = 'filetype mismatch'
-        write_results_s3(file_info)
-        sys.exit(1)
     else:
         RESULTS_DATA['validated_filetype'] = 'valid'
     # Log results
-    provided_str = f'provided:   {RESULTS_DATA["provided_filetype"]}'
     calculated_str  = f'calculated: {RESULTS_DATA["calculated_filetype"]}'
     validated_str = f'validated:  {RESULTS_DATA["validated_filetype"]}'
-    filetype_str = '{provided_str}\r\t{calculated_str}\r\t{validated_str}'
+    filetype_str = '{calculated_str}\r\t{validated_str}'
     LOGGER.info('file type validation results: {filetype_str}')
     return file_type
 
