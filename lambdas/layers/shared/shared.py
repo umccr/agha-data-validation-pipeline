@@ -1,6 +1,7 @@
 import http.client
 import logging
 import os
+import subprocess
 import sys
 
 
@@ -103,3 +104,25 @@ def make_email_body_html(submission, submitter, messages):
         insert += f'{msg}<br>\n'
     body_html = body_html.replace('PLACEHOLDER', insert)
     return body_html
+
+
+def get_record(partition_key, sort_key, dynamodb_table):
+    response = dynamodb_table.get_item(
+        Key={'partition_key': partition_key, 'sort_key': sort_key}
+    )
+    if 'Item' not in response:
+        msg_key_text = f'partition key {partition_key} and sort key {sort_key}'
+        LOGGER.critical(f'could not retrieve DynamoDB entry with {msg_key_text}')
+        sys.exit(1)
+    return response.get('Item')
+
+
+def execute_command(command):
+    process_result = subprocess.run(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+        encoding='utf-8'
+    )
+    return process_result

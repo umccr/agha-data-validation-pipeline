@@ -274,6 +274,8 @@ def process_manifest_entry(filename, data, job_definition):
         file_number = 1
     sort_key = f'{filename}_{file_number}'
 
+    # TODO(SW): create records
+
     # Compute required jobs
     # NOTE(SW): given the above behaviour of creating new records if previous exists, we will
     # always need to run all jobs. Hardcode here for now.
@@ -286,7 +288,6 @@ def process_manifest_entry(filename, data, job_definition):
           --partition_key {partition_key} \
           --sort_key {sort_key} \
           --tasks {tasks} \
-          --bucket {STAGING_BUCKET} \
           --dynamodb_table {DYNAMODB_TABLE}
     ''')
 
@@ -413,6 +414,5 @@ def send_notifications(messages, subject, submitter_name, submitter_email, submi
             SLACK_HOST,
             SLACK_CHANNEL,
             SLACK_WEBHOOK_ENDPOINT
-
         )
         LOGGER.info(f'Slack call response: {slack_response}')

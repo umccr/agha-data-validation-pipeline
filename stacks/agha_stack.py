@@ -35,23 +35,17 @@ class AghaStack(core.Stack):
         ################################################################################
         # DynamoDB
 
-        # TODO(SW): move this to shared location, add as layer to appropriate lambdas
-        TABLE_KEY_SCHEMA = {
-            'partition': {'attr_name': 's3_bucket', 'attr_type': dynamodb.AttributeType.STRING},
-            'sort':      {'attr_name': 'sort_key',  'attr_type': dynamodb.AttributeType.STRING},
-        }
-
         dynamodb_table = dynamodb.Table(
             self,
             'DynamoDBTable',
             table_name='agha-file-validation',
             partition_key=dynamodb.Attribute(
-                name=TABLE_KEY_SCHEMA['partition']['attr_name'],
-                type=TABLE_KEY_SCHEMA['partition']['attr_type'],
+                name='partition_key',
+                type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name=TABLE_KEY_SCHEMA['sort']['attr_name'],
-                type=TABLE_KEY_SCHEMA['sort']['attr_type'],
+                name='sort_key',
+                type=dynamodb.AttributeType.STRING,
             ),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
