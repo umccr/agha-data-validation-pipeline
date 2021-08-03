@@ -6,7 +6,6 @@ import boto3
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 VALIDATION_LAMBDA_ARN = os.environ.get('VALIDATION_LAMBDA_ARN')
 FOLDER_LOCK_LAMBDA_ARN = os.environ.get('FOLDER_LOCK_LAMBDA_ARN')
-S3_RECORDER_LAMBDA_ARN = os.environ.get('S3_RECORDER_LAMBDA_ARN')
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -213,7 +212,6 @@ def handler(event, context):
 
     # split event records into manifest and others
     # manifest events will be acted on by the validation and folder lock lambdas
-    # non manifest events will be passed on to the recorder lambda for persisting into DynamoDB
     manifest_records = list()
     non_manifest_records = list()
     for s3_record in s3_records:
@@ -230,13 +228,9 @@ def handler(event, context):
 
     logger.info(f"Processing {len(manifest_records)}/{len(non_manifest_records)} manifest/non-manifest events.")
 
-    # call corresponding lambda functions
-    # for manifest related events and others
-    if len(manifest_records) > 0:
+    # call corresponding lambda function for manifest related events and others
+    if manifest_records:
         v_res = call_lambda(VALIDATION_LAMBDA_ARN, {"Records": manifest_records})
         logger.info(f"Validation Lambda call response: {v_res}")
         fl_res = call_lambda(FOLDER_LOCK_LAMBDA_ARN, {"Records": manifest_records})
         logger.info(f"Folder Lock Lambda call response: {fl_res}")
-    if len(non_manifest_records) > 0:
-        ser_res = call_lambda(S3_RECORDER_LAMBDA_ARN, {"Records": non_manifest_records})
-        logger.info(f"S3 Event Recorder Lambda call response: {ser_res}")

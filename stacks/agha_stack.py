@@ -246,34 +246,6 @@ class AghaStack(core.Stack):
         )
 
         ################################################################################
-        # S3 event recorder Lambda
-
-        s3_event_recorder_lambda_role = iam.Role(
-            self,
-            'S3EventRecorderLambdaRole',
-            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole'),
-                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonDynamoDBFullAccess')
-            ]
-        )
-
-        s3_event_recorder_lambda = lmbda.Function(
-            self,
-            'S3EventRecorderLambda',
-            function_name=f"{props['namespace']}_s3_event_recorder_lambda",
-            handler='s3_event_recorder.handler',
-            runtime=lmbda.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(10),
-            code=lmbda.Code.from_asset('lambdas/s3_event_recorder'),
-            environment={
-                'STAGING_BUCKET': staging_bucket.bucket_name,
-                'STORE_BUCKET': store_bucket.bucket_name,
-            },
-            role=s3_event_recorder_lambda_role
-        )
-
-        ################################################################################
         # Folder lock Lambda
 
         folder_lock_lambda_role = iam.Role(
@@ -328,7 +300,6 @@ class AghaStack(core.Stack):
                 resources=[
                     folder_lock_lambda.function_arn,
                     validation_lambda.function_arn,
-                    s3_event_recorder_lambda.function_arn
                 ]
             )
         )
@@ -345,7 +316,6 @@ class AghaStack(core.Stack):
                 'STAGING_BUCKET': staging_bucket.bucket_name,
                 'VALIDATION_LAMBDA_ARN': validation_lambda.function_arn,
                 'FOLDER_LOCK_LAMBDA_ARN': folder_lock_lambda.function_arn,
-                'S3_RECORDER_LAMBDA_ARN': s3_event_recorder_lambda.function_arn
             },
             role=s3_event_router_lambda_role
         )
