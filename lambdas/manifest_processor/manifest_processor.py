@@ -2,6 +2,7 @@
 import io
 import json
 import os
+import re
 
 
 import boto3
@@ -17,11 +18,30 @@ LOGGER = shared.LOGGER
 MESSAGES_STORE = list()
 
 # Environment variables
-# Set with error handling
 STAGING_BUCKET = None
 DYNAMODB_TABLE = None
 BATCH_QUEUE_NAME = None
 JOB_DEFINITION_NAME = None
+SLACK_NOTIFY = None
+EMAIL_NOTIFY = None
+SLACK_HOST = None
+SLACK_CHANNEL = None
+EMAIL_RECIPIENTS = None
+EMAIL_SENDER = None
+
+# AWS clients
+CLIENT_BATCH = None
+CLIENT_DYNAMODB = None
+CLIENT_IAM = None
+CLIENT_S3 = None
+CLIENT_SES = None
+CLIENT_SSM = None
+
+# Email/name regular expressions
+AWS_ID_PATTERN = '[0-9A-Z]{21}'
+EMAIL_PATTERN = '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+USER_RE = re.compile(f'AWS:({AWS_ID_PATTERN})')
+SSO_RE = re.compile(f'AWS:({AWS_ID_PATTERN}):({EMAIL_PATTERN})')
 
 # Other
 EMAIL_SUBJECT = '[AGHA service] Submission received'
@@ -58,45 +78,27 @@ def handler(event, context):
     BATCH_QUEUE_NAME = shared.get_environment_variable('BATCH_QUEUE_NAME')
     JOB_DEFINITION_NAME = shared.get_environment_variable('JOB_DEFINITION_NAME')
     # Shared
-    shared.SLACK_NOTIFY = shared.get_environment_variable('SLACK_NOTIFY')
-    shared.EMAIL_NOTIFY = shared.get_environment_variable('EMAIL_NOTIFY')
-    shared.SLACK_HOST = shared.get_environment_variable('SLACK_HOST')
-    shared.SLACK_CHANNEL = shared.get_environment_variable('SLACK_CHANNEL')
-    shared.MANAGER_EMAIL = shared.get_environment_variable('MANAGER_EMAIL')
-    shared.SENDER_EMAIL = shared.get_environment_variable('SENDER_EMAIL')
+    SLACK_NOTIFY = shared.get_environment_variable('SLACK_NOTIFY')
+    EMAIL_NOTIFY = shared.get_environment_variable('EMAIL_NOTIFY')
+    SLACK_HOST = shared.get_environment_variable('SLACK_HOST')
+    SLACK_CHANNEL = shared.get_environment_variable('SLACK_CHANNEL')
+    MANAGER_EMAIL = shared.get_environment_variable('MANAGER_EMAIL')
+    SENDER_EMAIL = shared.get_environment_variable('SENDER_EMAIL')
 
     # Get AWS clients
-    shared.CLIENT_BATCH = shared.get_client('batch')
-    shared.CLIENT_DYNAMODB = shared.get_client('dynamodb')
-    shared.CLIENT_IAM = shared.get_client('iam')
-    shared.CLIENT_S3 = shared.get_client('s3')
-    shared.CLIENT_SES = shared.get_client('ses')
-    shared.CLIENT_SSM = shared.get_client('ssm')
+    CLIENT_BATCH = shared.get_client('batch')
+    CLIENT_DYNAMODB = shared.get_client('dynamodb')
+    CLIENT_IAM = shared.get_client('iam')
+    CLIENT_S3 = shared.get_client('s3')
+    CLIENT_SES = shared.get_client('ses')
+    CLIENT_SSM = shared.get_client('ssm')
 
     # Get SSM value
-    shared.SLACK_WEBHOOK_ENDPOINT = shared.get_ssm_parameter(
+    SLACK_WEBHOOK_ENDPOINT = shared.get_ssm_parameter(
         '/slack/webhook/endpoint',
+        CLIENT_SSM,
         with_decryption=True
     )
-
-    # Perform some checks before processing begins
-    # Check we can access the staging bucket
-    response = shared.CLIENT_S3.list_buckets()
-    buckets_available = response.get('Buckets', list())
-    if STAGING_BUCKET not in buckets_available:
-        buckets_str = '\r\t'.join(buckets)
-        LOGGER.critical(f'could not find S3 bucket \'{STAGING_BUCKET}\', got:\r{buckets_str}')
-        sys.exit(1)
-    # Check job definition exists
-    response = shared.CLIENT_BATCH.describe_job_definitions(jobDefinitionName=JOB_DEFINITION_NAME)
-    job_definitions = response.get('jobDefinitions', list())
-    if not job_definitions:
-        LOGGER.critical(f'could not find job definition \'{JOB_DEFINITION_NAME}\'')
-        sys.exit(1)
-    elif len(job_definitions) > 1:
-        job_definition_names = [jd.get('jobDefinitionName') for jd in job_definitions]
-        LOGGER.critical(f'got more than one job definition:\r{job_definition_names}')
-        sys.exit(1)
 
     # Parse event data and get record
     record = process_event_data(event)
@@ -105,7 +107,7 @@ def handler(event, context):
     # Get name and email from record
     if record.get('eventSource') == 'aws:s3' and 'userIdentity' in record and 'principalId' in record['userIdentity']:
         principal_id = record['userIdentity']['principalId']
-        data.submitter_name, data.submitter_email = shared.get_name_email_from_principalid(principal_id)
+        data.submitter_name, data.submitter_email = get_name_email_from_principalid(principal_id)
         LOGGER.info(f'Extracted name and email from record: {data.submitter_name} <{data.submitter_email}>')
     else:
         LOGGER.warning(f'Could not extract name and email: unsuitable event type/data')
@@ -124,14 +126,6 @@ def handler(event, context):
     # NOTE(SW): this logic ignores files that are on S3 but absent from manifest
     for manifest_file in data.manifest_files:
         process_manifest_entry(manifest_file, data)
-
-    # Enable CloudWatch event (scheduled to run lambda every n minutes). This lambda will:
-    #   1. check how many jobs are running for a submission group
-    #   2. if at least one job running, do nothing except check for dynamodb consistency
-    #       - check consistency with database? might be expensive, relatively speaking
-    #       - only for completed status
-    #       - ignore jobs that have finished within couple minutes to avoid racing updates
-    #   3. if no jobs are running, query results and send email
 
 
 def process_event_data(event):
@@ -173,7 +167,7 @@ def process_event_data(event):
 def retrieve_manifest_data(data):
     LOGGER.info(f'Getting manifest from: {data.bucket_name}/{data.manifest_key}')
     try:
-        manifest_obj = shared.CLIENT_S3.get_object(Bucket=data.bucket_name, Key=data.manifest_key)
+        manifest_obj = CLIENT_S3.get_object(Bucket=data.bucket_name, Key=data.manifest_key)
     except botocore.exceptions.ClientError as e:
         message = f'could not retrieve manifest data from S3:\r{e}'
         log_and_store_message(message, level='critical')
@@ -241,7 +235,7 @@ def validate_manifest(data):
     # Notify with success message
     message = f'Manifest succesfully validated, continuing with file validation'
     log_and_store_message(message)
-    shared.send_notifications(
+    send_notifications(
         MESSAGE_STORE,
         EMAIL_SUBJECT,
         data.submitter_name,
@@ -308,7 +302,7 @@ def process_manifest_entry(filename, data, job_definition):
 
 def get_s3_object_metadata(bucket, prefix):
     results = list()
-    response = shared.CLIENT_S3.list_objects_v2(
+    response = CLIENT_S3.list_objects_v2(
         Bucket='umccr-temp-dev',
         Prefix=prefix
     )
@@ -320,7 +314,7 @@ def get_s3_object_metadata(bucket, prefix):
         results.extend(object_mdata)
     while response['IsTruncated']:
         token = response['NextContinuationToken']
-        response = shared.CLIENT_S3.list_objects_v2(
+        response = CLIENT_S3.list_objects_v2(
             Bucket='umccr-temp-dev',
             Prefix=prefix,
             ContinuationToken=token
@@ -359,7 +353,7 @@ def log_and_store_message(message, level='info'):
 
 
 def notify_and_exit(data):
-    shared.send_notifications(
+    send_notifications(
         MESSAGE_STORE,
         EMAIL_SUBJECT,
         data.submitter_name,
@@ -367,3 +361,58 @@ def notify_and_exit(data):
         data.submission_prefix,
     )
     sys.exit(1)
+
+
+def get_name_email_from_principalid(principal_id):
+    check_defined('IAM_CLIENT')
+    if USER_RE.fullmatch(principal_id):
+        user_id = re.search(USER_RE, principal_id).group(1)
+        user_list = IAM_CLIENT.list_users()
+        for user in user_list['Users']:
+            if user['UserId'] == user_id:
+                username = user['UserName']
+        user_details = IAM_CLIENT.get_user(UserName=username)
+        tags = user_details['User']['Tags']
+        for tag in tags:
+            if tag['Key'] == 'email':
+                email = tag['Value']
+        return username, email
+    elif SSO_RE.fullmatch(principal_id):
+        email = re.search(SSO_RE, principal_id).group(2)
+        username = email.split('@')[0]
+        return username, email
+    else:
+        LOGGER.warning(f'Could not extract name and email: unsupported principalId format')
+        return None, None
+
+
+def send_notifications(messages, subject, submitter_name, submitter_email, submission_prefix):
+    if EMAIL_NOTIFY == 'yes':
+        LOGGER.info(f'Sending notifications messages', end='\r')
+        LOGGER.info(*messages, sep='\r')
+        LOGGER.info(f'Sending email to {submitter_name} <{submitter_email}>')
+        recipients = [MANAGER_EMAIL, submitter_email]
+        email_body = make_email_body_html(
+            submission_prefix,
+            submitter_name,
+            messages
+        )
+        email_response = shared.send_email(
+            recipients,
+            EMAIL_SENDER,
+            EMAIL_SUBJECT,
+            email_body,
+            SES_CLIENT
+        )
+    if SLACK_NOTIFY == 'yes':
+        LOGGER.info(f'Sending notification to {SLACK_CHANNEL}')
+        slack_response = shared.call_slack_webhook(
+            topic=subject,
+            title=f'Submission: {submission_prefix} ({submitter_name})',
+            message='\n'.join(messages),
+            SLACK_HOST,
+            SLACK_CHANNEL,
+            SLACK_WEBHOOK_ENDPOINT
+
+        )
+        LOGGER.info(f'Slack call response: {slack_response}')
