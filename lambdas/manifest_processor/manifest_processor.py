@@ -20,27 +20,36 @@ import shared
 
 # Logging and message store
 LOGGER = shared.LOGGER
-MESSAGES_STORE = list()
+MESSAGE_STORE = list()
 
-# Environment variables
-STAGING_BUCKET = None
-DYNAMODB_TABLE = None
-BATCH_QUEUE_NAME = None
-JOB_DEFINITION_NAME = None
-SLACK_NOTIFY = None
-EMAIL_NOTIFY = None
-SLACK_HOST = None
-SLACK_CHANNEL = None
-EMAIL_RECIPIENTS = None
-EMAIL_SENDER = None
+# Get environment variables
+# Lambda-specific
+STAGING_BUCKET = shared.get_environment_variable('STAGING_BUCKET')
+DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
+BATCH_QUEUE_NAME = shared.get_environment_variable('BATCH_QUEUE_NAME')
+JOB_DEFINITION_NAME = shared.get_environment_variable('JOB_DEFINITION_NAME')
+# Shared
+SLACK_NOTIFY = shared.get_environment_variable('SLACK_NOTIFY')
+EMAIL_NOTIFY = shared.get_environment_variable('EMAIL_NOTIFY')
+SLACK_HOST = shared.get_environment_variable('SLACK_HOST')
+SLACK_CHANNEL = shared.get_environment_variable('SLACK_CHANNEL')
+MANAGER_EMAIL = shared.get_environment_variable('MANAGER_EMAIL')
+SENDER_EMAIL = shared.get_environment_variable('SENDER_EMAIL')
 
-# AWS clients, resources
-CLIENT_BATCH = None
-CLIENT_IAM = None
-CLIENT_S3 = None
-CLIENT_SES = None
-CLIENT_SSM = None
-RESOURCE_DYNAMODB = None
+# Get AWS clients, resources
+CLIENT_BATCH = shared.get_client('batch')
+CLIENT_IAM = shared.get_client('iam')
+CLIENT_S3 = shared.get_client('s3')
+CLIENT_SES = shared.get_client('ses')
+CLIENT_SSM = shared.get_client('ssm')
+RESOURCE_DYNAMODB = boto3.resource('dynamodb').Table(DYNAMODB_TABLE)
+
+# Get SSM value
+SLACK_WEBHOOK_ENDPOINT = shared.get_ssm_parameter(
+    '/slack/webhook/endpoint',
+    CLIENT_SSM,
+    with_decryption=True
+)
 
 # Email/name regular expressions
 AWS_ID_RE = '[0-9A-Z]{21}'
@@ -96,35 +105,6 @@ def handler(event, context):
     # Log invocation data
     LOGGER.info(f'event: {json.dumps(event)}')
     LOGGER.info(f'context: {json.dumps(context)}')
-
-    # Get environment variables
-    # Lambda-specific
-    STAGING_BUCKET = shared.get_environment_variable('STAGING_BUCKET')
-    DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
-    BATCH_QUEUE_NAME = shared.get_environment_variable('BATCH_QUEUE_NAME')
-    JOB_DEFINITION_NAME = shared.get_environment_variable('JOB_DEFINITION_NAME')
-    # Shared
-    SLACK_NOTIFY = shared.get_environment_variable('SLACK_NOTIFY')
-    EMAIL_NOTIFY = shared.get_environment_variable('EMAIL_NOTIFY')
-    SLACK_HOST = shared.get_environment_variable('SLACK_HOST')
-    SLACK_CHANNEL = shared.get_environment_variable('SLACK_CHANNEL')
-    MANAGER_EMAIL = shared.get_environment_variable('MANAGER_EMAIL')
-    SENDER_EMAIL = shared.get_environment_variable('SENDER_EMAIL')
-
-    # Get AWS clients, resources
-    CLIENT_BATCH = shared.get_client('batch')
-    CLIENT_IAM = shared.get_client('iam')
-    CLIENT_S3 = shared.get_client('s3')
-    CLIENT_SES = shared.get_client('ses')
-    CLIENT_SSM = shared.get_client('ssm')
-    RESOURCE_DYNAMODB = boto3.resource('dynamodb').dynamodb.Table(DYNAMODB_TABLE)
-
-    # Get SSM value
-    SLACK_WEBHOOK_ENDPOINT = shared.get_ssm_parameter(
-        '/slack/webhook/endpoint',
-        CLIENT_SSM,
-        with_decryption=True
-    )
 
     # Parse event data and get record
     record = process_event_data(event)
