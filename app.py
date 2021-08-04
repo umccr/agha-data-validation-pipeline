@@ -21,6 +21,7 @@ def create_stack():
     # Collect configuration from SSM parameter store. Variables are considered to be appropriate
     # for storage in SSM where they (1) might want to be changed between deploys, or (2) if they
     # are shared between multiple stacks.
+    container_image = get_ssm_parameter_value('/cdk/agha/container_image')
     staging_bucket = get_ssm_parameter_value('/cdk/agha/staging_bucket')
     store_bucket = get_ssm_parameter_value('/cdk/agha/store_bucket')
     email_notify = get_ssm_parameter_value('/cdk/agha/email_notify')
@@ -37,8 +38,7 @@ def create_stack():
     # Construct full set of properties for stack
     agha_props = {
         'namespace': namespace,
-        # NOTE(SW): this will be a Docker image containing all necessary software tools
-        'container_image': 'NOT_YET_DEFINED',
+        'container_image': container_image,
         'staging_bucket': staging_bucket,
         'store_bucket': store_bucket,
         'dynamodb_table': dynamodb_table,
