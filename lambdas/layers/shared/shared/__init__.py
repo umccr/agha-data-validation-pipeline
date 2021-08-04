@@ -25,6 +25,7 @@ def get_client(service_name, region_name=None):
     except Exception as err:
         LOGGER.critical(f'could not get AWS client for {service_name}:\r{err}')
         sys.exit(1)
+    return response
 
 
 def get_ssm_parameter(name, ssm_client, with_decryption=False):
@@ -33,7 +34,7 @@ def get_ssm_parameter(name, ssm_client, with_decryption=False):
             Name=name,
             WithDecryption=with_decryption,
         )
-    except SSM.Client.exceptions.ParameterNotFound:
+    except ssm_client.Client.exceptions.ParameterNotFound:
         LOGGER.critical(f'could not find SSM parameter \'{name}\'')
         sys.exit(1)
     if 'Parameter' not in response:
