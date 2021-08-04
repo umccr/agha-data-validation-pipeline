@@ -4,10 +4,14 @@
 # completely decouple from dynamodb and only interact with it during result ingestion, which will
 # occur in a specific lambda triggered by S3 events or Batch events (captured through CloudWatch).
 
+
 import io
 import json
+import logging
 import os
 import re
+import sys
+import textwrap
 
 
 import boto3
@@ -108,7 +112,7 @@ def handler(event, context):
 
     # Parse event data and get record
     record = process_event_data(event)
-    data = Submission(record)
+    data = SubmissionData(record)
 
     # Get name and email from record
     if record.get('eventSource') == 'aws:s3' and 'userIdentity' in record and 'principalId' in record['userIdentity']:
@@ -121,14 +125,14 @@ def handler(event, context):
     # Get manifest submission S3 key prefix
     data.bucket_name = record['s3']['bucket']['name']
     data.manifest_key = record['s3']['object']['key']
-    data.submission_prefix = os.path.dirname(manifest_key)
+    data.submission_prefix = os.path.dirname(data.manifest_key)
     LOGGER.info(f'Submission with prefix: {data.submission_prefix}')
 
     # Obtain flagship from S3 key and require it to be a known value
-    data.flagship, *others = os.path.split(data.manifest_key)
+    data.flagship, *others = data.manifest_key.split('/')
     if data.flagship not in FLAGSHIPS:
-        flagships_str = '\r\t'.join(FLAGSHIP)
-        message = f'got unrecognised flagship \'{data.flagship}\', expected one from:\r{flagships_str}'
+        flagships_str = '\r\t'.join(FLAGSHIPS)
+        message = f'got unrecognised flagship \'{data.flagship}\', expected one from:\r\t{flagships_str}'
         log_and_store_message(message, level='critical')
         notify_and_exit(data)
 
@@ -139,7 +143,7 @@ def handler(event, context):
 
     # Collect manifest data and then validate
     data.manifest_data = retrieve_manifest_data(data)
-    data.manifest_files, data.extra_files = validate_manfiest_data(data)
+    data.manifest_files, data.extra_files = validate_manifest(data)
 
     # Process each record and prepare Batch commands
 
@@ -184,19 +188,19 @@ def process_event_data(event):
     if 'bucket' not in record_s3:
         LOGGER.critical('S3 record missing bucket info')
         sys.exit(1)
-    elif 'name' not in record_3['bucket']:
+    elif 'name' not in record_s3['bucket']:
         LOGGER.critical('S3 bucket record missing name info')
         sys.exit(1)
 
-    if 'object' not in record_3:
+    if 'object' not in record_s3:
         LOGGER.critical('S3 record missing object info')
         sys.exit(1)
-    elif 'key' not in record_3['object']:
+    elif 'key' not in record_s3['object']:
         LOGGER.critical('S3 object record missing key info')
         sys.exit(1)
 
     if record_s3['bucket']['name'] != STAGING_BUCKET:
-        LOGGER.critical(f'expected {STAGING_BUCKET} bucket but got {bucket_name}')
+        LOGGER.critical(f'expected {STAGING_BUCKET} bucket but got {record_s3["bucket"]["name"]}')
         sys.exit(1)
     return record
 
@@ -211,7 +215,7 @@ def retrieve_manifest_data(data):
         notify_and_exit(data)
     try:
         manifest_str = io.BytesIO(manifest_obj['Body'].read())
-        manifest_data = pd.read_csv(manifest_str, sep='\t', index_col='filename', encoding='utf8')
+        manifest_data = pd.read_csv(manifest_str, sep='\t', encoding='utf8')
     except Exception as e:
         message = f'could not convert manifest into DataFrame:\r{e}'
         log_and_store_message(message, level='critical')
@@ -221,13 +225,14 @@ def retrieve_manifest_data(data):
 
 def validate_manifest(data):
     # Head validation
-    columns_missing = MANIFEST_REQUIRED_COLUMNS.difference(data.manifest_data.columns)
+    columns_present = set(data.manifest_data.columns.tolist())
+    columns_missing = MANIFEST_REQUIRED_COLUMNS.difference(columns_present)
     if columns_missing:
         plurality = 'column' if len(columns_missing) == 1 else 'columns'
         cmissing_str = '\r\t'.join(columns_missing)
-        cfound_str = '\r\t'.join(data.manifest_data.columns)
+        cfound_str = '\r\t'.join(columns_present)
         message_base = f'required {plurality} missing from manifest:'
-        log_and_store_message(f'{message_base}\r{cmissing_str}\rGot:\r{cfound_str}', level='critical')
+        log_and_store_message(f'{message_base}\r\t{cmissing_str}\rGot:\r\t{cfound_str}', level='critical')
         notify_and_exit(data)
 
     # File discovery
@@ -235,10 +240,10 @@ def validate_manifest(data):
     log_and_store_message(f'Entries in manifest: {len(data.manifest_data)}')
     # Files present on S3
     message_text = f'Entries on S3 (including manifest)'
-    files_s3 = get_s3_filenames(data.bucket_name, data.submission_prefix)
+    files_s3 = set(get_s3_filenames(data.bucket_name, data.submission_prefix))
     log_and_store_file_message(message_text, files_s3)
     # Files missing from S3
-    files_manifest = set(manifest_df['filename'].to_list())
+    files_manifest = set(data.manifest_data['filename'].to_list())
     files_missing_from_s3 = files_manifest.difference(files_s3)
     message_text = f'Entries in manifest, but not on S3'
     log_and_store_file_message(message_text, files_missing_from_s3)
@@ -252,7 +257,7 @@ def validate_manifest(data):
     log_and_store_file_message(message_text, files_matched)
     # Fail if there are extra files (other than manifest.txt) or missing files
     if 'manifest.txt' in files_missing_from_manifest:
-        files_missing_from_s3.remove('manifest.txt')
+        files_missing_from_manifest.remove('manifest.txt')
     messages_error = list()
     if files_missing_from_s3:
         messages_error.append('files listed in manifest were absent from S3')
@@ -266,19 +271,19 @@ def validate_manifest(data):
     for row in data.manifest_data.itertuples():
         # Study ID
         if not AGHA_ID_RE.match(row.agha_study_id):
-            message = f'got malformed AGHA study ID for {row.index} ({row.agha_study_id})'
+            message = f'got malformed AGHA study ID for {row.Index} ({row.agha_study_id})'
             messages_error.append(message)
         # Checksum
-        if not MD5_RE.match(row.agha_study_id):
-            message = f'got malformed MD5 checksum for {row.index} ({row.checksum})'
+        if not MD5_RE.match(row.checksum):
+            message = f'got malformed MD5 checksum for {row.Index} ({row.checksum})'
             messages_error.append(message)
 
     # Check for errors
     if messages_error:
-        plurality = 'message' if len(manifest_error_messages) == 1 else 'messages'
-        errors = '\t\r'.join(manifest_error_messages)
+        plurality = 'message' if len(messages_error) == 1 else 'messages'
+        errors = '\r\t'.join(messages_error)
         message_base = f'Manifest failed validation with the following {plurality}'
-        message = f'{message_base}:\r{errors}'
+        message = f'{message_base}:\r\t{errors}'
         log_and_store_message(message, level='critical')
         notify_and_exit(data)
 
@@ -298,13 +303,13 @@ def validate_manifest(data):
     return list(files_matched), list(files_missing_from_manifest)
 
 
-def process_manifest_entry(filename, data, job_definition):
+def process_manifest_entry(filename, data):
     # NOTE(SW): it is not clear whether study id and filename is sufficiently unique. May need to
     # also include submission subdir (i.e. the date of upload). The answer should become apparent
     # when/after testing real data.
 
     # Grab file info, and construct partition key
-    file_info = data.manifest_data.loc[filename]
+    file_info = data.manifest_data.loc[data.manifest_data['filename']==filename].iloc[0]
     study_id = file_info['agha_study_id']
     key_partition = f'{study_id}_{filename}'
 
@@ -332,14 +337,15 @@ def process_manifest_entry(filename, data, job_definition):
     # Determine required jobs
     # NOTE(SW): given the above behaviour of creating new records if previous exists, we will
     # always need to run all jobs. Hardcode here for now.
-    tasks = ['checksum', 'validate_file_type', 'indexing']
+    tasks_list = ['checksum', 'validate_filetype', 'create_index']
+    tasks = ' '.join(tasks_list)
 
     # Construct command and job name
     name = f'agha_validation__{key_partition}__{key_sort}'
     command = textwrap.dedent(f'''
         validate_file.py \
-          --partition_key {partition_key} \
-          --sort_key {sort_key} \
+          --partition_key {key_partition} \
+          --sort_key {key_sort} \
           --tasks {tasks} \
           --dynamodb_table {DYNAMODB_TABLE}
     ''')
@@ -349,7 +355,7 @@ def process_manifest_entry(filename, data, job_definition):
 def get_s3_object_metadata(bucket, prefix):
     results = list()
     response = CLIENT_S3.list_objects_v2(
-        Bucket='umccr-temp-dev',
+        Bucket=bucket,
         Prefix=prefix
     )
     if not (object_mdata := response.get('Contents')):
@@ -361,7 +367,7 @@ def get_s3_object_metadata(bucket, prefix):
     while response['IsTruncated']:
         token = response['NextContinuationToken']
         response = CLIENT_S3.list_objects_v2(
-            Bucket='umccr-temp-dev',
+            Bucket=bucket,
             Prefix=prefix,
             ContinuationToken=token
         )
@@ -374,20 +380,18 @@ def list_s3_objects(bucket, prefix):
     return [os.path.basename(md.get('Key')) for md in object_metadata]
 
 
-def extract_filenames(listing: list):
-    filenames = list()
-    for item in listing:
-        filenames.append(os.path.basename(item['Key']))
-    return filenames
+def get_s3_filenames(bucket, prefix):
+    filepaths = list_s3_objects(bucket, prefix)
+    return [os.path.basename(fp) for fp in filepaths]
 
 
-def get_sort_key_and_existing_records(filename, key_partition):
+def get_existing_records_and_filenumber(filename, key_partition):
     records = get_records(key_partition)
     if records:
-        records_current = [r for r in records if r['in_use']]
+        records_current = [r for r in records if r['active']]
         assert len(records_current) == 1
         [record_current] = records_current
-        file_number = record_current['file_number'] += 1
+        file_number = record_current['file_number'] + 1
     else:
         file_number = 1
     return file_number, records
@@ -395,7 +399,7 @@ def get_sort_key_and_existing_records(filename, key_partition):
 
 def get_records(partition_key):
     records = list()
-    response = DYNAMODB_TABLE.query(
+    response = RESOURCE_DYNAMODB.query(
         KeyConditionExpression=boto3.dynamodb.conditions.Key('partition_key').eq(partition_key)
     )
     if 'Items' not in response:
@@ -427,8 +431,8 @@ def create_record(
     for record in records_existing:
         response = RESOURCE_DYNAMODB.update_item(
             Key={
-                key_partition: item[key_partition],
-                key_sort: item[key_sort],
+                'partition_key': record['partition_key'],
+                'sort_key': record['sort_key'],
             },
             UpdateExpression='set active=:a',
             ExpressionAttributeValues={':a': False},
@@ -462,7 +466,7 @@ def create_record(
         'validation_result': 'not determined',
         'excluded': False,
     }
-    RESOURCE_DYNAMODB.put_item(Item=fixture)
+    RESOURCE_DYNAMODB.put_item(Item=record)
 
 
 def log_and_store_file_message(message_text, files):
@@ -471,11 +475,12 @@ def log_and_store_file_message(message_text, files):
     log_and_store_message(message_summary)
     if files:
         files_str = '\r\t'.join(files)
-        LOGGER.info(f'{message_text}:\r\t{files_str})'
+        LOGGER.info(f'{message_text}:\r\t{files_str}')
 
 
 def log_and_store_message(message, level='info'):
-    LOGGER.log(level, message)
+    level_number = logging.getLevelName(level.upper())
+    LOGGER.log(level_number, message)
     # Prefix message with 'ERROR' for display in notifications
     if level in {'error', 'critical'}:
         message = f'ERROR: {message}'
@@ -494,7 +499,6 @@ def notify_and_exit(data):
 
 
 def get_name_email_from_principalid(principal_id):
-    check_defined('IAM_CLIENT')
     if USER_RE.fullmatch(principal_id):
         user_id = re.search(USER_RE, principal_id).group(1)
         user_list = IAM_CLIENT.list_users()
@@ -537,9 +541,9 @@ def send_notifications(messages, subject, submitter_name, submitter_email, submi
     if SLACK_NOTIFY == 'yes':
         LOGGER.info(f'Sending notification to {SLACK_CHANNEL}')
         slack_response = shared.call_slack_webhook(
-            topic=subject,
-            title=f'Submission: {submission_prefix} ({submitter_name})',
-            message='\n'.join(messages),
+            subject,
+            f'Submission: {submission_prefix} ({submitter_name})',
+            '\n'.join(messages),
             SLACK_HOST,
             SLACK_CHANNEL,
             SLACK_WEBHOOK_ENDPOINT

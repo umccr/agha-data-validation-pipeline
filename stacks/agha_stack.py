@@ -299,7 +299,7 @@ class AghaStack(core.Stack):
                 ],
                 resources=[
                     folder_lock_lambda.function_arn,
-                    validation_lambda.function_arn,
+                    manifest_processor_lambda.function_arn,
                 ]
             )
         )
@@ -314,7 +314,7 @@ class AghaStack(core.Stack):
             code=lmbda.Code.from_asset('lambdas/s3_event_router'),
             environment={
                 'STAGING_BUCKET': staging_bucket.bucket_name,
-                'VALIDATION_LAMBDA_ARN': validation_lambda.function_arn,
+                'VALIDATION_LAMBDA_ARN': manifest_processor_lambda.function_arn,
                 'FOLDER_LOCK_LAMBDA_ARN': folder_lock_lambda.function_arn,
             },
             role=s3_event_router_lambda_role

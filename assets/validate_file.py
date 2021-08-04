@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import datetime
+import decimal
 import enum
 import json
 import os
@@ -12,7 +13,7 @@ import boto3
 import shared
 
 
-# Logging and results store
+# Logging and results store with defaults
 LOGGER = shared.LOGGER
 RESULTS_DATA = {
     'provided_checksum': 'not retrieved',
@@ -24,7 +25,7 @@ RESULTS_DATA = {
     'index_result': 'not run',
     'index_filename': 'na',
     'index_s3_bucket': 'na',
-    'index_s3_key': 'na'
+    'index_s3_key': 'na',
     'validation_result': 'not determined'
 }
 
@@ -33,11 +34,15 @@ RESULTS_S3_BUCKET = 'umccr-agha-test-dev'
 RESULTS_S3_KEY_PREFIX = 'result_files/'
 RESULTS_S3_INDEX_PREFIX = 'indices/'
 
+# Get AWS clients
+CLIENT_DYNAMODB = shared.get_client('dynamodb')
+CLIENT_S3 = shared.get_client('s3')
+
 
 class Tasks(enum.Enum):
 
     CHECKSUM = 'checksum'
-    FILE_VALIDATE = 'validate_file_type'
+    FILE_VALIDATE = 'validate_filetype'
     INDEX = 'create_index'
 
 
@@ -73,19 +78,16 @@ def main():
     # Get command line arguments
     args = get_arguments()
 
-    # Get AWS clients
-    CLIENT_DYNAMODB = shared.get_client('dynamodb')
-    CLIENT_S3 = shared.get_client('s3')
-
     # Get file info and load into results store
-    file_info = shared.get_record(args.partition_key, args.sort_key)
+    file_info = get_record(args.partition_key, args.sort_key, args.dynamodb_table)
     RESULTS_DATA['provided_checksum'] = file_info['provided_checksum']
     RESULTS_DATA['provided_index'] = file_info['has_index']
     RESULTS_DATA['index_s3_bucket'] = file_info['index_s3_bucket']
     RESULTS_DATA['index_s3_key'] = file_info['index_s3_key']
     # Print file info to log
-    msg_list = [f'{k}: {record[k]}' for k in sorted(file_info)] msg = '\r\t'.join(msg_list)
-    LOGGER.info(f'got record:\r{msg}'
+    msg_list = [f'{k}: {file_info[k]}' for k in sorted(file_info)]
+    msg = '\r\t'.join(msg_list)
+    LOGGER.info(f'got record:\r{msg}')
 
     # Stage file from S3 and then validate
     fp_local = stage_file(file_info['s3_bucket'], file_info['s3_key'], file_info['filename'])
@@ -93,52 +95,57 @@ def main():
     if Tasks.CHECKSUM in tasks:
         run_checksum(fp_local, file_info)
     if Tasks.FILE_VALIDATE in tasks:
-        file_type = run_file_type_validation(fp_local, file_info)
-    if Tasks.INDEX in tasks and file_type == FileTypes.VCF and file_info['provided_index'] == 'none':
+        filetype = run_filetype_validation(fp_local, file_info)
+    # Simplify index requirement check
+    create_index = Tasks.INDEX in tasks and filetype == FileTypes.VCF
+    if create_index and not RESULTS_DATA['provided_index']:
         run_indexing(fp_local, file_info)
 
     # Set whether the file was validated (unpack for clarity)
-    valid_cs = RESULTS_DATA['validated_checksum']
-    valid_ft = RESULTS_DATA['validated_filetype']
-    # Branches:
-    #   - true:
-    #       - index *not* provided but indexed successfully
-    #       - index provided and indexing *not* attempted
-    #   - false:
-    #       - index *not* provided and indexing *failed*
-    #       - index provided and indexed successuflly (this should *never* occur)
-    ix_succeeded = RESULTS_DATA['index_result'] == 'succeeded'
-    valid_ix = not (not RESULTS_DATA['provided_index'] ^ ix_succeeded)
-    vresult = valid_cs and valid_ft and valid_ix
-    RESULTS_DATA['validation_result'] = 'valid' if vresult else 'not valid'
+    checksum_fail = RESULTS_DATA['validated_checksum'] != 'valid'
+    filetype_fail = RESULTS_DATA['validated_filetype'] != 'valid'
+    # NOTE(SW): we currently should *never* recieve an index, ignore this case here
+    index_fail = RESULTS_DATA['index_result'] not in {'not run', 'succeeded'}
+    vresult = checksum_fail or filetype_fail or index_fail
+    RESULTS_DATA['validation_result'] = 'not valid' if vresult else 'valid'
 
     # Write completed result to log and S3
     write_results_s3(file_info)
 
 
 def get_record(partition_key, sort_key, dynamodb_table):
-    response = dynamodb_table.get_item(
+    resource_dynamodb = boto3.resource('dynamodb').Table(dynamodb_table)
+    response = resource_dynamodb.get_item(
         Key={'partition_key': partition_key, 'sort_key': sort_key}
     )
     if 'Item' not in response:
         msg_key_text = f'partition key {partition_key} and sort key {sort_key}'
         LOGGER.critical(f'could not retrieve DynamoDB entry with {msg_key_text}')
         sys.exit(1)
-    return response.get('Item')
+    record_raw = response.get('Item')
+    return replace_record_decimal_object(record_raw)
+
+
+def replace_record_decimal_object(record):
+    for k in record:
+        if isinstance(record[k], decimal.Decimal):
+            record[k] = int(record[k]) if record[k] % 1 == 0 else float(record[k])
+    return record
 
 
 def stage_file(s3_bucket, s3_key, filename):
     LOGGER.info(f'staging file from S3: s3://{s3_bucket}/{s3_key}')
     output_fp = pathlib.Path(filename)
     with output_fp.open('wb') as fh:
-        S3_CLIENT.download_fileobj(s3_bucket, s3_key, fh)
+        CLIENT_S3.download_fileobj(s3_bucket, s3_key, fh)
+    return output_fp
 
 
 def run_checksum(fp, file_info):
     LOGGER.info('running checksum')
     # Execute
     command = f"md5sum {fp} | cut -f1 -d' '"
-    result = execute_command(command)
+    result = shared.execute_command(command)
     if result.returncode != 0:
         stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr {result.stderr}'
         LOGGER.critical(f'failed to run checksum ({command}): {stdstrm_msg}')
@@ -160,20 +167,20 @@ def run_checksum(fp, file_info):
     LOGGER.info('checksum results: {checksum_str}')
 
 
-def run_file_type_validation(fp, file_info):
+def run_filetype_validation(fp, file_info):
     LOGGER.info('running file type validation')
     # Get file type
     fext_fastq = {'.fq', '.fq.gz', '.fastq', '.fastq.gz'}
     fext_bam = {'.bam'}
     fext_vcf = {'.vcf.gz', 'gvcf', 'gvcf.gz'}
     if any(fp.name.endswith(fext) for fext in fext_bam):
-        file_type = FileTypes.BAM
+        filetype = FileTypes.BAM
         command = f'samtools quickcheck -q {fp}'
     elif any(fp.name.endswith(fext) for fext in fext_fastq):
-        file_type = FileTypes.FASTQ
+        filetype = FileTypes.FASTQ
         command = f'fqtools validate {fp}'
     elif any(fp.name.endswith(fext) for fext in fext_vcf):
-        file_type = FileTypes.VCF
+        filetype = FileTypes.VCF
         command = f'bcftools query -l {fp}'
     else:
         LOGGER.critical(f'could not infer file type from extension for {fp}')
@@ -182,8 +189,8 @@ def run_file_type_validation(fp, file_info):
         write_results_s3(file_info)
         sys.exit(1)
     # Validate filetype
-    RESULTS_DATA['calculated_filetype'] = file_type.value
-    result = execute_command(command)
+    RESULTS_DATA['calculated_filetype'] = filetype.value
+    result = shared.execute_command(command)
     if result.returncode != 0:
         LOGGER.info('file validation failed (invalid filetype or other failure)')
         RESULTS_DATA['validated_filetype'] = 'failed'
@@ -196,13 +203,13 @@ def run_file_type_validation(fp, file_info):
     validated_str = f'validated:  {RESULTS_DATA["validated_filetype"]}'
     filetype_str = '{calculated_str}\r\t{validated_str}'
     LOGGER.info('file type validation results: {filetype_str}')
-    return file_type
+    return filetype
 
 
 def run_indexing(fp, file_info):
     LOGGER.info('running indexing')
     command = f"tabix {fp} -p 'vcf'"
-    result = execute_command(command)
+    result = shared.execute_command(command)
     if result.returncode != 0:
         stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr {result.stderr}'
         LOGGER.critical(f'failed to run indexing ({command}): {stdstrm_msg}')
@@ -251,11 +258,15 @@ def write_results_s3(file_info):
     }
     s3_object_body = f'{json.dumps(data)}\n'
     # Upload to S3
-    s3_key_filename = get_unique_s3_fn(file_info['filename'], partition_key, sort_key)
+    s3_key_filename = get_unique_s3_fn(
+        file_info['filename'],
+        file_info['partition_key'],
+        file_info['sort_key']
+    )
     s3_key_basedir = os.path.dirname(file_info['s3_key'])
     s3_key = os.path.join(RESULTS_S3_KEY_PREFIX, s3_key_basedir, s3_key_filename)
     LOGGER.info('writing results to s3://{RESULTS_S3_BUCKET}/{s3_key}:\r{s3_object_body}')
-    S3_CLIENT.put_object(Body=s3_object_body, Bucket=RESULTS_S3_BUCKET, Key=s3_key)
+    CLIENT_S3.put_object(Body=s3_object_body, Bucket=RESULTS_S3_BUCKET, Key=s3_key)
 
 
 def get_unique_s3_fn(filename, partition_key, sort_key):
