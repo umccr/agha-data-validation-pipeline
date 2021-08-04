@@ -27,8 +27,11 @@ RESULTS_DATA = {
     'index_s3_key': 'na'
     'validation_result': 'not determined'
 }
+
+# S3 output bucket and prefix
 RESULTS_S3_BUCKET = 'umccr-agha-test-dev'
 RESULTS_S3_KEY_PREFIX = 'result_files/'
+RESULTS_S3_INDEX_PREFIX = 'indices/'
 
 
 class Tasks(enum.Enum):
@@ -92,8 +95,7 @@ def main():
     if Tasks.FILE_VALIDATE in tasks:
         file_type = run_file_type_validation(fp_local, file_info)
     if Tasks.INDEX in tasks and file_type == FileTypes.VCF and file_info['provided_index'] == 'none':
-        index_fp, index_s3_bucket, index_s3_key = run_indexing(fp_local, file_info)
-        S3_CLIENT.upload_file(index_fp, index_s3_bucket, index_s3_key)
+        run_indexing(fp_local, file_info)
 
     # Set whether the file was validated (unpack for clarity)
     valid_cs = RESULTS_DATA['validated_checksum']
@@ -207,8 +209,12 @@ def run_indexing(fp, file_info):
         RESULTS_DATA['index_result'] = 'failed'
         write_results_s3(file_info)
         sys.exit(1)
+    # Upload index
+    index_fp = f'{fp}.tbi'
+    index_s3_key = upload_index(file_info, index_fp)
+    # Set results
     RESULTS_DATA['index_result'] = 'succeeded'
-    RESULTS_DATA['index_filename'] = pathlib.Path(f'{fp}.tbi')
+    RESULTS_DATA['index_filename'] = index_fp
     RESULTS_DATA['index_s3_bucket'] = file_info['s3_bucket']
     RESULTS_DATA['index_s3_key'] = f"{file_info['s3_key']}.tbi"
     # Log results
@@ -218,6 +224,23 @@ def run_indexing(fp, file_info):
     key_str = f'S3 key:    {RESULTS_DATA["index_s3_key"]}'
     filetype_str = '{result_str}\r\t{filename_str}\r\t{bucket_str}\r\t{key_str}'
     LOGGER.info('file type validation results: {filetype_str}')
+
+
+def upload_index(file_info, index_fp):
+    # Get a unique directory to store
+    partition_key_esc = file_info['partition_key'].replace('/', '_')
+    sort_key_esc = file_info['sort_key'].replace('/', '_')
+    s3_unique_dir = f'{partition_key_esc}__{sort_key_esc}'
+    # Construct full key
+    s3_key_basedir = os.path.dirname(file_info['s3_key'])
+    s3_key = os.path.join(
+        RESULTS_S3_INDEX_PREFIX,
+        s3_key_basedir,
+        s3_unique_dir,
+        index_fp
+    )
+    LOGGER.info('writing index to s3://{RESULTS_S3_BUCKET}/{s3_key}')
+    CLIENT_S3.upload_file(index_fp, RESULTS_S3_BUCKET, s3_key)
 
 
 def write_results_s3(file_info):
