@@ -74,3 +74,35 @@ for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d); do
   ./build_lambda_layers.sh ${dir};
 done
 ```
+
+#### Batch Docker image
+A Dockerfile is provided to build an image that contains all necessary software for Batch job execution. And so, deployment
+of this stacks additionally involves building the image and uploading it to a repository.
+
+Configure
+```
+NAME=agha-validation-pipeline
+VERSION=0.0.1
+URI_LOCAL="${NAME}:${VERSION}"
+# Docker Hub
+HUB_PROVIDER_URL=docker.io/scwatts
+HUB_URI_REMOTE="${HUB_PROVIDER_URL}/${NAME}:${VERSION}"
+```
+
+Build
+```bash
+docker build -t "${NAME}" -f assets/Dockerfile .
+```
+
+Upload
+```bash
+# Tag image with remote Docker Hub URI
+docker tag "${NAME}" "${HUB_URI_REMOTE}"
+
+# Configure Docker with DH credentials and upload
+docker login
+docker push "${HUB_URI_REMOTE}"
+
+# Remove unencrypted credentials
+rm /Users/stephen/.docker/config.json
+```
