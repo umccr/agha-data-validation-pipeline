@@ -211,10 +211,15 @@ class AghaStack(core.Stack):
         manifest_processor_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
-                    "ses:SendEmail",
-                    "ses:SendRawEmail"
+                    # Email notification via SES
+                    'ses:SendEmail',
+                    'ses:SendRawEmail',
+                    # Entry read/create
+                    'dynamodb:Query',
+                    'dynamodb:PutItem',
+                    'dynamodb:UpdateItem'
                 ],
-                resources=["*"]
+                resources=['*']
             )
         )
 
