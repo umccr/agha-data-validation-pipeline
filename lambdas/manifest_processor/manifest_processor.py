@@ -161,7 +161,7 @@ def handler(event, context):
     # Submit Batch jobs
     for job_data in batch_job_data:
         command = ['bash', '-o', 'pipefail', '-c', job_data['command']]
-        response = client.submit_job(
+        response = CLIENT_BATCH.submit_job(
             jobName=job_data['name'],
             jobQueue=BATCH_QUEUE_NAME,
             jobDefinition=JOB_DEFINITION_NAME,
@@ -322,6 +322,8 @@ def process_manifest_entry(filename, data):
     #   - keep record and some specified set of values
     #   - allow user to have some choice
     file_number, records_existing = get_existing_records_and_filenumber(filename, key_partition)
+    if records_existing:
+        LOGGER.info(f'found existing records for {filename}: {records_existing}')
     key_sort = f'{filename}_{file_number}'
     s3_key = os.path.join(data.submission_prefix, filename)
     create_record(
@@ -341,7 +343,8 @@ def process_manifest_entry(filename, data):
     tasks = ' '.join(tasks_list)
 
     # Construct command and job name
-    name = f'agha_validation__{key_partition}__{key_sort}'
+    name_raw = f'agha_validation__{key_partition}__{key_sort}'
+    name = name_raw.replace('.', '_')
     command = textwrap.dedent(f'''
         validate_file.py \
           --partition_key {key_partition} \
@@ -466,6 +469,7 @@ def create_record(
         'validation_result': 'not determined',
         'excluded': False,
     }
+    LOGGER.info(f'created record for {file_info["filename"]}: {record}')
     RESOURCE_DYNAMODB.put_item(Item=record)
 
 
