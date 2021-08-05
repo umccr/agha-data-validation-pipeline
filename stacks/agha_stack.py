@@ -229,7 +229,7 @@ class AghaStack(core.Stack):
             function_name=f"{props['namespace']}_manifest_processor_lambda",
             handler='manifest_processor.handler',
             runtime=lmbda.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(10),
+            timeout=core.Duration.seconds(60),
             code=lmbda.Code.from_asset('lambdas/manifest_processor'),
             environment={
                 'STAGING_BUCKET': staging_bucket.bucket_name,
