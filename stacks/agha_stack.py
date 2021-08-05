@@ -68,7 +68,7 @@ class AghaStack(core.Stack):
         )
 
         # NOTE(SW): may want to restrict as ro with write perms to specific directory for
-        # emergency results write.
+        # results write.
         # Would the following work or conflict?
         # AWS managed policy:
         #   iam.ManagedPolicy.from_aws_managed_policy_name('AmazonS3ReadOnlyAccess'),

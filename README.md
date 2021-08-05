@@ -80,7 +80,7 @@ A Dockerfile is provided to build an image that contains all necessary software 
 of this stacks additionally involves building the image and uploading it to a repository.
 
 Configure
-```
+```bash
 NAME=agha-validation-pipeline
 VERSION=0.0.1
 URI_LOCAL="${NAME}:${VERSION}"
