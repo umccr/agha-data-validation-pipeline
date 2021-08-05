@@ -108,7 +108,7 @@ class SubmissionData:
 def handler(event, context):
     # Log invocation data
     LOGGER.info(f'event: {json.dumps(event)}')
-    LOGGER.info(f'context: {json.dumps(context)}')
+    LOGGER.info(f'context: {json.dumps(shared.get_context_info(context))}')
 
     # Parse event data and get record
     record = process_event_data(event)

@@ -43,6 +43,19 @@ def get_ssm_parameter(name, ssm_client, with_decryption=False):
     return response['Parameter']['Value']
 
 
+def get_context_info(context):
+    attributes = {
+        'function_name',
+        'function_version',
+        'invoked_function_arn',
+        'memory_limit_in_mb',
+        'aws_request_id',
+        'log_group_name',
+        'log_stream_name',
+    }
+    return {attr: getattr(context, attr) for attr in attributes}
+
+
 def send_email(recipients, sender, subject_text, body_html, ses_client):
     try:
         response = ses_client.send_email(
