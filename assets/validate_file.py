@@ -61,6 +61,12 @@ class FileTypes(enum.Enum):
         return True
 
 
+INDEXABLE_FILES =  {
+    FileTypes.BAM,
+    FileTypes.VCF,
+}
+
+
 def get_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--partition_key', required=True, type=str,
@@ -97,9 +103,9 @@ def main():
     if Tasks.FILE_VALIDATE in tasks:
         filetype = run_filetype_validation(fp_local, file_info)
     # Simplify index requirement check
-    create_index = Tasks.INDEX in tasks and filetype == FileTypes.VCF
+    create_index = Tasks.INDEX in tasks and filetype in INDEXABLE_FILES
     if create_index and not RESULTS_DATA['provided_index']:
-        run_indexing(fp_local, file_info)
+        run_indexing(fp_local, file_info, filetype)
 
     # Set whether the file was validated (unpack for clarity)
     checksum_fail = RESULTS_DATA['validated_checksum'] != 'valid'
@@ -206,9 +212,18 @@ def run_filetype_validation(fp, file_info):
     return filetype
 
 
-def run_indexing(fp, file_info):
+def run_indexing(fp, file_info, filetype):
+    # Run appropriate indexing command
     LOGGER.info('running indexing')
-    command = f"tabix {fp} -p 'vcf'"
+    if filetype == FileTypes.BAM:
+        command = f'samtools index {fp}'
+        index_fp = f'{fp}.bai'
+    elif filetype == FileTypes.VCF:
+        command = f"tabix {fp} -p 'vcf'"
+        index_fp = f'{fp}.tbi'
+    else:
+        # You should never have come here
+        assert False
     result = shared.execute_command(command)
     if result.returncode != 0:
         stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr {result.stderr}'
@@ -216,10 +231,8 @@ def run_indexing(fp, file_info):
         RESULTS_DATA['index_result'] = 'failed'
         write_results_s3(file_info)
         sys.exit(1)
-    # Upload index
-    index_fp = f'{fp}.tbi'
+    # Upload index and set results
     index_s3_key = upload_index(file_info, index_fp)
-    # Set results
     RESULTS_DATA['index_result'] = 'succeeded'
     RESULTS_DATA['index_filename'] = index_fp
     RESULTS_DATA['index_s3_bucket'] = file_info['s3_bucket']
