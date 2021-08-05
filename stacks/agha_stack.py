@@ -98,7 +98,7 @@ class AghaStack(core.Stack):
             'BatchSpotFleetRole',
             assumed_by=iam.ServicePrincipal('spotfleet.amazonaws.com'),
             managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AmazonEC2ContainerServiceforEC2Role'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AmazonEC2SpotFleetTaggingRole'),
             ]
         )
 
@@ -142,19 +142,20 @@ class AghaStack(core.Stack):
                 allocation_strategy=batch.AllocationStrategy.SPOT_CAPACITY_OPTIMIZED,
                 desiredv_cpus=0,
                 image=machine_image,
-                instance_role=batch_instance_profile.ref,
+                instance_role=batch_instance_profile.attr_arn,
                 launch_template=batch_launch_template_spec,
                 maxv_cpus=16,
                 security_groups=[batch_security_group],
                 spot_fleet_role=batch_spot_fleet_role,
                 type=batch.ComputeResourceType.SPOT,
+                vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE),
             )
         )
 
         job_queue = batch.JobQueue(
             self,
             'BatchJobQueue',
-            job_queue_name=props['job_definition_name'],
+            job_queue_name=props['batch_queue_name'],
             compute_environments=[
                 batch.JobQueueComputeEnvironment(
                     compute_environment=batch_compute_environment,
@@ -211,13 +212,15 @@ class AghaStack(core.Stack):
         manifest_processor_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
-                    # Email notification via SES
+                    # Submission notification
                     'ses:SendEmail',
                     'ses:SendRawEmail',
-                    # Entry read/create
+                    # Read/create file entries
                     'dynamodb:Query',
                     'dynamodb:PutItem',
-                    'dynamodb:UpdateItem'
+                    'dynamodb:UpdateItem',
+                    # Launch validation jobs
+                    'batch:SubmitJob'
                 ],
                 resources=['*']
             )
