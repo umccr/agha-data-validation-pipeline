@@ -236,7 +236,7 @@ def run_indexing(fp, file_info, filetype):
     RESULTS_DATA['index_result'] = 'succeeded'
     RESULTS_DATA['index_filename'] = index_fp
     RESULTS_DATA['index_s3_bucket'] = file_info['s3_bucket']
-    RESULTS_DATA['index_s3_key'] = f"{file_info['s3_key']}.tbi"
+    RESULTS_DATA['index_s3_key'] = index_s3_key
     # Log results
     result_str = f'result:    {RESULTS_DATA["index_result"]}'
     filename_str = f'filename:  {RESULTS_DATA["index_filename"]}'
@@ -261,6 +261,7 @@ def upload_index(file_info, index_fp):
     )
     LOGGER.info('writing index to s3://{RESULTS_S3_BUCKET}/{s3_key}')
     CLIENT_S3.upload_file(index_fp, RESULTS_S3_BUCKET, s3_key)
+    return s3_key
 
 
 def write_results_s3(file_info):
