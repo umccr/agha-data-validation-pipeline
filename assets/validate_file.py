@@ -270,7 +270,7 @@ def write_results_s3(file_info):
         'file_info': file_info,
         'results': RESULTS_DATA
     }
-    s3_object_body = f'{json.dumps(data)}\n'
+    s3_object_body = f'{json.dumps(data, indent=4)}\n'
     # Upload to S3
     s3_key_filename = get_unique_s3_fn(
         file_info['filename'],
@@ -287,7 +287,7 @@ def get_unique_s3_fn(filename, partition_key, sort_key):
     timestamp = '{:%Y%m%d_%H%M%S}'.format(datetime.datetime.now())
     partition_key_esc = partition_key.replace('/', '_')
     sort_key_esc = sort_key.replace('/', '_')
-    return f'{filename}__{partition_key_esc}__{sort_key_esc}__{timestamp}.tsv'
+    return f'{filename}__{partition_key_esc}__{sort_key_esc}__{timestamp}.json'
 
 
 if __name__ == '__main__':
