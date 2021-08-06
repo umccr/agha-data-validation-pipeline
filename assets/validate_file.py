@@ -4,6 +4,7 @@ import datetime
 import decimal
 import enum
 import json
+import logging
 import os
 import pathlib
 import sys
@@ -14,7 +15,8 @@ import shared
 
 
 # Logging and results store with defaults
-LOGGER = shared.LOGGER
+logging.basicConfig(level=logging.INFO)
+LOGGER = logging.getLogger(__name__)
 RESULTS_DATA = {
     'provided_checksum': 'not retrieved',
     'calculated_checksum': 'not run',
