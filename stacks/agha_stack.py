@@ -59,14 +59,6 @@ class AghaStack(core.Stack):
             tags={'Name': 'main-vpc', 'Stack': 'networking'},
         )
 
-        machine_image = ec2.MachineImage.latest_amazon_linux(
-            cpu_type=ec2.AmazonLinuxCpuType.X86_64,
-            edition=ec2.AmazonLinuxEdition.STANDARD,
-            generation=ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
-            storage=ec2.AmazonLinuxStorage.GENERAL_PURPOSE,
-            virtualization=ec2.AmazonLinuxVirt.HVM,
-        )
-
         # NOTE(SW): may want to restrict as ro with write perms to specific directory for
         # results write.
         # Would the following work or conflict?
@@ -141,7 +133,6 @@ class AghaStack(core.Stack):
                 vpc=vpc,
                 allocation_strategy=batch.AllocationStrategy.SPOT_CAPACITY_OPTIMIZED,
                 desiredv_cpus=0,
-                image=machine_image,
                 instance_role=batch_instance_profile.attr_arn,
                 launch_template=batch_launch_template_spec,
                 maxv_cpus=16,
