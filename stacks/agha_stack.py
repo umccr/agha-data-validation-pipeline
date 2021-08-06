@@ -254,7 +254,7 @@ class AghaStack(core.Stack):
             environment={
                 'STAGING_BUCKET': staging_bucket.bucket_name,
                 'DYNAMODB_TABLE': props['dynamodb_table'],
-                'JOB_DEFINITION_NAME': props['job_definition_name'],
+                'JOB_DEFINITION_ARN': batch_job_definition.job_definition_arn,
                 'BATCH_QUEUE_NAME': props['batch_queue_name'],
                 'SLACK_NOTIFY': props['slack_notify'],
                 'EMAIL_NOTIFY': props['email_notify'],

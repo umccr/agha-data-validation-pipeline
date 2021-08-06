@@ -31,7 +31,7 @@ MESSAGE_STORE = list()
 STAGING_BUCKET = shared.get_environment_variable('STAGING_BUCKET')
 DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
 BATCH_QUEUE_NAME = shared.get_environment_variable('BATCH_QUEUE_NAME')
-JOB_DEFINITION_NAME = shared.get_environment_variable('JOB_DEFINITION_NAME')
+JOB_DEFINITION_ARN = shared.get_environment_variable('JOB_DEFINITION_ARN')
 # Shared
 SLACK_NOTIFY = shared.get_environment_variable('SLACK_NOTIFY')
 EMAIL_NOTIFY = shared.get_environment_variable('EMAIL_NOTIFY')
@@ -168,7 +168,7 @@ def handler(event, context):
         response = CLIENT_BATCH.submit_job(
             jobName=job_data['name'],
             jobQueue=BATCH_QUEUE_NAME,
-            jobDefinition=JOB_DEFINITION_NAME,
+            jobDefinition=JOB_DEFINITION_ARN,
             containerOverrides={
                 'memory': 4000,
                 'environment': environment,
