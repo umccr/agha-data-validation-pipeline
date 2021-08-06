@@ -33,6 +33,8 @@ RUN \
   conda install -c conda-forge mamba && \
   # Install dependencies, clean up
   mamba install \
+    # Provides working release of fqtools. See assets/conda/fqtools for build process
+    --channel scwatts \
     --channel bioconda \
     --channel conda-forge \
     --channel defaults \
