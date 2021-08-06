@@ -170,7 +170,7 @@ class AghaStack(core.Stack):
             job_definition_name=props['job_definition_name'],
             container=batch.JobDefinitionContainer(
                 image=ecs.ContainerImage.from_registry(name=props['container_image']),
-                command=['True'],
+                command=['true'],
                 memory_limit_mib=1000,
                 vcpus=1,
             ),
