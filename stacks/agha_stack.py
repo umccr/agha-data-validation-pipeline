@@ -253,6 +253,7 @@ class AghaStack(core.Stack):
             code=lmbda.Code.from_asset('lambdas/manifest_processor'),
             environment={
                 'STAGING_BUCKET': staging_bucket.bucket_name,
+                'STAGING_PREFIX': props['staging_prefix'],
                 'DYNAMODB_TABLE': props['dynamodb_table'],
                 'JOB_DEFINITION_ARN': batch_job_definition.job_definition_arn,
                 'BATCH_QUEUE_NAME': props['batch_queue_name'],

@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import pathlib
+import re
 import sys
 
 
@@ -32,7 +33,8 @@ RESULTS_DATA = {
 }
 
 # Get environment variables
-RESULTS_S3_BUCKET = shared.get_environment_variable('RESULTS_S3_BUCKET')
+STAGING_BUCKET = shared.get_environment_variable('STAGING_BUCKET')
+STAGING_PREFIX = shared.get_environment_variable('STAGING_PREFIX')
 DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
 # NOTE(SW): these could be lifted up to the CDK stack or even to SSM
 RESULTS_S3_KEY_PREFIX = 'result_files/'
@@ -41,6 +43,9 @@ RESULTS_S3_INDEX_PREFIX = 'indices/'
 # Get AWS clients
 RESOURCE_DYNAMODB = shared.get_dynamodb_table_resource(DYNAMODB_TABLE, region_name='ap-southeast-2')
 CLIENT_S3 = shared.get_client('s3')
+
+# Misc
+UPLOAD_ID_RE = re.compile(fr'^{STAGING_PREFIX}/?(.+)/[^/]+?$')
 
 
 class Tasks(enum.Enum):
@@ -248,21 +253,30 @@ def run_indexing(fp, file_info, filetype):
     LOGGER.info(f'file type validation results: {filetype_str}')
 
 
+def get_file_common_dir(s3_key):
+    # Get the <flagship>/<date> component from the S3 key of format:
+    #   <staging_prefix>/<flagship>/<date>/manifest.txt
+    if not (upload_id_result := UPLOAD_ID_RE.match(s3_key)):
+        LOGGER.critical(f'could not obtain upload S3 key from \'{s3_key}\' using \'{UPLOAD_ID_RE}\'')
+        sys.exit(1)
+    return upload_id_result.group(1)
+
+
 def upload_index(file_info, index_fp):
     # Get a unique directory to store
     partition_key_esc = file_info['partition_key'].replace('/', '_')
     sort_key_esc = file_info['sort_key'].replace('/', '_')
     s3_unique_dir = f'{partition_key_esc}__{sort_key_esc}'
     # Construct full key
-    s3_key_basedir = os.path.dirname(file_info['s3_key'])
+    s3_key_basedir = get_file_common_dir(file_info['s3_key'])
     s3_key = os.path.join(
         RESULTS_S3_INDEX_PREFIX,
         s3_key_basedir,
         s3_unique_dir,
         index_fp
     )
-    LOGGER.info(f'writing index to s3://{RESULTS_S3_BUCKET}/{s3_key}')
-    CLIENT_S3.upload_file(index_fp, RESULTS_S3_BUCKET, s3_key)
+    LOGGER.info(f'writing index to s3://{STAGING_BUCKET}/{s3_key}')
+    CLIENT_S3.upload_file(index_fp, STAGING_BUCKET, s3_key)
     return s3_key
 
 
@@ -279,10 +293,11 @@ def write_results_s3(file_info):
         file_info['partition_key'],
         file_info['sort_key']
     )
-    s3_key_basedir = os.path.dirname(file_info['s3_key'])
+    s3_key_basedir = get_file_common_dir(file_info['s3_key'])
     s3_key = os.path.join(RESULTS_S3_KEY_PREFIX, s3_key_basedir, s3_key_filename)
-    LOGGER.info(f'writing results to s3://{RESULTS_S3_BUCKET}/{s3_key}:\r{s3_object_body}')
-    CLIENT_S3.put_object(Body=s3_object_body, Bucket=RESULTS_S3_BUCKET, Key=s3_key)
+    s3_object_body_log = s3_object_body.replace('\n', '\r')
+    LOGGER.info(f'writing results to s3://{STAGING_BUCKET}/{s3_key}:\r{s3_object_body_log}')
+    CLIENT_S3.put_object(Body=s3_object_body, Bucket=STAGING_BUCKET, Key=s3_key)
 
 
 def get_unique_s3_fn(filename, partition_key, sort_key):

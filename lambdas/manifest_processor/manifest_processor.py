@@ -24,6 +24,7 @@ MESSAGE_STORE = list()
 # Get environment variables
 # Lambda-specific
 STAGING_BUCKET = shared.get_environment_variable('STAGING_BUCKET')
+STAGING_PREFIX = shared.get_environment_variable('STAGING_PREFIX')
 DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
 BATCH_QUEUE_NAME = shared.get_environment_variable('BATCH_QUEUE_NAME')
 JOB_DEFINITION_ARN = shared.get_environment_variable('JOB_DEFINITION_ARN')
@@ -59,6 +60,7 @@ SSO_RE = re.compile(f'AWS:({AWS_ID_RE}):({EMAIL_RE})')
 # Manifest field validation related
 AGHA_ID_RE = re.compile('^A\d{7,8}(?:_mat|_pat|_R1|_R2|_R3)?$|^unknown$')
 MD5_RE = re.compile('^[0-9a-f]{32}$')
+FLAGSHIP_RE = re.compile(fr'^{STAGING_PREFIX}/?([^/]+)/.+$')
 FLAGSHIPS = {
     'ACG',
     'BM',
@@ -124,12 +126,17 @@ def handler(event, context):
     LOGGER.info(f'Submission with prefix: {data.submission_prefix}')
 
     # Obtain flagship from S3 key and require it to be a known value
-    data.flagship, *others = data.manifest_key.split('/')
-    if data.flagship not in FLAGSHIPS:
+    if not (flagship_result := FLAGSHIP_RE.match(data.manifest_key)):
+        message = f'could not obtain flagship from \'{data.manifest_key}\' using \'{FLAGSHIP_RE}\''
+        log_and_store_message(message, level='critical')
+        notify_and_exit(data)
+    elif flagship_result.group(1) not in FLAGSHIPS:
         flagships_str = '\r\t'.join(FLAGSHIPS)
         message = f'got unrecognised flagship \'{data.flagship}\', expected one from:\r\t{flagships_str}'
         log_and_store_message(message, level='critical')
         notify_and_exit(data)
+    else:
+        data.flagship = flagship_result.group(1)
 
     # NOTE(SW): here validation for upload subdirectory will be performed, requiring:
     #   - s3://<bucket>/<flagship>/<date>_<n>/{manifest.txt,*bam,*vcf.gz,etc}
@@ -157,7 +164,8 @@ def handler(event, context):
     for job_data in batch_job_data:
         command = ['bash', '-o', 'pipefail', '-c', job_data['command']]
         environment = [
-            {'name': 'RESULTS_S3_BUCKET', 'value': STAGING_BUCKET},
+            {'name': 'STAGING_BUCKET', 'value': STAGING_BUCKET},
+            {'name': 'STAGING_PREFIX', 'value': STAGING_PREFIX},
             {'name': 'DYNAMODB_TABLE', 'value': DYNAMODB_TABLE},
         ]
         response = CLIENT_BATCH.submit_job(
