@@ -170,8 +170,8 @@ def run_checksum(fp, file_info):
     provided_str = f'provided:   {RESULTS_DATA["provided_checksum"]}'
     calculated_str  = f'calculated: {RESULTS_DATA["calculated_checksum"]}'
     validated_str = f'validated:  {RESULTS_DATA["validated_checksum"]}'
-    checksum_str = '{provided_str}\r\t{calculated_str}\r\t{validated_str}'
-    LOGGER.info('checksum results: {checksum_str}')
+    checksum_str = f'{provided_str}\r\t{calculated_str}\r\t{validated_str}'
+    LOGGER.info(f'checksum results: {checksum_str}')
 
 
 def run_filetype_validation(fp, file_info):
@@ -199,7 +199,8 @@ def run_filetype_validation(fp, file_info):
     RESULTS_DATA['calculated_filetype'] = filetype.value
     result = shared.execute_command(command)
     if result.returncode != 0:
-        LOGGER.info('file validation failed (invalid filetype or other failure)')
+        stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr {result.stderr}'
+        LOGGER.info('file validation failed (invalid filetype or other failure): {stdstrm_msg}')
         RESULTS_DATA['validated_filetype'] = 'failed'
         write_results_s3(file_info)
         sys.exit(1)
@@ -208,8 +209,8 @@ def run_filetype_validation(fp, file_info):
     # Log results
     calculated_str  = f'calculated: {RESULTS_DATA["calculated_filetype"]}'
     validated_str = f'validated:  {RESULTS_DATA["validated_filetype"]}'
-    filetype_str = '{calculated_str}\r\t{validated_str}'
-    LOGGER.info('file type validation results: {filetype_str}')
+    filetype_str = f'{calculated_str}\r\t{validated_str}'
+    LOGGER.info(f'file type validation results: {filetype_str}')
     return filetype
 
 
@@ -243,8 +244,8 @@ def run_indexing(fp, file_info, filetype):
     filename_str = f'filename:  {RESULTS_DATA["index_filename"]}'
     bucket_str = f'S3 bucket: {RESULTS_DATA["index_s3_bucket"]}'
     key_str = f'S3 key:    {RESULTS_DATA["index_s3_key"]}'
-    filetype_str = '{result_str}\r\t{filename_str}\r\t{bucket_str}\r\t{key_str}'
-    LOGGER.info('file type validation results: {filetype_str}')
+    filetype_str = f'{result_str}\r\t{filename_str}\r\t{bucket_str}\r\t{key_str}'
+    LOGGER.info(f'file type validation results: {filetype_str}')
 
 
 def upload_index(file_info, index_fp):
@@ -260,7 +261,7 @@ def upload_index(file_info, index_fp):
         s3_unique_dir,
         index_fp
     )
-    LOGGER.info('writing index to s3://{RESULTS_S3_BUCKET}/{s3_key}')
+    LOGGER.info(f'writing index to s3://{RESULTS_S3_BUCKET}/{s3_key}')
     CLIENT_S3.upload_file(index_fp, RESULTS_S3_BUCKET, s3_key)
     return s3_key
 
@@ -280,7 +281,7 @@ def write_results_s3(file_info):
     )
     s3_key_basedir = os.path.dirname(file_info['s3_key'])
     s3_key = os.path.join(RESULTS_S3_KEY_PREFIX, s3_key_basedir, s3_key_filename)
-    LOGGER.info('writing results to s3://{RESULTS_S3_BUCKET}/{s3_key}:\r{s3_object_body}')
+    LOGGER.info(f'writing results to s3://{RESULTS_S3_BUCKET}/{s3_key}:\r{s3_object_body}')
     CLIENT_S3.put_object(Body=s3_object_body, Bucket=RESULTS_S3_BUCKET, Key=s3_key)
 
 
