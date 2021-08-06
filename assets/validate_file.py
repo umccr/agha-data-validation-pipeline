@@ -15,8 +15,8 @@ import shared
 
 
 # Logging and results store with defaults
-logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 RESULTS_DATA = {
     'provided_checksum': 'not retrieved',
     'calculated_checksum': 'not run',

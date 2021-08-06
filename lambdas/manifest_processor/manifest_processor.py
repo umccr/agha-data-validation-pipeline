@@ -17,8 +17,8 @@ import shared
 
 
 # Logging and message store
-logging.basicConfig(level=logging.INFO)
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger()
+LOGGER.setLevel(logging.INFO)
 MESSAGE_STORE = list()
 
 # Get environment variables

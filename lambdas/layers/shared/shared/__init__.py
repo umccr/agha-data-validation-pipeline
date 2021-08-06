@@ -8,8 +8,8 @@ import sys
 import boto3
 
 
-logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 def get_environment_variable(name):
