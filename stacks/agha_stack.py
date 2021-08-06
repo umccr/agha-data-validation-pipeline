@@ -82,7 +82,7 @@ class AghaStack(core.Stack):
             self,
             'BatchInstanceProfile',
             roles=[batch_instance_role.role_name],
-            instance_profile_name='BatchInstanceProfile',
+            instance_profile_name='agha-batch-instance-profile',
         )
 
         batch_spot_fleet_role = iam.Role(
