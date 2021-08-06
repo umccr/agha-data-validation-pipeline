@@ -31,7 +31,7 @@ RESULTS_DATA = {
     'validation_result': 'not determined'
 }
 
-# S3 output bucket and prefix
+# Get environment variables
 RESULTS_S3_BUCKET = shared.get_environment_variable('RESULTS_S3_BUCKET')
 DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
 # NOTE(SW): these could be lifted up to the CDK stack or even to SSM

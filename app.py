@@ -13,14 +13,12 @@ CLIENT_SSM = boto3.client('ssm')
 
 
 def create_stack():
-    # Set variables that should only change at (re)deploy and are not shared with other stacks
+    # Set config
     namespace = 'agha-validation'
     dynamodb_table = 'agha-file-validation'
     batch_queue_name = 'agha-validation-job-queue'
     job_definition_name = 'agha-input-validation'
-    # Collect configuration from SSM parameter store. Variables are considered to be appropriate
-    # for storage in SSM where they (1) might want to be changed between deploys, or (2) if they
-    # are shared between multiple stacks.
+    # Collect values from SSM parameter store
     container_image = get_ssm_parameter_value('/cdk/agha/container_image')
     staging_bucket = get_ssm_parameter_value('/cdk/agha/staging_bucket')
     store_bucket = get_ssm_parameter_value('/cdk/agha/store_bucket')

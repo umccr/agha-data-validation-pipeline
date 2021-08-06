@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-
-# NOTE(SW): since we're no longer aiming for full automation, it is probably a better idea just to
-# completely decouple from dynamodb and only interact with it during result ingestion, which will
-# occur in a specific lambda triggered by S3 events or Batch events (captured through CloudWatch).
-
-
 import io
 import json
 import logging
