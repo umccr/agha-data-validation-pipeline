@@ -84,7 +84,7 @@ class AghaStack(core.Stack):
                 actions=[
                     'dynamodb:GetItem',
                 ],
-                resources=['*']
+                resources=[dynamodb_table.table_arn]
             )
         )
 
@@ -213,17 +213,33 @@ class AghaStack(core.Stack):
         manifest_processor_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
-                    # Submission notification
                     'ses:SendEmail',
                     'ses:SendRawEmail',
-                    # Read/create file entries
+                ],
+                # NOTE(SW): resources related to identities i.e. email addresses. We could
+                # construct ARNs using the manager and sender email defined in props.
+                resources=['*']
+            )
+        )
+        manifest_processor_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
                     'dynamodb:Query',
                     'dynamodb:PutItem',
                     'dynamodb:UpdateItem',
-                    # Launch validation jobs
+                ],
+                resources=[dynamodb_table.table_arn]
+            )
+        )
+        manifest_processor_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
                     'batch:SubmitJob'
                 ],
-                resources=['*']
+                resources=[
+                    batch_job_queue.job_queue_arn,
+                    batch_job_definition.job_definition_arn,
+                ]
             )
         )
 
