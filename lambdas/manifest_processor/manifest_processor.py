@@ -354,7 +354,7 @@ def process_manifest_entry(filename, data):
     name_raw = f'agha_validation__{key_partition}__{key_sort}'
     name = name_raw.replace('.', '_')
     command = textwrap.dedent(f'''
-        validate_file.py \
+        /opt/validate_file.py \
           --partition_key {key_partition} \
           --sort_key {key_sort} \
           --tasks {tasks}
