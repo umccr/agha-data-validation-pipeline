@@ -28,6 +28,19 @@ def get_client(service_name, region_name=None):
     return response
 
 
+def get_resource(service_name, region_name=None):
+    try:
+        response = boto3.resource(service_name, region_name=region_name)
+    except Exception as err:
+        LOGGER.critical(f'could not get AWS resource for {service_name}:\r{err}')
+        sys.exit(1)
+    return response
+
+
+def get_dynamodb_table_resource(dynamodb_table, region_name=None):
+    return get_resource('dynamodb', region_name=region_name).Table(dynamodb_table)
+
+
 def get_ssm_parameter(name, ssm_client, with_decryption=False):
     try:
         response = ssm_client.get_parameter(

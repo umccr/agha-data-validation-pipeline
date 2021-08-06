@@ -35,7 +35,7 @@ RESULTS_S3_KEY_PREFIX = 'result_files/'
 RESULTS_S3_INDEX_PREFIX = 'indices/'
 
 # Get AWS clients
-CLIENT_DYNAMODB = shared.get_client('dynamodb')
+RESOURCE_DYNAMODB = shared.get_dynamodb_table_resource(DYNAMODB_TABLE, region_name='ap-southeast-2')
 CLIENT_S3 = shared.get_client('s3')
 
 
@@ -85,7 +85,7 @@ def main():
     args = get_arguments()
 
     # Get file info and load into results store
-    file_info = get_record(args.partition_key, args.sort_key, args.dynamodb_table)
+    file_info = get_record(args.partition_key, args.sort_key)
     RESULTS_DATA['provided_checksum'] = file_info['provided_checksum']
     RESULTS_DATA['provided_index'] = file_info['has_index']
     RESULTS_DATA['index_s3_bucket'] = file_info['index_s3_bucket']
@@ -119,9 +119,8 @@ def main():
     write_results_s3(file_info)
 
 
-def get_record(partition_key, sort_key, dynamodb_table):
-    resource_dynamodb = boto3.resource('dynamodb').Table(dynamodb_table)
-    response = resource_dynamodb.get_item(
+def get_record(partition_key, sort_key):
+    response = RESOURCE_DYNAMODB.get_item(
         Key={'partition_key': partition_key, 'sort_key': sort_key}
     )
     if 'Item' not in response:
