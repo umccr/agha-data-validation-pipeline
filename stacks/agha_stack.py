@@ -151,7 +151,7 @@ class AghaStack(core.Stack):
             )
         )
 
-        job_queue = batch.JobQueue(
+        batch_job_queue = batch.JobQueue(
             self,
             'BatchJobQueue',
             job_queue_name=props['batch_queue_name'],
