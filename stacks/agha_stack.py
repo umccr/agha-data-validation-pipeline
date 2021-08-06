@@ -77,6 +77,14 @@ class AghaStack(core.Stack):
                 iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AmazonEC2ContainerServiceforEC2Role'),
             ]
         )
+        batch_instance_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    'dynamodb:GetItem',
+                ],
+                resources=['*']
+            )
+        )
 
         batch_instance_profile = iam.CfnInstanceProfile(
             self,
