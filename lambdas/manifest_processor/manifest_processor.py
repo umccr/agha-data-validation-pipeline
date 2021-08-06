@@ -161,11 +161,19 @@ def handler(event, context):
     # Submit Batch jobs
     for job_data in batch_job_data:
         command = ['bash', '-o', 'pipefail', '-c', job_data['command']]
+        environment = [
+            {'name': 'RESULTS_S3_BUCKET', 'value': STAGING_BUCKET},
+            {'name': 'DYNAMODB_TABLE', 'value': DYNAMODB_TABLE},
+        ]
         response = CLIENT_BATCH.submit_job(
             jobName=job_data['name'],
             jobQueue=BATCH_QUEUE_NAME,
             jobDefinition=JOB_DEFINITION_NAME,
-            containerOverrides={'memory': 4000, 'command': command}
+            containerOverrides={
+                'memory': 4000,
+                'environment': environment,
+                'command': command
+            }
         )
 
 
@@ -349,8 +357,7 @@ def process_manifest_entry(filename, data):
         validate_file.py \
           --partition_key {key_partition} \
           --sort_key {key_sort} \
-          --tasks {tasks} \
-          --dynamodb_table {DYNAMODB_TABLE}
+          --tasks {tasks}
     ''')
     return {'name': name, 'command': command}
 

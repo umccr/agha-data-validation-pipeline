@@ -30,7 +30,9 @@ RESULTS_DATA = {
 }
 
 # S3 output bucket and prefix
-RESULTS_S3_BUCKET = 'umccr-agha-test-dev'
+RESULTS_S3_BUCKET = shared.get_environment_variable('RESULTS_S3_BUCKET')
+DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
+# NOTE(SW): these could be lifted up to the CDK stack or even to SSM
 RESULTS_S3_KEY_PREFIX = 'result_files/'
 RESULTS_S3_INDEX_PREFIX = 'indices/'
 
@@ -75,8 +77,6 @@ def get_arguments():
             help='DynamoDB sort key used to identify file')
     parser.add_argument('--tasks', required=True, choices=[m.value for m in Tasks], nargs='+',
             help='Tasks to perform')
-    parser.add_argument('--dynamodb_table', required=True, type=str,
-            help='Name of DynamoDB table')
     return parser.parse_args()
 
 
