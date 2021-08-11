@@ -18,7 +18,7 @@ def create_stack():
     dynamodb_table = 'agha-file-validation'
     batch_queue_name = 'agha-validation-job-queue'
     job_definition_name = 'agha-input-validation'
-    staging_prefix = 'upload'
+    results_bucket = 'umccr-temp-dev'
     # Collect values from SSM parameter store
     container_image = get_ssm_parameter_value('/cdk/agha/container_image')
     staging_bucket = get_ssm_parameter_value('/cdk/agha/staging_bucket')
@@ -39,8 +39,8 @@ def create_stack():
         'namespace': namespace,
         'container_image': container_image,
         'staging_bucket': staging_bucket,
+        'results_bucket': results_bucket,
         'store_bucket': store_bucket,
-        'staging_prefix': staging_prefix,
         'dynamodb_table': dynamodb_table,
         'job_definition_name': job_definition_name,
         'batch_queue_name': batch_queue_name,

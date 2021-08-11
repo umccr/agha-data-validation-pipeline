@@ -16,23 +16,6 @@ class AghaStack(core.Stack):
         super().__init__(scope, id, **kwargs)
 
         ################################################################################
-        # S3 Buckets
-        # NOTE: CDK does currently not support event notification setup on imported/existing S3 buckets.
-        #       The S3 event notification setup will have to be handled in Terraform as long as TF is controlling
-        #       the S3 buckets.
-
-        staging_bucket = s3.Bucket.from_bucket_name(
-            self,
-            id="GdrStagingBucket",
-            bucket_name=props['staging_bucket']
-        )
-        store_bucket = s3.Bucket.from_bucket_name(
-            self,
-            id="GdrStoreBucket",
-            bucket_name=props['store_bucket']
-        )
-
-        ################################################################################
         # DynamoDB
 
         dynamodb_table = dynamodb.Table(
@@ -45,7 +28,7 @@ class AghaStack(core.Stack):
             ),
             sort_key=dynamodb.Attribute(
                 name='sort_key',
-                type=dynamodb.AttributeType.STRING,
+                type=dynamodb.AttributeType.NUMBER,
             ),
             # NOTE(SW): set to retain in production
             removal_policy=core.RemovalPolicy.DESTROY,
@@ -68,7 +51,7 @@ class AghaStack(core.Stack):
         #   iam.ManagedPolicy.from_aws_managed_policy_name('AmazonS3ReadOnlyAccess'),
         # Add policy actions:
         #   actions=['s3:PutBucketPolicy'],
-        #   resources=[f'arn:aws:s3:::{staging_bucket.bucket_name}/{results_json_dir}']
+        #   resources=[f'arn:aws:s3:::{props["staging_bucket"]}/{results_json_dir}']
         batch_instance_role = iam.Role(
             self,
             'BatchInstanceRole',
@@ -178,22 +161,59 @@ class AghaStack(core.Stack):
         )
 
         ################################################################################
-        # Lambda general
+        # Lambda layers
 
         runtime_layer = lmbda.LayerVersion(
             self,
-            "RuntimeLambdaLayer",
-            code=lmbda.Code.from_asset("lambdas/layers/runtime/python38-runtime.zip"),
+            'RuntimeLambdaLayer',
+            code=lmbda.Code.from_asset('lambdas/layers/runtime/python38-runtime.zip'),
             compatible_runtimes=[lmbda.Runtime.PYTHON_3_8],
-            description="A runtime layer for python 3.8"
+            description='A runtime layer for python 3.8'
         )
 
         shared_layer = lmbda.LayerVersion(
             self,
-            "SharedLambdaLayer",
-            code=lmbda.Code.from_asset("lambdas/layers/shared/python38-shared.zip"),
+            'SharedLambdaLayer',
+            code=lmbda.Code.from_asset('lambdas/layers/shared/python38-shared.zip'),
             compatible_runtimes=[lmbda.Runtime.PYTHON_3_8],
-            description="A shared layer for python 3.8"
+            description='A shared layer for python 3.8'
+        )
+
+        ################################################################################
+        # Folder lock Lambda
+
+        folder_lock_lambda_role = iam.Role(
+            self,
+            'FolderLockLambdaRole',
+            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')
+            ]
+        )
+
+        folder_lock_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    's3:GetBucketPolicy',
+                    's3:PutBucketPolicy',
+                    's3:DeleteBucketPolicy'
+                ],
+                resources=[f'arn:aws:s3:::{props["staging_bucket"]}']
+            )
+        )
+
+        folder_lock_lambda = lmbda.Function(
+            self,
+            'FolderLockLambda',
+            function_name=f'{props["namespace"]}_folder_lock_lambda',
+            handler='folder_lock.handler',
+            runtime=lmbda.Runtime.PYTHON_3_8,
+            timeout=core.Duration.seconds(10),
+            code=lmbda.Code.from_asset('lambdas/folder_lock'),
+            environment={
+                'STAGING_BUCKET': props['staging_bucket']
+            },
+            role=folder_lock_lambda_role
         )
 
         ################################################################################
@@ -210,6 +230,7 @@ class AghaStack(core.Stack):
                 iam.ManagedPolicy.from_aws_managed_policy_name('IAMReadOnlyAccess')
             ]
         )
+
         manifest_processor_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
@@ -221,6 +242,7 @@ class AghaStack(core.Stack):
                 resources=['*']
             )
         )
+
         manifest_processor_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
@@ -231,6 +253,7 @@ class AghaStack(core.Stack):
                 resources=[dynamodb_table.table_arn]
             )
         )
+
         manifest_processor_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
@@ -246,16 +269,17 @@ class AghaStack(core.Stack):
         manifest_processor_lambda = lmbda.Function(
             self,
             'ManifestProcessorLambda',
-            function_name=f"{props['namespace']}_manifest_processor_lambda",
+            function_name=f'{props["namespace"]}_manifest_processor_lambda',
             handler='manifest_processor.handler',
             runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(60),
             code=lmbda.Code.from_asset('lambdas/manifest_processor'),
             environment={
-                'STAGING_BUCKET': staging_bucket.bucket_name,
-                'STAGING_PREFIX': props['staging_prefix'],
+                'STAGING_BUCKET': props['staging_bucket'],
+                'RESULTS_BUCKET': props['results_bucket'],
                 'DYNAMODB_TABLE': props['dynamodb_table'],
                 'JOB_DEFINITION_ARN': batch_job_definition.job_definition_arn,
+                'FOLDER_LOCK_LAMBDA_ARN': folder_lock_lambda.function_arn,
                 'BATCH_QUEUE_NAME': props['batch_queue_name'],
                 'SLACK_NOTIFY': props['slack_notify'],
                 'EMAIL_NOTIFY': props['email_notify'],
@@ -270,92 +294,3 @@ class AghaStack(core.Stack):
                 shared_layer,
             ]
         )
-
-        ################################################################################
-        # Folder lock Lambda
-
-        folder_lock_lambda_role = iam.Role(
-            self,
-            'FolderLockLambdaRole',
-            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')
-            ]
-        )
-        folder_lock_lambda_role.add_to_policy(
-            iam.PolicyStatement(
-                actions=[
-                    "s3:GetBucketPolicy",
-                    "s3:PutBucketPolicy",
-                    "s3:DeleteBucketPolicy"
-                ],
-                resources=[f"arn:aws:s3:::{staging_bucket.bucket_name}"]
-            )
-        )
-
-        folder_lock_lambda = lmbda.Function(
-            self,
-            'FolderLockLambda',
-            function_name=f"{props['namespace']}_folder_lock_lambda",
-            handler='folder_lock.handler',
-            runtime=lmbda.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(10),
-            code=lmbda.Code.from_asset('lambdas/folder_lock'),
-            environment={
-                'STAGING_BUCKET': staging_bucket.bucket_name
-            },
-            role=folder_lock_lambda_role
-        )
-
-        ################################################################################
-        # S3 event router Lambda
-
-        s3_event_router_lambda_role = iam.Role(
-            self,
-            'S3EventRouterLambdaRole',
-            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')
-            ]
-        )
-        s3_event_router_lambda_role.add_to_policy(
-            iam.PolicyStatement(
-                actions=[
-                    "lambda:InvokeFunction"
-                ],
-                resources=[
-                    folder_lock_lambda.function_arn,
-                    manifest_processor_lambda.function_arn,
-                ]
-            )
-        )
-
-        s3_event_router_lambda = lmbda.Function(
-            self,
-            'S3EventRouterLambda',
-            function_name=f"{props['namespace']}_s3_event_router_lambda",
-            handler='s3_event_router.handler',
-            runtime=lmbda.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(20),
-            code=lmbda.Code.from_asset('lambdas/s3_event_router'),
-            environment={
-                'STAGING_BUCKET': staging_bucket.bucket_name,
-                'VALIDATION_LAMBDA_ARN': manifest_processor_lambda.function_arn,
-                'FOLDER_LOCK_LAMBDA_ARN': folder_lock_lambda.function_arn,
-            },
-            role=s3_event_router_lambda_role
-        )
-
-        ################################################################################
-        # SNS topic
-        # Not needed, as we can directly route S3 events to Lambda.
-        # May be useful to filter out unwanted events in the future.
-
-        # sns_topic = sns.Topic(
-        #     self,
-        #     id="AghaS3EventTopic",
-        #     topic_name="AghaS3EventTopic",
-        #     display_name="AghaS3EventTopic"
-        # )
-        # sns_topic.add_subscription(subscription=sns_subs.LambdaSubscription(fn=s3_event_router_lambda))
-

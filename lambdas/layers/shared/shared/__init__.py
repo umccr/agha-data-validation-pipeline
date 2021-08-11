@@ -1,3 +1,4 @@
+import datetime
 import http.client
 import logging
 import os
@@ -10,6 +11,34 @@ import boto3
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
+
+
+class StreamHandlerNewLine(logging.StreamHandler):
+    '''Override emit so that we can use '\n' in file logs'''
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            msg = msg.replace('\r', '\n')
+            stream = self.stream
+            # issue 35046: merged two stream.writes into one.
+            stream.write(msg + self.terminator)
+            self.flush()
+        except RecursionError:  # See issue 36272
+            raise
+        except Exception:
+            self.handleError(record)
+
+
+class FileHandlerNewLine(logging.FileHandler):
+    '''Override emit so that we can use '\n' in file logs'''
+
+    def emit(self, record):
+        if self.stream is None:
+            if self.mode != 'w' or not self._closed:
+                self.stream = self._open()
+        if self.stream:
+            StreamHandlerNewLine.emit(self, record)
 
 
 def get_environment_variable(name):
@@ -67,6 +96,18 @@ def get_context_info(context):
         'log_stream_name',
     }
     return {attr: getattr(context, attr) for attr in attributes}
+
+
+def get_datetimestamp():
+    return f'{get_datestamp()}_{get_timestamp()}'
+
+
+def get_timestamp():
+    return '{:%H%M%S}'.format(datetime.datetime.now())
+
+
+def get_datestamp():
+    return '{:%Y%m%d}'.format(datetime.datetime.now())
 
 
 def send_email(recipients, sender, subject_text, body_html, ses_client):

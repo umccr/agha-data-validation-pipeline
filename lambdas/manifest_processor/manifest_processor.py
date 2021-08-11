@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+
+
+# NOTE(SW): it seems reasonable to require some structuring of uploads in the format of
+# <FLAGSHIP>/<DATE_TS>/<FILES ...>. Outcomes on upload wrt directory structure:
+#   1. meets prescribed structure and we automatically launch validation jobs
+#   2. differs from prescribed structure and data manager is notified to fix and then launch jobs
+#
+# Similarly, this logic could be applied to anything that might block or interfere with validation
+# jobs. e.g. prohibited file types such as CRAM
+
+
 import io
 import json
 import logging
@@ -6,6 +17,7 @@ import os
 import re
 import sys
 import textwrap
+import uuid
 
 
 import boto3
@@ -24,11 +36,12 @@ MESSAGE_STORE = list()
 # Get environment variables
 # Lambda-specific
 STAGING_BUCKET = shared.get_environment_variable('STAGING_BUCKET')
-STAGING_PREFIX = shared.get_environment_variable('STAGING_PREFIX')
+RESULTS_BUCKET = shared.get_environment_variable('RESULTS_BUCKET')
 DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
 BATCH_QUEUE_NAME = shared.get_environment_variable('BATCH_QUEUE_NAME')
 JOB_DEFINITION_ARN = shared.get_environment_variable('JOB_DEFINITION_ARN')
-# Shared
+JOB_DEFINITION_ARN = shared.get_environment_variable('JOB_DEFINITION_ARN')
+FOLDER_LOCK_LAMBDA_ARN = shared.get_environment_variable('FOLDER_LOCK_LAMBDA_ARN')
 SLACK_NOTIFY = shared.get_environment_variable('SLACK_NOTIFY')
 EMAIL_NOTIFY = shared.get_environment_variable('EMAIL_NOTIFY')
 SLACK_HOST = shared.get_environment_variable('SLACK_HOST')
@@ -60,7 +73,6 @@ SSO_RE = re.compile(f'AWS:({AWS_ID_RE}):({EMAIL_RE})')
 # Manifest field validation related
 AGHA_ID_RE = re.compile('^A\d{7,8}(?:_mat|_pat|_R1|_R2|_R3)?$|^unknown$')
 MD5_RE = re.compile('^[0-9a-f]{32}$')
-FLAGSHIP_RE = re.compile(fr'^{STAGING_PREFIX}/?([^/]+)/.+$')
 FLAGSHIPS = {
     'ACG',
     'BM',
@@ -81,6 +93,7 @@ FLAGSHIPS = {
 # Other
 EMAIL_SUBJECT = '[AGHA service] Submission received'
 MANIFEST_REQUIRED_COLUMNS = {'filename', 'checksum', 'agha_study_id'}
+JOB_NAME_RE = re.compile(r'[.\\/]')
 
 
 # Collection of input/submission data
@@ -97,6 +110,9 @@ class SubmissionData:
         self.bucket_name = str()
         self.manifest_key = str()
 
+        self.file_metadata = list()
+        self.file_etags = list()
+
         self.manifest_data = pd.DataFrame()
         self.manifest_files = list()
         self.extra_files = list()
@@ -110,6 +126,13 @@ def handler(event, context):
     # Parse event data and get record
     record = process_event_data(event)
     data = SubmissionData(record)
+
+    # Update policy on S3 submission prefix to be read-only
+    lambda_client.invoke(
+        FunctionName=FOLDER_LOCK_LAMBDA_ARN,
+        InvocationType='Event',
+        Payload=json.dumps({'Record': record})
+    )
 
     # Get name and email from record
     if record.get('eventSource') == 'aws:s3' and 'userIdentity' in record and 'principalId' in record['userIdentity']:
@@ -126,49 +149,42 @@ def handler(event, context):
     LOGGER.info(f'Submission with prefix: {data.submission_prefix}')
 
     # Obtain flagship from S3 key and require it to be a known value
-    if not (flagship_result := FLAGSHIP_RE.match(data.manifest_key)):
-        message = f'could not obtain flagship from \'{data.manifest_key}\' using \'{FLAGSHIP_RE}\''
-        log_and_store_message(message, level='critical')
-        notify_and_exit(data)
-    elif flagship_result.group(1) not in FLAGSHIPS:
+    data.flagship, *others = data.manifest_key.split('/')
+    if data.flagship not in FLAGSHIPS:
         flagships_str = '\r\t'.join(FLAGSHIPS)
         message = f'got unrecognised flagship \'{data.flagship}\', expected one from:\r\t{flagships_str}'
         log_and_store_message(message, level='critical')
         notify_and_exit(data)
-    else:
-        data.flagship = flagship_result.group(1)
 
-    # NOTE(SW): here validation for upload subdirectory will be performed, requiring:
-    #   - s3://<bucket>/<flagship>/<date>_<n>/{manifest.txt,*bam,*vcf.gz,etc}
-    # where <date>_<n> is the upload subdirectory with format YYYYMMDD and where <n> is an
-    # incremental counter to avoid colisions for multiple same-day deposits.
+    # Pull file metadata from S3 and get ETags by filename
+    data.file_metadata = get_s3_object_metadata(data.bucket_name, data.submission_prefix)
+    data.file_etags = get_s3_etags_by_filename(data.file_metadata)
 
     # Collect manifest data and then validate
     data.manifest_data = retrieve_manifest_data(data)
     data.manifest_files, data.extra_files = validate_manifest(data)
 
     # Process each record and prepare Batch commands
-
-    # NOTE(SW): Batch job submission is not done within the loop to avoid a sitation where some job
-    # submissions may succeed and then one fails, causing the remainingi jobs to be not processed
-    # at all. The current strategy is essentially 'all or nothing'.
-
-    # NOTE(SW): this logic ignores files that are on S3 but absent from manifest
-
     batch_job_data = list()
     for manifest_file in data.manifest_files:
         job_data = process_manifest_entry(manifest_file, data)
         batch_job_data.append(job_data)
 
+    # Get output directory
+    # NOTE(SW): done here to avoid the incredibly unlikely event that jobs are processed across
+    # date boundary
+    output_fn = f'{shared.get_datestamp()}_{uuid.uuid1().hex[:7]}'
+    results_key_prefix = os.path.join(data.submission_prefix, output_fn)
+
     # Submit Batch jobs
     for job_data in batch_job_data:
         command = ['bash', '-o', 'pipefail', '-c', job_data['command']]
         environment = [
-            {'name': 'STAGING_BUCKET', 'value': STAGING_BUCKET},
-            {'name': 'STAGING_PREFIX', 'value': STAGING_PREFIX},
+            {'name': 'RESULTS_BUCKET', 'value': RESULTS_BUCKET},
             {'name': 'DYNAMODB_TABLE', 'value': DYNAMODB_TABLE},
+            {'name': 'RESULTS_KEY_PREFIX', 'value': results_key_prefix},
         ]
-        response = CLIENT_BATCH.submit_job(
+        CLIENT_BATCH.submit_job(
             jobName=job_data['name'],
             jobQueue=BATCH_QUEUE_NAME,
             jobDefinition=JOB_DEFINITION_ARN,
@@ -251,7 +267,7 @@ def validate_manifest(data):
     log_and_store_message(f'Entries in manifest: {len(data.manifest_data)}')
     # Files present on S3
     message_text = f'Entries on S3 (including manifest)'
-    files_s3 = set(get_s3_filenames(data.bucket_name, data.submission_prefix))
+    files_s3 = {get_s3_filename(md) for md in data.file_metadata}
     log_and_store_file_message(message_text, files_s3)
     # Files missing from S3
     files_manifest = set(data.manifest_data['filename'].to_list())
@@ -315,14 +331,10 @@ def validate_manifest(data):
 
 
 def process_manifest_entry(filename, data):
-    # NOTE(SW): it is not clear whether study id and filename is sufficiently unique. May need to
-    # also include submission subdir (i.e. the date of upload). The answer should become apparent
-    # when/after testing real data.
-
     # Grab file info, and construct partition key
     file_info = data.manifest_data.loc[data.manifest_data['filename']==filename].iloc[0]
     study_id = file_info['agha_study_id']
-    key_partition = f'{study_id}_{filename}'
+    key_partition = f'{data.submission_prefix}/{filename}'
 
     # Get sort key and create record
     # NOTE(SW): currently creating new record if previous one exists. Could modify this behaviour
@@ -334,14 +346,16 @@ def process_manifest_entry(filename, data):
     #   - allow user to have some choice
     file_number, records_existing = get_existing_records_and_filenumber(filename, key_partition)
     if records_existing:
-        LOGGER.info(f'found existing records for {filename}: {records_existing}')
-    key_sort = f'{filename}_{file_number}'
+        LOGGER.info(f'found existing records for {filename} with key {key_partition}: {records_existing}')
+    key_sort = file_number
     s3_key = os.path.join(data.submission_prefix, filename)
+    s3_etag = data.file_etags[filename]
     create_record(
         key_partition,
         key_sort,
         data.flagship,
         s3_key,
+        s3_etag,
         file_number,
         file_info,
         records_existing
@@ -355,7 +369,7 @@ def process_manifest_entry(filename, data):
 
     # Construct command and job name
     name_raw = f'agha_validation__{key_partition}__{key_sort}'
-    name = name_raw.replace('.', '_')
+    name = JOB_NAME_RE.sub('_', name_raw)
     command = textwrap.dedent(f'''
         /opt/validate_file.py \
           --partition_key {key_partition} \
@@ -388,21 +402,25 @@ def get_s3_object_metadata(bucket, prefix):
     return results
 
 
-def list_s3_objects(bucket, prefix):
-    object_metadata = get_s3_object_metadata(bucket, prefix)
-    return [os.path.basename(md.get('Key')) for md in object_metadata]
+def get_s3_filename(metadata_record):
+    filepath = os.path.basename(metadata_record.get('Key'))
+    return os.path.basename(filepath)
 
 
-def get_s3_filenames(bucket, prefix):
-    filepaths = list_s3_objects(bucket, prefix)
-    return [os.path.basename(fp) for fp in filepaths]
+def get_s3_etags_by_filename(metadata_records):
+    return {get_s3_filename(md): md.get('ETag') for md in metadata_records}
 
 
 def get_existing_records_and_filenumber(filename, key_partition):
     records = get_records(key_partition)
     if records:
         records_current = [r for r in records if r['active']]
-        assert len(records_current) == 1
+        if len(records_current) != 1:
+            msg_records = '\r\t'.join(r.__repr__ for r in records_current)
+            msg_base = f'expected one active record but got {len(records_current)}'
+            msg = f'{msg_base}:\r\t{msg_records}'
+            log_and_store_message(msg, level='critical')
+            sys.exit(1)
         [record_current] = records_current
         file_number = record_current['file_number'] + 1
     else:
@@ -436,13 +454,14 @@ def create_record(
     key_sort,
     flagship,
     s3_key,
+    s3_etag,
     file_number,
     file_info,
     records_existing
 ):
     # Set old records to inactive
     for record in records_existing:
-        response = RESOURCE_DYNAMODB.update_item(
+        RESOURCE_DYNAMODB.update_item(
             Key={
                 'partition_key': record['partition_key'],
                 'sort_key': record['sort_key'],
@@ -459,24 +478,29 @@ def create_record(
         'flagship': flagship,
         'filename': file_info['filename'],
         'file_number': file_number,
-        's3_bucket': STAGING_BUCKET,
-        's3_key': s3_key,
         # Checksum
         'provided_checksum': file_info['checksum'],
         'calculated_checksum': 'not run',
-        'validated_checksum': 'not run',
+        'valid_checksum': 'not run',
         # File type
-        'calculated_filetype': 'not run',
-        'validated_filetype': 'not run',
+        'inferred_filetype': 'not run',
+        'valid_filetype': 'not run',
         # Index
-        # NOTE(SW): disallowing indices for now
-        'has_index': False,
         'index_result': 'not run',
         'index_file_name': 'na',
-        'index_s3_bucket': 'na',
-        'index_s3_key': 'na',
+        'index_s3_bucket_results': 'na',
+        'index_s3_key_results': 'na',
+        # Storage details
+        's3_bucket_staging': STAGING_BUCKET,
+        's3_key_staging': s3_key,
+        'index_s3_bucket_staging': 'na',
+        'index_s3_key_staging': 'na',
         # Misc
-        'validation_result': 'not determined',
+        'fully_validated': 'no',
+        'etag': s3_etag,
+        'ts_record_creation': shared.get_datetimestamp(),
+        'ts_validation_job': 'na',
+        'ts_moved_storage': 'na',
         'excluded': False,
     }
     LOGGER.info(f'created record for {file_info["filename"]}: {record}')
