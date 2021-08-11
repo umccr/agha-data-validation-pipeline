@@ -173,7 +173,7 @@ def handler(event, context):
     # Get output directory
     # NOTE(SW): done here to avoid the incredibly unlikely event that jobs are processed across
     # date boundary
-    output_fn = f'{shared.get_datestamp()}_{uuid.uuid1().hex[:7]}'
+    output_fn = f'{shared.get_datetimestamp()}_{uuid.uuid1().hex[:7]}'
     results_key_prefix = os.path.join(data.submission_prefix, output_fn)
 
     # Submit Batch jobs
