@@ -280,8 +280,20 @@ def validate_manifest(data):
     log_and_store_file_message(message_text, files_missing_from_manifest)
     # Files present in manifest *and* S3
     files_matched = files_manifest.intersection(files_s3)
-    message_text = f'Entries common in manifest and S3'
+    message_text = f'Entries matched in manifest and S3'
     log_and_store_file_message(message_text, files_matched)
+    # Matched files that are accepted. Here files such as indices are filtered.
+    files_matched_prohibited = list()
+    files_matched_accepted = list()
+    for filename in files_matched:
+        if any(filename.endswith(fext) for fext in shared.FEXT_ACCEPTED):
+            files_matched_accepted.append(filename)
+        else:
+            files_matched_prohibited.append(filename)
+    message_text = f'Matched entries excluded on file extension'
+    log_and_store_file_message(message_text, files_matched_prohibited)
+    message_text = f'Matched entries proceeding for validation'
+    log_and_store_file_message(message_text, files_matched_accepted)
     # Fail if there are extra files (other than manifest.txt) or missing files
     if 'manifest.txt' in files_missing_from_manifest:
         files_missing_from_manifest.remove('manifest.txt')
@@ -327,7 +339,7 @@ def validate_manifest(data):
     # NOTE(SW): returning files that are on S3 and (1) in manifest, and (2) not in manifest. This
     # will allow flexbility in the future for any refactor if we decide to modify handling of
     # missing files
-    return list(files_matched), list(files_missing_from_manifest)
+    return files_matched_accepted, list(files_missing_from_manifest)
 
 
 def process_manifest_entry(filename, data):

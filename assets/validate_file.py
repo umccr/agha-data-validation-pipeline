@@ -186,16 +186,13 @@ def run_checksum(fp, file_info):
 def run_filetype_validation(fp, file_info):
     LOGGER.info('running file type validation')
     # Get file type
-    fext_fastq = {'.fq', '.fq.gz', '.fastq', '.fastq.gz'}
-    fext_bam = {'.bam'}
-    fext_vcf = {'.vcf.gz', 'gvcf', 'gvcf.gz'}
-    if any(fp.name.endswith(fext) for fext in fext_bam):
+    if any(fp.name.endswith(fext) for fext in shared.FEXT_BAM):
         filetype = FileTypes.BAM
         command = f'samtools quickcheck -q {fp}'
-    elif any(fp.name.endswith(fext) for fext in fext_fastq):
+    elif any(fp.name.endswith(fext) for fext in shared.FEXT_FASTQ):
         filetype = FileTypes.FASTQ
         command = f'fqtools validate {fp}'
-    elif any(fp.name.endswith(fext) for fext in fext_vcf):
+    elif any(fp.name.endswith(fext) for fext in shared.FEXT_VCF):
         filetype = FileTypes.VCF
         command = f'bcftools query -l {fp}'
     else:

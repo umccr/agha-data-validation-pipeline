@@ -13,6 +13,12 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
+FEXT_FASTQ = {'.fq', '.fq.gz', '.fastq', '.fastq.gz'}
+FEXT_BAM = {'.bam'}
+FEXT_VCF = {'.vcf.gz', 'gvcf', 'gvcf.gz'}
+FEXT_ACCEPTED = {*FEXT_FASTQ, *FEXT_BAM, *FEXT_VCF}
+
+
 class StreamHandlerNewLine(logging.StreamHandler):
     '''Override emit so that we can use '\n' in file logs'''
 
