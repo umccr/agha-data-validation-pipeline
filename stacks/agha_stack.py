@@ -116,6 +116,7 @@ class AghaStack(core.Stack):
 
         batch_launch_template_spec = batch.LaunchTemplateSpecification(
             launch_template_name=batch_launch_template.launch_template_name,
+            version='$Latest',
         )
 
         batch_compute_environment = batch.ComputeEnvironment(
