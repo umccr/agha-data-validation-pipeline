@@ -15,7 +15,7 @@ LOGGER.setLevel(logging.INFO)
 
 FEXT_FASTQ = {'.fq', '.fq.gz', '.fastq', '.fastq.gz'}
 FEXT_BAM = {'.bam'}
-FEXT_VCF = {'.vcf.gz', 'gvcf', 'gvcf.gz'}
+FEXT_VCF = {'.vcf.gz', '.gvcf.gz'}
 FEXT_ACCEPTED = {*FEXT_FASTQ, *FEXT_BAM, *FEXT_VCF}
 
 
