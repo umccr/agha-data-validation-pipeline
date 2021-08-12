@@ -91,6 +91,29 @@ def get_ssm_parameter(name, ssm_client, with_decryption=False):
     return response['Parameter']['Value']
 
 
+def get_s3_object_metadata(bucket, prefix, client_s3):
+    results = list()
+    response = client_s3.list_objects_v2(
+        Bucket=bucket,
+        Prefix=prefix
+    )
+    if not (object_mdata := response.get('Contents')):
+        message = f'could not retrieve files from S3 at s3://{bucket}{prefix}'
+        log_and_store_message(message, level='critical')
+        notify_and_exit(data)
+    else:
+        results.extend(object_mdata)
+    while response['IsTruncated']:
+        token = response['NextContinuationToken']
+        response = client_s3.list_objects_v2(
+            Bucket=bucket,
+            Prefix=prefix,
+            ContinuationToken=token
+        )
+        results.extend(object_mdata)
+    return results
+
+
 def get_context_info(context):
     attributes = {
         'function_name',

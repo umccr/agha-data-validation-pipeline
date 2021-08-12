@@ -157,7 +157,7 @@ def handler(event, context):
         notify_and_exit(data)
 
     # Pull file metadata from S3 and get ETags by filename
-    data.file_metadata = get_s3_object_metadata(data.bucket_name, data.submission_prefix)
+    data.file_metadata = shared.get_s3_object_metadata(data.bucket_name, data.submission_prefix, CLIENT_S3)
     data.file_etags = get_s3_etags_by_filename(data.file_metadata)
 
     # Collect manifest data and then validate
@@ -389,29 +389,6 @@ def process_manifest_entry(filename, data):
           --tasks {tasks}
     ''')
     return {'name': name, 'command': command}
-
-
-def get_s3_object_metadata(bucket, prefix):
-    results = list()
-    response = CLIENT_S3.list_objects_v2(
-        Bucket=bucket,
-        Prefix=prefix
-    )
-    if not (object_mdata := response.get('Contents')):
-        message = f'could not retrieve files from S3 at s3://{bucket}{prefix}'
-        log_and_store_message(message, level='critical')
-        notify_and_exit(data)
-    else:
-        results.extend(object_mdata)
-    while response['IsTruncated']:
-        token = response['NextContinuationToken']
-        response = CLIENT_S3.list_objects_v2(
-            Bucket=bucket,
-            Prefix=prefix,
-            ContinuationToken=token
-        )
-        results.extend(object_mdata)
-    return results
 
 
 def get_s3_filename(metadata_record):

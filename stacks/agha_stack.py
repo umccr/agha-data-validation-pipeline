@@ -295,3 +295,48 @@ class AghaStack(core.Stack):
                 shared_layer,
             ]
         )
+
+        ################################################################################
+        # Data import lambda
+
+        data_import_lambda_role = iam.Role(
+            self,
+            'DataImportLambdaRole',
+            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonSSMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonS3ReadOnlyAccess'),
+            ]
+        )
+
+        data_import_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    'dynamodb:GetItem',
+                    'dynamodb:PutItem',
+                    'dynamodb:UpdateItem',
+                ],
+                resources=[dynamodb_table.table_arn]
+            )
+        )
+
+        data_import_lambda = lmbda.Function(
+            self,
+            'DataImportLambda',
+            function_name=f'{props["namespace"]}_data_import_lambda',
+            handler='data_import.handler',
+            runtime=lmbda.Runtime.PYTHON_3_8,
+            timeout=core.Duration.seconds(60),
+            code=lmbda.Code.from_asset('lambdas/data_import'),
+            environment={
+                'DYNAMODB_TABLE': props['dynamodb_table'],
+                'SLACK_NOTIFY': props['slack_notify'],
+                'EMAIL_NOTIFY': props['email_notify'],
+                'SLACK_HOST': props['slack_host'],
+                'SLACK_CHANNEL': props['slack_channel'],
+                'MANAGER_EMAIL': props['manager_email'],
+                'SENDER_EMAIL': props['sender_email'],
+            },
+            role=data_import_lambda_role,
+        )
