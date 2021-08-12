@@ -91,7 +91,8 @@ def main():
     # Get command line arguments
     args = get_arguments()
 
-    # Set job datetime stamp
+    # Log Batch job id and set job datetime stamp
+    LOGGER.info(f'starting job: {BATCH_JOBID}')
     RESULTS_DATA['ts_validation_job'] = shared.get_datetimestamp()
 
     # Get file info and load into results store
@@ -269,7 +270,7 @@ def write_results_s3(file_info):
     }
     s3_object_body = f'{json.dumps(data, indent=4)}\n'
     # Upload results and log to S3
-    s3_key_fn = f'{file_info["filename"]}__{BATCH_JOBID}__results.json'
+    s3_key_fn = f'{file_info["filename"]}__results.json'
     s3_key = os.path.join(RESULTS_KEY_PREFIX, s3_key_fn)
     s3_object_body_log = s3_object_body.replace('\n', '\r')
     LOGGER.info(f'writing results to s3://{RESULTS_BUCKET}/{s3_key}:\r{s3_object_body_log}')
@@ -278,7 +279,7 @@ def write_results_s3(file_info):
 
 
 def upload_log(file_info):
-    s3_key_fn = f'{file_info["filename"]}__{BATCH_JOBID}__log.txt'
+    s3_key_fn = f'{file_info["filename"]}__log.txt'
     s3_key = os.path.join(RESULTS_KEY_PREFIX, s3_key_fn)
     LOGGER.info(f'writing log file to s3://{RESULTS_BUCKET}/{s3_key}')
     LOG_FILE_HANDLER.flush()
