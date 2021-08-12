@@ -96,7 +96,7 @@ class AghaStack(core.Stack):
 
         block_device_mappings = [
             ec2.CfnLaunchTemplate.BlockDeviceMappingProperty(
-                device_name='/dev/xvdcz',
+                device_name='/dev/xvda',
                 ebs=ec2.CfnLaunchTemplate.EbsProperty(
                     encrypted=True,
                     volume_size=100,
