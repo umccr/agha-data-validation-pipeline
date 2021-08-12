@@ -42,7 +42,7 @@ def handler(event, context):
     LOGGER.info(f'context: {json.dumps(shared.get_context_info(context))}')
 
     # Get result files
-    if not (result_fps := event.get('result_fps')):
+    if not (results_fps := event.get('results_fps')):
         LOGGER.critical('event data did not contain \'results_fps\' value')
         sys.exit(1)
     if not (bucket_name := event.get('bucket_name')):
@@ -51,8 +51,8 @@ def handler(event, context):
 
     # Check that each provided results file exists
     results_fp_missing = list()
-    for results_fp in result_fps:
-        if shared.get_s3_object_metadata(bucket_name, result_fp, client_s3):
+    for results_fp in results_fps:
+        if shared.get_s3_object_metadata(bucket_name, results_fp, CLIENT_S3):
             continue
         results_fp_missing.append(results_fp)
     if results_fp_missing:
@@ -64,7 +64,7 @@ def handler(event, context):
     # Pull result data
     results_data = dict()
     for results_fp in results_fps:
-        response = client.get_object(
+        response = CLIENT_S3.get_object(
             Bucket=bucket_name,
             Key=results_fp,
         )
@@ -85,12 +85,15 @@ def handler(event, context):
         partition_key = data['file_info']['partition_key']
         sort_key = int(data['file_info']['sort_key'])
         LOGGER.info(f'using partition key {partition_key} and sort key {sort_key} for {fp}')
-        record = RESOURCE_DYNAMODB.get_item(
+        response = RESOURCE_DYNAMODB.get_item(
             Key={'partition_key': partition_key, 'sort_key': sort_key},
         )
 
         # Prepare data for logging
-        if 'Item' in record:
+        if 'Item' in response:
+
+            # NOTE(SW): we're updating all fields available, may want to control in some regard
+
             results_str = '\r\t'.join(f'{k}: {v}' for k, v in data['results'].items())
             LOGGER.info(f'found existing record for {fp}, updating with:\r\t{results_str}')
             # Get update expression string and attribute values
@@ -100,23 +103,27 @@ def handler(event, context):
                 update_expr_key = f':{i}'
                 assert update_expr_key not in attr_values
                 update_expr_items.append(f'{k} = {update_expr_key}')
-                attr_values.append(update_expr_key: data['results'][k])
+                attr_values[update_expr_key] = data['results'][k]
             update_expr_items_str = ', '.join(update_expr_items)
             update_expr = f'SET {update_expr_items_str}'
             # Update record
             RESOURCE_DYNAMODB.update_item(
                 Key={
-                    'partition_key': record['partition_key'],
-                    'sort_key': record['sort_key'],
+                    'partition_key': partition_key,
+                    'sort_key': sort_key,
                 },
                 UpdateExpression=update_expr,
                 ExpressionAttributeValues=attr_values,
             )
         else:
+
+            # NOTE(SW): we want to apply some logic to specific fields here. e.g. always setting
+            # active to True
+
             # Construct complete record from results file, copying for convenience
             record = data['file_info'].copy()
             for k, v in data['results'].items():
                 record[k] = v
-            results_str = '\r\t'.join(f'{k}: {v}' for k, v in record)
+            results_str = '\r\t'.join(f'{k}: {v}' for k, v in record.items())
             LOGGER.info(f'creating record for {fp} with:\r\t{results_str}')
             RESOURCE_DYNAMODB.put_item(Item=record)

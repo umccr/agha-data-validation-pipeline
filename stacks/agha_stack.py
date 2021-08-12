@@ -339,4 +339,7 @@ class AghaStack(core.Stack):
                 'SENDER_EMAIL': props['sender_email'],
             },
             role=data_import_lambda_role,
+            layers=[
+                shared_layer,
+            ]
         )
