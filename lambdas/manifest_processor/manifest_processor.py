@@ -39,6 +39,7 @@ RESULTS_BUCKET = shared.get_environment_variable('RESULTS_BUCKET')
 DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
 BATCH_QUEUE_NAME = shared.get_environment_variable('BATCH_QUEUE_NAME')
 JOB_DEFINITION_ARN = shared.get_environment_variable('JOB_DEFINITION_ARN')
+JOB_SUBMISSION_ARN = shared.get_environment_variable('JOB_SUBMISSION_ARN')
 FOLDER_LOCK_LAMBDA_ARN = shared.get_environment_variable('FOLDER_LOCK_LAMBDA_ARN')
 SLACK_NOTIFY = shared.get_environment_variable('SLACK_NOTIFY')
 EMAIL_NOTIFY = shared.get_environment_variable('EMAIL_NOTIFY')
@@ -174,24 +175,27 @@ def handler(event, context):
     output_fn = f'{shared.get_datetimestamp()}_{uuid.uuid1().hex[:7]}'
     results_key_prefix = os.path.join(data.submission_prefix, output_fn)
 
-    # Submit Batch jobs
+    # Trigger Batch job submission Lambda
     for job_data in batch_job_data:
-        command = ['bash', '-o', 'pipefail', '-c', job_data['command']]
-        environment = [
-            {'name': 'RESULTS_BUCKET', 'value': RESULTS_BUCKET},
-            {'name': 'DYNAMODB_TABLE', 'value': DYNAMODB_TABLE},
-            {'name': 'RESULTS_KEY_PREFIX', 'value': results_key_prefix},
-        ]
-        CLIENT_BATCH.submit_job(
-            jobName=job_data['name'],
-            jobQueue=BATCH_QUEUE_NAME,
-            jobDefinition=JOB_DEFINITION_ARN,
-            containerOverrides={
-                'memory': 4000,
-                'environment': environment,
-                'command': command
-            }
+        job_event_data = {
+            'job_name': job_data['name'],
+            'job_queue': BATCH_QUEUE_NAME,
+            'job_definition': JOB_DEFINITION_ARN,
+            'command': ['bash', '-o', 'pipefail', '-c', job_data['command']],
+            'environment': [
+                {'name': 'RESULTS_BUCKET', 'value': RESULTS_BUCKET},
+                {'name': 'DYNAMODB_TABLE', 'value': DYNAMODB_TABLE},
+                {'name': 'RESULTS_KEY_PREFIX', 'value': results_key_prefix},
+            ],
+        }
+        msg_base = f'invoking \'{JOB_SUBMISSION_ARN}\' for \'{job_data["name"]}\' with'
+        LOGGER.info(f'{msg_base}: {job_event_data}')
+        response = CLIENT_LAMBDA.invoke(
+            FunctionName=JOB_SUBMISSION_ARN,
+            InvocationType='Event',
+            Payload=json.dumps({'Record': job_event_data})
         )
+        LOGGER.info(f'got response: {response}')
 
 
 def process_event_data(event):
