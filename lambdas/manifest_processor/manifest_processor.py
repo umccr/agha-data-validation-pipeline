@@ -49,8 +49,8 @@ MANAGER_EMAIL = shared.get_environment_variable('MANAGER_EMAIL')
 SENDER_EMAIL = shared.get_environment_variable('SENDER_EMAIL')
 
 # Get AWS clients, resources
-CLIENT_BATCH = shared.get_client('batch')
 CLIENT_IAM = shared.get_client('iam')
+CLIENT_LAMBDA = shared.get_client('lambda')
 CLIENT_S3 = shared.get_client('s3')
 CLIENT_SES = shared.get_client('ses')
 CLIENT_SSM = shared.get_client('ssm')
@@ -127,7 +127,7 @@ def handler(event, context):
     data = SubmissionData(record)
 
     # Update policy on S3 submission prefix to be read-only
-    lambda_client.invoke(
+    CLIENT_LAMBDA.invoke(
         FunctionName=FOLDER_LOCK_LAMBDA_ARN,
         InvocationType='Event',
         Payload=json.dumps({'Record': record})
@@ -157,6 +157,11 @@ def handler(event, context):
 
     # Pull file metadata from S3 and get ETags by filename
     data.file_metadata = shared.get_s3_object_metadata(data.bucket_name, data.submission_prefix, CLIENT_S3)
+    # Explicitly check identity here to avoid type casting
+    if data.file_metadata is False:
+        message = f'could not retrieve files from S3 at s3://{bucket}{prefix}'
+        log_and_store_message(message, level='critical')
+        notify_and_exit(data)
     data.file_etags = get_s3_etags_by_filename(data.file_metadata)
 
     # Collect manifest data and then validate

@@ -98,9 +98,7 @@ def get_s3_object_metadata(bucket, prefix, client_s3):
         Prefix=prefix
     )
     if not (object_mdata := response.get('Contents')):
-        message = f'could not retrieve files from S3 at s3://{bucket}{prefix}'
-        log_and_store_message(message, level='critical')
-        notify_and_exit(data)
+        return False
     else:
         results.extend(object_mdata)
     while response['IsTruncated']:

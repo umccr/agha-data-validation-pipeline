@@ -41,7 +41,7 @@ def handler(event, context):
     LOGGER.info(f'event: {json.dumps(event)}')
     LOGGER.info(f'context: {json.dumps(shared.get_context_info(context))}')
 
-    # Get result files
+    # Collect run parameters from event
     if not (results_fps := event.get('results_fps')):
         LOGGER.critical('event data did not contain \'results_fps\' value')
         sys.exit(1)
