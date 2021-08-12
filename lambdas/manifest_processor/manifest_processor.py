@@ -34,12 +34,10 @@ LOGGER.setLevel(logging.INFO)
 MESSAGE_STORE = list()
 
 # Get environment variables
-# Lambda-specific
 STAGING_BUCKET = shared.get_environment_variable('STAGING_BUCKET')
 RESULTS_BUCKET = shared.get_environment_variable('RESULTS_BUCKET')
 DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
 BATCH_QUEUE_NAME = shared.get_environment_variable('BATCH_QUEUE_NAME')
-JOB_DEFINITION_ARN = shared.get_environment_variable('JOB_DEFINITION_ARN')
 JOB_DEFINITION_ARN = shared.get_environment_variable('JOB_DEFINITION_ARN')
 FOLDER_LOCK_LAMBDA_ARN = shared.get_environment_variable('FOLDER_LOCK_LAMBDA_ARN')
 SLACK_NOTIFY = shared.get_environment_variable('SLACK_NOTIFY')
@@ -423,8 +421,7 @@ def get_records(partition_key):
         KeyConditionExpression=boto3.dynamodb.conditions.Key('partition_key').eq(partition_key)
     )
     if 'Items' not in response:
-        message_key = f'partition key ({partition_key}) and sort key ({sort_key}) in {DYNAMODB_TABLE}'
-        message = f'could not any records using {message_key}'
+        message = f'could not any records using partition key ({partition_key}) in {DYNAMODB_TABLE}'
         log_and_store_message(message, level='critical')
         notify_and_exit(data)
     else:
@@ -455,7 +452,7 @@ def create_record(
                 'partition_key': record['partition_key'],
                 'sort_key': record['sort_key'],
             },
-            UpdateExpression='set active=:a',
+            UpdateExpression='SET active = :a',
             ExpressionAttributeValues={':a': False},
         )
     # Create new record
