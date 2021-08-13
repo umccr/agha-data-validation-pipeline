@@ -198,7 +198,7 @@ def handler(event, context):
         response = CLIENT_LAMBDA.invoke(
             FunctionName=JOB_SUBMISSION_ARN,
             InvocationType='Event',
-            Payload=json.dumps({'Record': job_event_data})
+            Payload=json.dumps(job_event_data)
         )
         LOGGER.info(f'got response: {response}')
 
