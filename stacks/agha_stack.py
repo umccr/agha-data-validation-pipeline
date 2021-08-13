@@ -274,6 +274,18 @@ class AghaStack(core.Stack):
         manifest_processor_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
+                    "lambda:InvokeFunction"
+                ],
+                resources=[
+                    folder_lock_lambda.function_arn,
+                    job_submission_lambda.function_arn,
+                ]
+            )
+        )
+
+        manifest_processor_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
                     'ses:SendEmail',
                     'ses:SendRawEmail',
                 ],
