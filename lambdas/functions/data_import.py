@@ -7,7 +7,7 @@ import sys
 import boto3
 
 
-import shared
+import util
 
 
 # Setup logging
@@ -15,21 +15,21 @@ LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
 # Get environment variables
-DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
-SLACK_NOTIFY = shared.get_environment_variable('SLACK_NOTIFY')
-EMAIL_NOTIFY = shared.get_environment_variable('EMAIL_NOTIFY')
-SLACK_HOST = shared.get_environment_variable('SLACK_HOST')
-SLACK_CHANNEL = shared.get_environment_variable('SLACK_CHANNEL')
-MANAGER_EMAIL = shared.get_environment_variable('MANAGER_EMAIL')
-SENDER_EMAIL = shared.get_environment_variable('SENDER_EMAIL')
+DYNAMODB_TABLE = util.get_environment_variable('DYNAMODB_TABLE')
+SLACK_NOTIFY = util.get_environment_variable('SLACK_NOTIFY')
+EMAIL_NOTIFY = util.get_environment_variable('EMAIL_NOTIFY')
+SLACK_HOST = util.get_environment_variable('SLACK_HOST')
+SLACK_CHANNEL = util.get_environment_variable('SLACK_CHANNEL')
+MANAGER_EMAIL = util.get_environment_variable('MANAGER_EMAIL')
+SENDER_EMAIL = util.get_environment_variable('SENDER_EMAIL')
 
 # Get AWS clients, resources
-CLIENT_S3 = shared.get_client('s3')
-CLIENT_SSM = shared.get_client('ssm')
+CLIENT_S3 = util.get_client('s3')
+CLIENT_SSM = util.get_client('ssm')
 RESOURCE_DYNAMODB = boto3.resource('dynamodb').Table(DYNAMODB_TABLE)
 
 # Get SSM value
-SLACK_WEBHOOK_ENDPOINT = shared.get_ssm_parameter(
+SLACK_WEBHOOK_ENDPOINT = util.get_ssm_parameter(
     '/slack/webhook/endpoint',
     CLIENT_SSM,
     with_decryption=True
@@ -39,7 +39,7 @@ SLACK_WEBHOOK_ENDPOINT = shared.get_ssm_parameter(
 def handler(event, context):
     # Log invocation data
     LOGGER.info(f'event: {json.dumps(event)}')
-    LOGGER.info(f'context: {json.dumps(shared.get_context_info(context))}')
+    LOGGER.info(f'context: {json.dumps(util.get_context_info(context))}')
 
     # Collect run parameters from event
     if not (results_fps := event.get('results_fps')):
@@ -52,7 +52,7 @@ def handler(event, context):
     # Check that each provided results file exists
     results_fp_missing = list()
     for results_fp in results_fps:
-        if shared.get_s3_object_metadata(bucket_name, results_fp, CLIENT_S3):
+        if util.get_s3_object_metadata(bucket_name, results_fp, CLIENT_S3):
             continue
         results_fp_missing.append(results_fp)
     if results_fp_missing:

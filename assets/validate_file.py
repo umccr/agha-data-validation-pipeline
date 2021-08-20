@@ -10,7 +10,7 @@ import sys
 
 
 import boto3
-import shared
+import util
 
 
 # Logging
@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 # Add log file handler so we can upload log messages to S3
 LOG_FILE_NAME = 'log.txt'
-LOG_FILE_HANDLER = shared.FileHandlerNewLine(LOG_FILE_NAME)
+LOG_FILE_HANDLER = util.FileHandlerNewLine(LOG_FILE_NAME)
 LOGGER.addHandler(LOG_FILE_HANDLER)
 
 # Results store with defaults
@@ -37,15 +37,15 @@ RESULTS_DATA = {
 }
 
 # Get environment variables
-DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
-RESULTS_BUCKET = shared.get_environment_variable('RESULTS_BUCKET')
-RESULTS_KEY_PREFIX = shared.get_environment_variable('RESULTS_KEY_PREFIX')
+DYNAMODB_TABLE = util.get_environment_variable('DYNAMODB_TABLE')
+RESULTS_BUCKET = util.get_environment_variable('RESULTS_BUCKET')
+RESULTS_KEY_PREFIX = util.get_environment_variable('RESULTS_KEY_PREFIX')
 # Use for naming the output log
-BATCH_JOBID = shared.get_environment_variable('AWS_BATCH_JOB_ID')
+BATCH_JOBID = util.get_environment_variable('AWS_BATCH_JOB_ID')
 
 # Get AWS clients
-RESOURCE_DYNAMODB = shared.get_dynamodb_table_resource(DYNAMODB_TABLE, region_name='ap-southeast-2')
-CLIENT_S3 = shared.get_client('s3')
+RESOURCE_DYNAMODB = util.get_dynamodb_table_resource(DYNAMODB_TABLE, region_name='ap-southeast-2')
+CLIENT_S3 = util.get_client('s3')
 
 
 class Tasks(enum.Enum):
@@ -93,7 +93,7 @@ def main():
 
     # Log Batch job id and set job datetime stamp
     LOGGER.info(f'starting job: {BATCH_JOBID}')
-    RESULTS_DATA['ts_validation_job'] = shared.get_datetimestamp()
+    RESULTS_DATA['ts_validation_job'] = util.get_datetimestamp()
 
     # Get file info and load into results store
     file_info = get_record(args.partition_key, args.sort_key)
@@ -162,7 +162,7 @@ def run_checksum(fp, file_info):
     LOGGER.info('running checksum')
     # Execute
     command = f"md5sum {fp} | cut -f1 -d' '"
-    result = shared.execute_command(command)
+    result = util.execute_command(command)
     if result.returncode != 0:
         stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr {result.stderr}'
         LOGGER.critical(f'failed to run checksum ({command}): {stdstrm_msg}')
@@ -187,13 +187,13 @@ def run_checksum(fp, file_info):
 def run_filetype_validation(fp, file_info):
     LOGGER.info('running file type validation')
     # Get file type
-    if any(fp.name.endswith(fext) for fext in shared.FEXT_BAM):
+    if any(fp.name.endswith(fext) for fext in util.FEXT_BAM):
         filetype = FileTypes.BAM
         command = f'samtools quickcheck -q {fp}'
-    elif any(fp.name.endswith(fext) for fext in shared.FEXT_FASTQ):
+    elif any(fp.name.endswith(fext) for fext in util.FEXT_FASTQ):
         filetype = FileTypes.FASTQ
         command = f'fqtools validate {fp}'
-    elif any(fp.name.endswith(fext) for fext in shared.FEXT_VCF):
+    elif any(fp.name.endswith(fext) for fext in util.FEXT_VCF):
         filetype = FileTypes.VCF
         command = f'bcftools query -l {fp}'
     else:
@@ -204,7 +204,7 @@ def run_filetype_validation(fp, file_info):
         sys.exit(1)
     # Validate filetype
     RESULTS_DATA['inferred_filetype'] = filetype.value
-    result = shared.execute_command(command)
+    result = util.execute_command(command)
     if result.returncode != 0:
         stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr {result.stderr}'
         LOGGER.info('file validation failed (invalid filetype or other failure): {stdstrm_msg}')
@@ -233,7 +233,7 @@ def run_indexing(fp, file_info, filetype):
     else:
         # You should never have come here
         assert False
-    result = shared.execute_command(command)
+    result = util.execute_command(command)
     if result.returncode != 0:
         stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr {result.stderr}'
         LOGGER.critical(f'failed to run indexing ({command}): {stdstrm_msg}')

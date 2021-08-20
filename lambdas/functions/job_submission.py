@@ -6,7 +6,7 @@ import logging
 import boto3
 
 
-import shared
+import util
 
 
 # Setup logging
@@ -14,7 +14,7 @@ LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
 # Get AWS clients
-CLIENT_BATCH = shared.get_client('batch')
+CLIENT_BATCH = util.get_client('batch')
 
 
 def get_event_data(key, event):
@@ -29,7 +29,7 @@ def get_event_data(key, event):
 def handler(event, context):
     # Log invocation data
     LOGGER.info(f'event: {json.dumps(event)}')
-    LOGGER.info(f'context: {json.dumps(shared.get_context_info(context))}')
+    LOGGER.info(f'context: {json.dumps(util.get_context_info(context))}')
 
     # Collect run parameters from event
     command = get_event_data('command', event)

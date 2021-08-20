@@ -3,9 +3,9 @@ import setuptools
 
 
 setuptools.setup(
-    name='shared',
+    name='util',
     version='0.0.1',
-    description='shared code for AGHA Lambda functions',
+    description='shared utility code for AGHA Lambda functions',
     author='Stephen Watts',
     license='GPLv3',
     packages=setuptools.find_packages(),

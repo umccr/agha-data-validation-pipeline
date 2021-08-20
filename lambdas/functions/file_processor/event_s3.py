@@ -34,30 +34,30 @@ LOGGER.setLevel(logging.INFO)
 MESSAGE_STORE = list()
 
 # Get environment variables
-STAGING_BUCKET = shared.get_environment_variable('STAGING_BUCKET')
-RESULTS_BUCKET = shared.get_environment_variable('RESULTS_BUCKET')
-DYNAMODB_TABLE = shared.get_environment_variable('DYNAMODB_TABLE')
-BATCH_QUEUE_NAME = shared.get_environment_variable('BATCH_QUEUE_NAME')
-JOB_DEFINITION_ARN = shared.get_environment_variable('JOB_DEFINITION_ARN')
-JOB_SUBMISSION_ARN = shared.get_environment_variable('JOB_SUBMISSION_ARN')
-FOLDER_LOCK_LAMBDA_ARN = shared.get_environment_variable('FOLDER_LOCK_LAMBDA_ARN')
-SLACK_NOTIFY = shared.get_environment_variable('SLACK_NOTIFY')
-EMAIL_NOTIFY = shared.get_environment_variable('EMAIL_NOTIFY')
-SLACK_HOST = shared.get_environment_variable('SLACK_HOST')
-SLACK_CHANNEL = shared.get_environment_variable('SLACK_CHANNEL')
-MANAGER_EMAIL = shared.get_environment_variable('MANAGER_EMAIL')
-SENDER_EMAIL = shared.get_environment_variable('SENDER_EMAIL')
+STAGING_BUCKET = util.get_environment_variable('STAGING_BUCKET')
+RESULTS_BUCKET = util.get_environment_variable('RESULTS_BUCKET')
+DYNAMODB_TABLE = util.get_environment_variable('DYNAMODB_TABLE')
+BATCH_QUEUE_NAME = util.get_environment_variable('BATCH_QUEUE_NAME')
+JOB_DEFINITION_ARN = util.get_environment_variable('JOB_DEFINITION_ARN')
+JOB_SUBMISSION_ARN = util.get_environment_variable('JOB_SUBMISSION_ARN')
+FOLDER_LOCK_LAMBDA_ARN = util.get_environment_variable('FOLDER_LOCK_LAMBDA_ARN')
+SLACK_NOTIFY = util.get_environment_variable('SLACK_NOTIFY')
+EMAIL_NOTIFY = util.get_environment_variable('EMAIL_NOTIFY')
+SLACK_HOST = util.get_environment_variable('SLACK_HOST')
+SLACK_CHANNEL = util.get_environment_variable('SLACK_CHANNEL')
+MANAGER_EMAIL = util.get_environment_variable('MANAGER_EMAIL')
+SENDER_EMAIL = util.get_environment_variable('SENDER_EMAIL')
 
 # Get AWS clients, resources
-CLIENT_IAM = shared.get_client('iam')
-CLIENT_LAMBDA = shared.get_client('lambda')
-CLIENT_S3 = shared.get_client('s3')
-CLIENT_SES = shared.get_client('ses')
-CLIENT_SSM = shared.get_client('ssm')
+CLIENT_IAM = util.get_client('iam')
+CLIENT_LAMBDA = util.get_client('lambda')
+CLIENT_S3 = util.get_client('s3')
+CLIENT_SES = util.get_client('ses')
+CLIENT_SSM = util.get_client('ssm')
 RESOURCE_DYNAMODB = boto3.resource('dynamodb').Table(DYNAMODB_TABLE)
 
 # Get SSM value
-SLACK_WEBHOOK_ENDPOINT = shared.get_ssm_parameter(
+SLACK_WEBHOOK_ENDPOINT = util.get_ssm_parameter(
     '/slack/webhook/endpoint',
     CLIENT_SSM,
     with_decryption=True
@@ -117,11 +117,7 @@ class SubmissionData:
         self.extra_files = list()
 
 
-def handler(event, context):
-    # Log invocation data
-    LOGGER.info(f'event: {json.dumps(event)}')
-    LOGGER.info(f'context: {json.dumps(shared.get_context_info(context))}')
-
+def process(event):
     # Parse event data and get record
     record = process_event_data(event)
     data = SubmissionData(record)
@@ -156,7 +152,7 @@ def handler(event, context):
         notify_and_exit(data)
 
     # Pull file metadata from S3 and get ETags by filename
-    data.file_metadata = shared.get_s3_object_metadata(data.bucket_name, data.submission_prefix, CLIENT_S3)
+    data.file_metadata = util.get_s3_object_metadata(data.bucket_name, data.submission_prefix, CLIENT_S3)
     # Explicitly check identity here to avoid type casting
     if data.file_metadata is False:
         message = f'could not retrieve files from S3 at s3://{bucket}{prefix}'
@@ -177,7 +173,7 @@ def handler(event, context):
     # Get output directory
     # NOTE(SW): done here to avoid the incredibly unlikely event that jobs are processed across
     # date boundary
-    output_fn = f'{shared.get_datetimestamp()}_{uuid.uuid1().hex[:7]}'
+    output_fn = f'{util.get_datetimestamp()}_{uuid.uuid1().hex[:7]}'
     results_key_prefix = os.path.join(data.submission_prefix, output_fn)
 
     # Trigger Batch job submission Lambda
@@ -293,7 +289,7 @@ def validate_manifest(data):
     files_matched_prohibited = list()
     files_matched_accepted = list()
     for filename in files_matched:
-        if any(filename.endswith(fext) for fext in shared.FEXT_ACCEPTED):
+        if any(filename.endswith(fext) for fext in util.FEXT_ACCEPTED):
             files_matched_accepted.append(filename)
         else:
             files_matched_prohibited.append(filename)
@@ -493,7 +489,7 @@ def create_record(
         # Misc
         'fully_validated': 'no',
         'etag': s3_etag,
-        'ts_record_creation': shared.get_datetimestamp(),
+        'ts_record_creation': util.get_datetimestamp(),
         'ts_validation_job': 'na',
         'ts_moved_storage': 'na',
         'excluded': False,
@@ -564,7 +560,7 @@ def send_notifications(messages, subject, submitter_name, submitter_email, submi
             submitter_name,
             messages
         )
-        email_response = shared.send_email(
+        email_response = util.send_email(
             recipients,
             EMAIL_SENDER,
             EMAIL_SUBJECT,
@@ -573,7 +569,7 @@ def send_notifications(messages, subject, submitter_name, submitter_email, submi
         )
     if SLACK_NOTIFY == 'yes':
         LOGGER.info(f'Sending notification to {SLACK_CHANNEL}')
-        slack_response = shared.call_slack_webhook(
+        slack_response = util.call_slack_webhook(
             subject,
             f'Submission: {submission_prefix} ({submitter_name})',
             '\n'.join(messages),
