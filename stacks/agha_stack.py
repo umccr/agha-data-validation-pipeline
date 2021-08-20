@@ -210,7 +210,7 @@ class AghaStack(core.Stack):
             handler='folder_lock.handler',
             runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
-            code=lmbda.Code.from_asset('lambdas/folder_lock'),
+            code=lmbda.Code.from_asset('lambdas/'),
             environment={
                 'STAGING_BUCKET': props['staging_bucket']
             },
@@ -249,7 +249,7 @@ class AghaStack(core.Stack):
             handler='job_submission.handler',
             runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(60),
-            code=lmbda.Code.from_asset('lambdas/job_submission'),
+            code=lmbda.Code.from_asset('lambdas/'),
             role=job_submission_lambda_role,
             layers=[
                 shared_layer,
@@ -257,11 +257,11 @@ class AghaStack(core.Stack):
         )
 
         ################################################################################
-        # Manifest processor Lambda
+        # File processor S3 event Lambda
 
-        manifest_processor_lambda_role = iam.Role(
+        file_processor_s3_event_lambda_role = iam.Role(
             self,
-            'ManifestProcessorLambdaRole',
+            'FileProcessorS3EventLambdaRole',
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole'),
@@ -271,7 +271,7 @@ class AghaStack(core.Stack):
             ]
         )
 
-        manifest_processor_lambda_role.add_to_policy(
+        file_processor_s3_event_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
                     "lambda:InvokeFunction"
@@ -283,7 +283,7 @@ class AghaStack(core.Stack):
             )
         )
 
-        manifest_processor_lambda_role.add_to_policy(
+        file_processor_s3_event_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
                     'ses:SendEmail',
@@ -295,7 +295,7 @@ class AghaStack(core.Stack):
             )
         )
 
-        manifest_processor_lambda_role.add_to_policy(
+        file_processor_s3_event_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
                     'dynamodb:Query',
@@ -306,14 +306,14 @@ class AghaStack(core.Stack):
             )
         )
 
-        manifest_processor_lambda = lmbda.Function(
+        file_processor_s3_event_lambda = lmbda.Function(
             self,
-            'ManifestProcessorLambda',
-            function_name=f'{props["namespace"]}_manifest_processor_lambda',
-            handler='manifest_processor.handler',
+            'FileProcessorS3EventLambda',
+            function_name=f'{props["namespace"]}_file_processor_s3_event_lambda',
+            handler='file_processor_s3_event.handler',
             runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(60),
-            code=lmbda.Code.from_asset('lambdas/manifest_processor'),
+            code=lmbda.Code.from_asset('lambdas/'),
             environment={
                 'STAGING_BUCKET': props['staging_bucket'],
                 'RESULTS_BUCKET': props['results_bucket'],
@@ -329,7 +329,7 @@ class AghaStack(core.Stack):
                 'MANAGER_EMAIL': props['manager_email'],
                 'SENDER_EMAIL': props['sender_email'],
             },
-            role=manifest_processor_lambda_role,
+            role=file_processor_s3_event_lambda_role,
             layers=[
                 runtime_layer,
                 shared_layer,
@@ -368,7 +368,7 @@ class AghaStack(core.Stack):
             handler='data_import.handler',
             runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(60),
-            code=lmbda.Code.from_asset('lambdas/data_import'),
+            code=lmbda.Code.from_asset('lambdas/'),
             environment={
                 'DYNAMODB_TABLE': props['dynamodb_table'],
                 'SLACK_NOTIFY': props['slack_notify'],
