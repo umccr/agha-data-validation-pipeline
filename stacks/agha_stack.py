@@ -274,11 +274,22 @@ class AghaStack(core.Stack):
         file_processor_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
-                    "lambda:InvokeFunction"
+                    'lambda:InvokeFunction'
                 ],
                 resources=[
                     folder_lock_lambda.function_arn,
-                    job_submission_lambda.function_arn,
+                ]
+            )
+        )
+
+        file_processor_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    'batch:SubmitJob'
+                ],
+                resources=[
+                    batch_job_queue.job_queue_arn,
+                    batch_job_definition.job_definition_arn,
                 ]
             )
         )
