@@ -210,7 +210,7 @@ class AghaStack(core.Stack):
             handler='folder_lock.handler',
             runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
-            code=lmbda.Code.from_asset('lambdas/'),
+            code=lmbda.Code.from_asset('lambdas/functions/folder_lock/'),
             environment={
                 'STAGING_BUCKET': props['staging_bucket']
             },
@@ -339,7 +339,7 @@ class AghaStack(core.Stack):
             handler='data_import.handler',
             runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(60),
-            code=lmbda.Code.from_asset('lambdas/'),
+            code=lmbda.Code.from_asset('lambdas/functions/data_import/'),
             environment={
                 'DYNAMODB_TABLE': props['dynamodb_table'],
                 'SLACK_NOTIFY': props['slack_notify'],
