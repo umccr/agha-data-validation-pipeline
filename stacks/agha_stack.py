@@ -218,45 +218,6 @@ class AghaStack(core.Stack):
         )
 
         ################################################################################
-        # Job submission lambda
-
-        job_submission_lambda_role = iam.Role(
-            self,
-            'JobSubmissionLambdaRole',
-            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole'),
-                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonSSMReadOnlyAccess'),
-            ]
-        )
-
-        job_submission_lambda_role.add_to_policy(
-            iam.PolicyStatement(
-                actions=[
-                    'batch:SubmitJob'
-                ],
-                resources=[
-                    batch_job_queue.job_queue_arn,
-                    batch_job_definition.job_definition_arn,
-                ]
-            )
-        )
-
-        job_submission_lambda = lmbda.Function(
-            self,
-            'JobSubmissionLambda',
-            function_name=f'{props["namespace"]}_job_submission',
-            handler='job_submission.handler',
-            runtime=lmbda.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(60),
-            code=lmbda.Code.from_asset('lambdas/'),
-            role=job_submission_lambda_role,
-            layers=[
-                util_layer,
-            ]
-        )
-
-        ################################################################################
         # File processor Lambda
 
         file_processor_lambda_role = iam.Role(
@@ -330,7 +291,6 @@ class AghaStack(core.Stack):
                 'RESULTS_BUCKET': props['results_bucket'],
                 'DYNAMODB_TABLE': props['dynamodb_table'],
                 'JOB_DEFINITION_ARN': batch_job_definition.job_definition_arn,
-                'JOB_SUBMISSION_ARN': job_submission_lambda.function_arn,
                 'FOLDER_LOCK_LAMBDA_ARN': folder_lock_lambda.function_arn,
                 'BATCH_QUEUE_NAME': props['batch_queue_name'],
                 'SLACK_NOTIFY': props['slack_notify'],
