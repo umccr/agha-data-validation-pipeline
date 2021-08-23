@@ -40,7 +40,7 @@ RESULTS_DATA = {
 DYNAMODB_TABLE = util.get_environment_variable('DYNAMODB_TABLE')
 RESULTS_BUCKET = util.get_environment_variable('RESULTS_BUCKET')
 RESULTS_KEY_PREFIX = util.get_environment_variable('RESULTS_KEY_PREFIX')
-# Use for naming the output log
+# Emitted to log for record purposes
 BATCH_JOBID = util.get_environment_variable('AWS_BATCH_JOB_ID')
 
 # Get AWS clients
