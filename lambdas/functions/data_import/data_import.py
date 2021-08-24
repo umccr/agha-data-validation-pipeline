@@ -41,25 +41,37 @@ def handler(event, context):
     LOGGER.info(f'event: {json.dumps(event)}')
     LOGGER.info(f'context: {json.dumps(util.get_context_info(context))}')
 
-    # Collect run parameters from event
-    if not (results_fps := event.get('results_fps')):
-        LOGGER.critical('event data did not contain \'results_fps\' value')
-        sys.exit(1)
-    if not (bucket_name := event.get('bucket_name')):
-        LOGGER.critical('event data did not contain \'bucket_name\' value')
-        sys.exit(1)
 
-    # Check that each provided results file exists
-    results_fp_missing = list()
-    for results_fp in results_fps:
-        if util.get_s3_object_metadata(bucket_name, results_fp, CLIENT_S3):
-            continue
-        results_fp_missing.append(results_fp)
-    if results_fp_missing:
-        plurality = 'files' if len(results_fp_missing) > 1 else 'file'
-        file_list_str = '\t\r'.join(results_fp_missing)
-        LOGGER.critical(f'did not find {len(results_fp_missing)} provided {plurality}:\r\t{file_list_str}')
-        sys.exit(1)
+    # Parse event data
+    validate_event_data(event)
+    bucket_name = event.get('bucket_name')
+    if 'results_dir' in event:
+        results_fps = list()
+        results_dir = event['results_dir']
+        file_metadata = util.get_s3_object_metadata(bucket_name, results_dir, CLIENT_S3)
+        for mdata in file_metadata:
+            file_key = mdata.get('Key')
+            if not file_key.endswith('.json'):
+                continue
+            results_fps.append(file_key)
+        if not results_fps:
+            results_dir_full = f's3://{bucket_name}/{results_dir}'
+            LOGGER.critical(f'did not find any JSON results files in \'{results_dir_full}\'')
+            sys.exit(1)
+    else:
+        results_fps = event['results_fps']
+        # Check that each provided results file exists. Files discovered when provided results_dir
+        # must implicitly exist.
+        results_fp_missing = list()
+        for results_fp in results_fps:
+            if util.get_s3_object_metadata(bucket_name, results_fp, CLIENT_S3):
+                continue
+            results_fp_missing.append(results_fp)
+        if results_fp_missing:
+            plurality = 'files' if len(results_fp_missing) > 1 else 'file'
+            file_list_str = '\t\r'.join(results_fp_missing)
+            LOGGER.critical(f'did not find {len(results_fp_missing)} provided {plurality}:\r\t{file_list_str}')
+            sys.exit(1)
 
     # Pull result data
     results_data = dict()
@@ -124,6 +136,27 @@ def handler(event, context):
             results_str = '\r\t'.join(f'{k}: {v}' for k, v in record.items())
             LOGGER.info(f'creating record for {fp} with:\r\t{results_str}')
             RESOURCE_DYNAMODB.put_item(Item=record)
+
+
+def validate_event_data(event):
+    # Require bucket name
+    if 'bucket_name' not in event:
+        LOGGER.critical('event data did not contain \'bucket_name\' value')
+        sys.exit(1)
+
+    # Accept either results directory for results filepaths
+    if 'results_dir' not in event and 'results_fps' not in event:
+        LOGGER.critical('either \'results_dir\' or \'results_fps\' must be provided')
+        sys.exit(1)
+
+    # All results filepaths *must* be json
+    results_fps_not_json = [fp for fp in event.get('results_fps') if not fp.endswith('json')]
+    if results_fps_not_json:
+        plurality = 'files' if len(results_fps_not_json) > 1 else 'file'
+        files_str = '\r\t'.join(results_fps_not_json)
+        msg_base = f'input files must be json, found {len(results_fps_not_json)} non-json {plurality}'
+        LOGGER.critical(f'{msg_base}:\r\t{files_str}')
+        sys.exit(1)
 
 
 def get_record_keys(data):
