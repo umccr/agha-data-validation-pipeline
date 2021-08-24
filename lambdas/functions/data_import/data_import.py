@@ -81,49 +81,65 @@ def handler(event, context):
         sys.exit(1)
 
     for fp, data in results_data.items():
-        # Get existing record
-        partition_key = data['existing_record']['partition_key']
-        sort_key = int(data['existing_record']['sort_key'])
-        LOGGER.info(f'using partition key {partition_key} and sort key {sort_key} for {fp}')
-        response = RESOURCE_DYNAMODB.get_item(
-            Key={'partition_key': partition_key, 'sort_key': sort_key},
-        )
-
-        # Prepare data for logging
-        if 'Item' in response:
+        LOGGER.info(f'processing results file \'{fp}\'')
+        record_keys = get_record_keys(data)
+        if (record_keys['partition'] and record_keys['sort']) and record_exists(record_keys):
+            # Update existing record
 
             # NOTE(SW): we're updating all fields available, may want to control in some regard
 
-            results_str = '\r\t'.join(f'{k}: {v}' for k, v in data['results'].items())
+            results_str = '\r\t'.join(f'{k}: {v}' for k, v in data['validation_results'].items())
             LOGGER.info(f'found existing record for {fp}, updating with:\r\t{results_str}')
             # Get update expression string and attribute values
             update_expr_items = list()
             attr_values = dict()
-            for i, k in enumerate(data['results']):
+            for i, k in enumerate(data['validation_results']):
                 update_expr_key = f':{i}'
                 assert update_expr_key not in attr_values
                 update_expr_items.append(f'{k} = {update_expr_key}')
-                attr_values[update_expr_key] = data['results'][k]
+                attr_values[update_expr_key] = data['validation_results'][k]
             update_expr_items_str = ', '.join(update_expr_items)
             update_expr = f'SET {update_expr_items_str}'
             # Update record
             RESOURCE_DYNAMODB.update_item(
                 Key={
-                    'partition_key': partition_key,
-                    'sort_key': sort_key,
+                    'partition_key': record_keys['partition'],
+                    'sort_key': record_keys['sort'],
                 },
                 UpdateExpression=update_expr,
                 ExpressionAttributeValues=attr_values,
             )
         else:
+            # Create new record
 
-            # NOTE(SW): we want to apply some logic to specific fields here. e.g. always setting
-            # active to True
+            # NOTE(SW): we want to apply some logic to specific fields here
 
             # Construct complete record from results file, copying for convenience
             record = data['existing_record'].copy()
-            for k, v in data['results'].items():
+            for k, v in data['validation_results'].items():
                 record[k] = v
+            # Manual set some fields
+            record['active'] = True
+            # Log and create record
             results_str = '\r\t'.join(f'{k}: {v}' for k, v in record.items())
             LOGGER.info(f'creating record for {fp} with:\r\t{results_str}')
             RESOURCE_DYNAMODB.put_item(Item=record)
+
+
+def get_record_keys(data):
+    if 'existing_record' not in data:
+        return False
+    else:
+        record_existing = data.get('existing_record')
+    return {
+        'partition': record_existing.get('partition_key'),
+        'sort': int(record_existing.get('sort_key')),
+    }
+
+
+def record_exists(keys):
+    LOGGER.info(f'using partition key {keys["partition"]} and sort key {keys["sort"]}')
+    response = RESOURCE_DYNAMODB.get_item(
+        Key={'partition_key': keys['partition'], 'sort_key': keys['sort']},
+    )
+    return 'Item' in response
