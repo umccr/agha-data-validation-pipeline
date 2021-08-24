@@ -22,7 +22,6 @@ RUN \
 
 # Prepare Conda environment
 RUN \
-  # Create and activate new environment
   eval "$(/opt/mambaforge/bin/conda shell.bash hook)" && \
   mamba create \
     --name "${ENV_NAME}" \
@@ -35,18 +34,17 @@ RUN \
     boto3 \
     fqtools \
     samtools && \
-  # Clean up
   mamba clean --all --force-pkgs-dirs --yes
 
 # Add Conda env to PATH
 ENV PATH="/opt/mambaforge/envs/${ENV_NAME}/bin:/opt/mambdaforge/bin:${PATH}"
 ENV CONDA_PREFIX="/opt/mambaforge/envs/${ENV_NAME}"
 
-# Copy in 'util' Python package and execution script
-COPY assets/validate_file.py /opt/
-COPY lambdas/layers/util/ /opt/util/
-
 # Install 'util' Python package
+COPY lambdas/layers/util/ /opt/util/
 RUN \
     pip install /opt/util/ && \
     rm -r /opt/util/
+
+# Pull in execution script
+COPY assets/validate_file.py /opt/
