@@ -94,18 +94,12 @@ def handler(event_record):
 
         # Construct command and job name
         tasks_list = shared.DEFAULT_TASKS_LIST
-        job_data = shared.create_job_data(partition_key, sort_key, tasks_list)
+        job_data = shared.create_job_data(partition_key, sort_key, tasks_list, file_record)
         batch_job_data.append(job_data)
 
     # Submit Batch jobs
     for job_data in batch_job_data:
         shared.submit_batch_job(job_data)
-
-
-def validate_event_data(event):
-    if 'Records' not in event:
-        LOGGER.critical('no \'s3\' entry found in record')
-        sys.exit(1)
 
 
 def validate_event_data(event_record):

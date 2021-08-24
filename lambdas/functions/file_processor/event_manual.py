@@ -69,7 +69,7 @@ def handler(event_record):
             assert False
 
         # Create job data
-        job_data = shared.create_job_data(partition_key, sort_key, tasks_list)
+        job_data = shared.create_job_data(partition_key, sort_key, tasks_list, file_record)
         batch_job_data.append(job_data)
 
     # Submit Batch jobs
@@ -165,7 +165,7 @@ def handle_input_manifest(data, submitter_info):
 
     # Create file records
     for filename in files_included:
-        file_record = shared.FileRecord.from_filepath(filename, output_prefix, data)
+        file_record = shared.FileRecord.from_manifest_record(filename, output_prefix, data)
         data.files_accepted.append(file_record)
     return data
 

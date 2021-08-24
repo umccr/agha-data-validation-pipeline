@@ -207,16 +207,16 @@ def run_filetype_validation(fp, file_info):
     result = util.execute_command(command)
     if result.returncode != 0:
         stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr {result.stderr}'
-        LOGGER.info('file validation failed (invalid filetype or other failure): {stdstrm_msg}')
+        LOGGER.info(f'file validation failed (invalid filetype or other failure): {stdstrm_msg}')
         RESULTS_DATA['valid_filetype'] = 'no'
         write_results_s3(file_info)
         sys.exit(1)
     else:
         RESULTS_DATA['valid_filetype'] = 'yes'
     # Log results
-    calculated_str  = f'calculated: {RESULTS_DATA["inferred_filetype"]}'
+    inferred_str  = f'inferred:  {RESULTS_DATA["inferred_filetype"]}'
     validated_str = f'validated:  {RESULTS_DATA["valid_filetype"]}'
-    filetype_str = f'{calculated_str}\r\t{validated_str}'
+    filetype_str = f'{inferred_str}\r\t{validated_str}'
     LOGGER.info(f'file type validation results:\r\t{filetype_str}')
     return filetype
 
@@ -265,8 +265,8 @@ def upload_index(file_info, index_fp):
 def write_results_s3(file_info):
     # Create results json
     data = {
-        'file_info': file_info,
-        'results': RESULTS_DATA
+        'existing_record': file_info,
+        'validation_results': RESULTS_DATA
     }
     s3_object_body = f'{json.dumps(data, indent=4)}\n'
     # Upload results and log to S3

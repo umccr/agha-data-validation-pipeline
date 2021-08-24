@@ -34,6 +34,7 @@ MANAGER_EMAIL = util.get_environment_variable('MANAGER_EMAIL')
 SENDER_EMAIL = util.get_environment_variable('SENDER_EMAIL')
 
 # Get AWS clients, resources
+CLIENT_BATCH = util.get_client('batch')
 CLIENT_LAMBDA = util.get_client('lambda')
 CLIENT_S3 = util.get_client('s3')
 CLIENT_SES = util.get_client('ses')
@@ -121,7 +122,7 @@ class FileRecord:
         record.flagship = data.flagship
         record.study_id = file_info['agha_study_id']
         record.s3_key = os.path.join(data.submission_prefix, filename)
-        record.s3_etag = data.file_etags[filename],
+        record.s3_etag = data.file_etags[filename]
         record.provided_checksum = file_info['checksum']
         return record
 
@@ -132,6 +133,7 @@ class FileRecord:
         record = cls()
         record.filename = os.path.basename(filepath)
         record.output_prefix = output_prefix
+        record.s3_key = filepath
         record.s3_etag = data.file_etags[record.filename]
         return record
 
@@ -180,7 +182,7 @@ def get_s3_etags_by_filename(metadata_records):
 
 
 def get_s3_filename(metadata_record):
-    filepath = os.path.basename(metadata_record.get('Key'))
+    filepath = metadata_record.get('Key')
     return os.path.basename(filepath)
 
 
@@ -303,12 +305,12 @@ def validate_manifest(data, submitter_info=None):
 ####################
 # DynamoDB
 ####################
-def get_existing_records(filename, key_partition):
-    records = get_records(key_partition)
+def get_existing_records(filename, partition_key):
+    records = get_records(partition_key)
     if records:
         records_current = [r for r in records if r['active']]
         if len(records_current) != 1:
-            msg_records = '\r\t'.join(r.__repr__ for r in records_current)
+            msg_records = '\r\t'.join(r.__repr__() for r in records_current)
             msg_base = f'expected one active record but got {len(records_current)}'
             msg = f'{msg_base}:\r\t{msg_records}'
             log_and_store_message(msg, level='critical')
@@ -317,11 +319,15 @@ def get_existing_records(filename, key_partition):
 
 
 def get_file_number(records):
-    [record_current] = [r for r in records if r['active']]
-    if record_current:
-        file_number = record_current['file_number']
-    else:
+    records_active = [r for r in records if r['active']]
+    if not records_active:
         file_number = 0
+    elif len(records_active) > 1:
+        LOGGER.critical(f'found more than one active record: {records_active}')
+        sys.exit(1)
+    else:
+        [record_current] = records_active
+        file_number = record_current['file_number']
     return file_number
 
 
@@ -347,15 +353,15 @@ def get_records(partition_key):
 
 def create_record(partition_key, sort_key, data):
     record = {
-        'partition_key': key_partition,
-        'sort_key': key_sort,
+        'partition_key': partition_key,
+        'sort_key': sort_key,
         'active': True,
         'study_id': data.study_id,
         'flagship': data.flagship,
         'filename': data.filename,
         'file_number': sort_key,
         # Checksum
-        'provided_checksum': data.checksum,
+        'provided_checksum': data.provided_checksum,
         'calculated_checksum': 'not run',
         'valid_checksum': 'not run',
         # File type
@@ -379,7 +385,7 @@ def create_record(partition_key, sort_key, data):
         'ts_moved_storage': 'na',
         'excluded': False,
     }
-    LOGGER.info(f'created record for {file_info["filename"]}: {record}')
+    LOGGER.info(f'created record for {data.filename}: {record}')
     RESOURCE_DYNAMODB.put_item(Item=record)
 
 
@@ -421,7 +427,7 @@ def update_record(partition_key, sort_key, file_record):
 
 def inactivate_existing_records(records):
     for record in records:
-        if not record['activate']:
+        if not record['active']:
             continue
         RESOURCE_DYNAMODB.update_item(
             Key={
@@ -436,7 +442,7 @@ def inactivate_existing_records(records):
 ####################
 # BATCH
 ####################
-def create_job_data(partition_key, sort_key, tasks_list):
+def create_job_data(partition_key, sort_key, tasks_list, file_record):
     name_raw = f'agha_validation__{partition_key}__{sort_key}'
     name = JOB_NAME_RE.sub('_', name_raw)
     tasks = ' '.join(tasks_list)
@@ -446,15 +452,15 @@ def create_job_data(partition_key, sort_key, tasks_list):
         --sort_key {sort_key} \
         --tasks {tasks}
     ''')
-    return {'name': name, 'command': command}
+    return {'name': name, 'command': command, 'output_prefix': file_record.output_prefix}
 
 
-def submit_batch_job(job_data, output_prefix):
+def submit_batch_job(job_data):
     command = ['bash', '-o', 'pipefail', '-c', job_data['command']]
     environment = [
         {'name': 'RESULTS_BUCKET', 'value': RESULTS_BUCKET},
         {'name': 'DYNAMODB_TABLE', 'value': DYNAMODB_TABLE},
-        {'name': 'RESULTS_KEY_PREFIX', 'value': output_prefix},
+        {'name': 'RESULTS_KEY_PREFIX', 'value': job_data['output_prefix']},
     ]
     CLIENT_BATCH.submit_job(
         jobName=job_data['name'],

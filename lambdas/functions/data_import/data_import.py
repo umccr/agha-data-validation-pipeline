@@ -82,8 +82,8 @@ def handler(event, context):
 
     for fp, data in results_data.items():
         # Get existing record
-        partition_key = data['file_info']['partition_key']
-        sort_key = int(data['file_info']['sort_key'])
+        partition_key = data['existing_record']['partition_key']
+        sort_key = int(data['existing_record']['sort_key'])
         LOGGER.info(f'using partition key {partition_key} and sort key {sort_key} for {fp}')
         response = RESOURCE_DYNAMODB.get_item(
             Key={'partition_key': partition_key, 'sort_key': sort_key},
@@ -121,7 +121,7 @@ def handler(event, context):
             # active to True
 
             # Construct complete record from results file, copying for convenience
-            record = data['file_info'].copy()
+            record = data['existing_record'].copy()
             for k, v in data['results'].items():
                 record[k] = v
             results_str = '\r\t'.join(f'{k}: {v}' for k, v in record.items())
