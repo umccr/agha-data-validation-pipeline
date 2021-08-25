@@ -150,7 +150,7 @@ def validate_event_data(event):
         sys.exit(1)
 
     # All results filepaths *must* be json
-    results_fps_not_json = [fp for fp in event.get('results_fps') if not fp.endswith('json')]
+    results_fps_not_json = [fp for fp in event.get('results_fps', list()) if not fp.endswith('json')]
     if results_fps_not_json:
         plurality = 'files' if len(results_fps_not_json) > 1 else 'file'
         files_str = '\r\t'.join(results_fps_not_json)
