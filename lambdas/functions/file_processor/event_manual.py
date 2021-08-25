@@ -68,6 +68,10 @@ def handler(event_record):
         else:
             assert False
 
+        # Replace tasks with those specified by user if available
+        if 'tasks' in data.record:
+            tasks = data.record['tasks']
+
         # Create job data
         job_data = shared.create_job_data(partition_key, sort_key, tasks_list, file_record)
         batch_job_data.append(job_data)
@@ -129,6 +133,14 @@ def validate_event_data(event_record):
         elif 'include_fns' in event_record:
             LOGGER.critical('you cannot specify \'include_fps\' with \'filepaths\'')
             sys.exit(1)
+
+    # Check tasks are valid if provided
+    tasks_unknown = [task for task in event.get('tasks', list()) if task not in shared.DEFAULT_TASKS_LIST]
+    if tasks_unknown:
+        tasks_str = '\r\t'.join(tasks_unknown)
+        tasks_allow_str = '\', \''.join(shared.DEFAULT_TASKS_LIST)
+        LOGGER.critical(f'expected tasks to be one of \'{tasks_allow_str}\' but got:\t\r{tasks_str}')
+        sys.exit(1)
 
     # Set defaults
     if not 'record_mode' in event_record:
