@@ -31,8 +31,8 @@ RESULTS_DATA = {
     'valid_filetype': 'not run',
     'index_result': 'not run',
     'index_filename': 'na',
-    'index_s3_bucket_results': 'na',
-    'index_s3_key_results': 'na',
+    'index_s3_bucket': 'na',
+    'index_s3_key': 'na',
     'fully_validated': 'no'
 }
 

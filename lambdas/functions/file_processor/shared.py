@@ -369,18 +369,17 @@ def create_record(partition_key, sort_key, data):
         'valid_filetype': 'not run',
         # Index
         'index_result': 'not run',
-        'index_file_name': 'na',
-        'index_s3_bucket_results': 'na',
-        'index_s3_key_results': 'na',
+        'index_filename': 'na',
         # Storage details
-        's3_bucket_staging': STAGING_BUCKET,
-        's3_key_staging': data.s3_key,
-        'index_s3_bucket_staging': 'na',
-        'index_s3_key_staging': 'na',
+        's3_bucket': STAGING_BUCKET,
+        's3_key': data.s3_key,
+        'index_s3_bucket': 'na',
+        'index_s3_key': 'na',
         # Misc
         'fully_validated': 'no',
         'etag': data.s3_etag,
         'ts_record_creation': util.get_datetimestamp(),
+        'ts_record_update': 'na',
         'ts_validation_job': 'na',
         'ts_moved_storage': 'na',
         'excluded': False,
@@ -396,9 +395,9 @@ def update_record(partition_key, sort_key, file_record):
         'flagship': file_record.flagship,
         'filename': file_record.filename,
         'provided_checksum': data.checksum,
-        's3_key_staging': data.s3_key,
+        's3_key': data.s3_key,
         'etag': data.s3_etag,
-        'ts_record_creation': util.get_datetimestamp(),
+        'ts_record_update': util.get_datetimestamp(),
     }
     results_str = '\r\t'.join(f'{k}: {v}' for k, v in data.items())
     LOGGER.info(f'found existing record for {fp}, updating with:\r\t{results_str}')
