@@ -52,7 +52,6 @@ SLACK_WEBHOOK_ENDPOINT = util.get_ssm_parameter(
 EMAIL_SUBJECT = '[AGHA service] Submission received'
 MANIFEST_REQUIRED_COLUMNS = {'filename', 'checksum', 'agha_study_id'}
 JOB_NAME_RE = re.compile(r'[.\\/]')
-DEFAULT_TASKS_LIST = ['checksum', 'validate_filetype', 'create_index']
 MESSAGE_STORE = list()
 
 # Manifest field validation related
@@ -205,6 +204,7 @@ def retrieve_manifest_data(data, submitter_info=None):
     try:
         manifest_str = io.BytesIO(manifest_obj['Body'].read())
         manifest_data = pd.read_csv(manifest_str, sep='\t', encoding='utf8')
+        manifest_data.fillna(value='not provided', inplace=True)
     except Exception as e:
         message = f'could not convert manifest into DataFrame:\r{e}'
         log_and_store_message(message, level='critical')
@@ -271,11 +271,17 @@ def validate_manifest(data, submitter_info=None):
     # Field validation
     for row in data.manifest_data.itertuples():
         # Study ID
-        if not AGHA_ID_RE.match(row.agha_study_id):
+        if row.agha_study_id == 'not provided':
+            # Allow 'empty' values
+            continue
+        elif not AGHA_ID_RE.match(row.agha_study_id):
             message = f'got malformed AGHA study ID for {row.Index} ({row.agha_study_id})'
             messages_error.append(message)
         # Checksum
-        if not MD5_RE.match(row.checksum):
+        if row.checksum == 'not provided':
+            # Allow 'empty' values
+            continue
+        elif not MD5_RE.match(row.checksum):
             message = f'got malformed MD5 checksum for {row.Index} ({row.checksum})'
             messages_error.append(message)
 
@@ -375,6 +381,9 @@ def create_record(partition_key, sort_key, data):
         's3_key': data.s3_key,
         'index_s3_bucket': 'na',
         'index_s3_key': 'na',
+        'results_s3_bucket': 'na',
+        'results_data_s3_key': 'na',
+        'results_log_s3_key': 'na',
         # Misc
         'fully_validated': 'no',
         'etag': data.s3_etag,
@@ -384,8 +393,9 @@ def create_record(partition_key, sort_key, data):
         'ts_moved_storage': 'na',
         'excluded': False,
     }
-    LOGGER.info(f'created record for {data.filename}: {record}')
+    LOGGER.info(f'creating record for {data.filename}: {record}')
     RESOURCE_DYNAMODB.put_item(Item=record)
+    return record
 
 
 def update_record(partition_key, sort_key, file_record):
@@ -394,13 +404,12 @@ def update_record(partition_key, sort_key, file_record):
         'study_id': file_record.study_id,
         'flagship': file_record.flagship,
         'filename': file_record.filename,
-        'provided_checksum': data.checksum,
-        's3_key': data.s3_key,
-        'etag': data.s3_etag,
+        'provided_checksum': file_record.provided_checksum,
+        's3_key': file_record.s3_key,
+        'etag': file_record.s3_etag,
         'ts_record_update': util.get_datetimestamp(),
     }
     results_str = '\r\t'.join(f'{k}: {v}' for k, v in data.items())
-    LOGGER.info(f'found existing record for {fp}, updating with:\r\t{results_str}')
     # Get update expression string and attribute values
     update_expr_items = list()
     attr_values = dict()
@@ -412,7 +421,7 @@ def update_record(partition_key, sort_key, file_record):
     update_expr_items_str = ', '.join(update_expr_items)
     update_expr = f'SET {update_expr_items_str}'
     # Update record
-    record_updated = RESOURCE_DYNAMODB.update_item(
+    response = RESOURCE_DYNAMODB.update_item(
         Key={
             'partition_key': partition_key,
             'sort_key': sort_key,
@@ -421,7 +430,7 @@ def update_record(partition_key, sort_key, file_record):
         ExpressionAttributeValues=attr_values,
         ReturnValues='ALL_NEW',
     )
-    return record_updated.get('Attributes')
+    return response.get('Attributes')
 
 
 def inactivate_existing_records(records):
@@ -441,6 +450,17 @@ def inactivate_existing_records(records):
 ####################
 # BATCH
 ####################
+def get_tasks_list(record):
+    tasks_list = list()
+    if record['provided_checksum'] != 'not provided' and record['valid_checksum'] == 'not run':
+        tasks_list.append('checksum')
+    if record['valid_filetype'] == 'not run':
+        tasks_list.append('validate_filetype')
+    if record['index_result'] == 'not run':
+        tasks_list.append('create_index')
+    return tasks_list
+
+
 def create_job_data(partition_key, sort_key, tasks_list, file_record):
     name_raw = f'agha_validation__{partition_key}__{sort_key}'
     name = JOB_NAME_RE.sub('_', name_raw)

@@ -68,13 +68,9 @@ def handler(event_record):
     data.manifest_data = shared.retrieve_manifest_data(data, submitter_info)
     file_list, data.extra_files = shared.validate_manifest(data, submitter_info)
 
-    # Get output directory
-    # NOTE(SW): done here to avoid the incredibly unlikely event that jobs are processed across
-    # date boundary
-    output_prefix = shared.get_output_prefix(data.submission_prefix)
-
     # Process each record and prepare Batch commands
     batch_job_data = list()
+    output_prefix = shared.get_output_prefix(data.submission_prefix)
     for filename in file_list:
         # Create file record
         file_record = shared.FileRecord.from_manifest_record(filename, output_prefix, data)
@@ -89,11 +85,11 @@ def handler(event_record):
         sort_key = file_number_current + 1
 
         # Create record, inactivate all others
-        shared.create_record(partition_key, sort_key, file_record)
+        record = shared.create_record(partition_key, sort_key, file_record)
         shared.inactivate_existing_records(records_existing)
 
         # Construct command and job name
-        tasks_list = shared.DEFAULT_TASKS_LIST
+        tasks_list = shared.get_tasks_list(record)
         job_data = shared.create_job_data(partition_key, sort_key, tasks_list, file_record)
         batch_job_data.append(job_data)
 

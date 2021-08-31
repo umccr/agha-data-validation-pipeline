@@ -33,6 +33,9 @@ RESULTS_DATA = {
     'index_filename': 'na',
     'index_s3_bucket': 'na',
     'index_s3_key': 'na',
+    'results_s3_bucket': 'na',
+    'results_data_s3_key': 'na',
+    'results_log_s3_key': 'na',
     'fully_validated': 'no'
 }
 
@@ -98,8 +101,12 @@ def main():
     # Get file info and load into results store
     file_info = get_record(args.partition_key, args.sort_key)
     RESULTS_DATA['provided_checksum'] = file_info['provided_checksum']
-    RESULTS_DATA['index_s3_bucket_results'] = file_info['index_s3_bucket_results']
-    RESULTS_DATA['index_s3_key_results'] = file_info['index_s3_key_results']
+    RESULTS_DATA['index_s3_bucket'] = file_info['index_s3_bucket']
+    RESULTS_DATA['index_s3_key'] = file_info['index_s3_key']
+    # Set upload target for job output files
+    RESULTS_DATA['results_s3_bucket'] = RESULTS_BUCKET
+    RESULTS_DATA['results_data_s3_key'] = get_results_data_s3_key(file_info)
+    RESULTS_DATA['results_log_s3_key'] = get_log_s3_key(file_info)
     # Print file info to log
     msg_list = [f'{k}: {file_info[k]}' for k in sorted(file_info)]
     msg = '\r\t'.join(msg_list)
@@ -107,8 +114,8 @@ def main():
 
     # Stage file from S3 and then validate
     fp_local = stage_file(
-        file_info['s3_bucket_staging'],
-        file_info['s3_key_staging'],
+        file_info['s3_bucket'],
+        file_info['s3_key'],
         file_info['filename']
     )
     tasks = {Tasks(task_str) for task_str in args.tasks}
@@ -121,8 +128,8 @@ def main():
         run_indexing(fp_local, file_info, filetype)
 
     # Set whether the file was validated (unpack for clarity)
-    checksum_fail = RESULTS_DATA['valid_checksum'] != 'yes'
-    filetype_fail = RESULTS_DATA['valid_filetype'] != 'yes'
+    checksum_fail = RESULTS_DATA['valid_checksum'] not in {'not run', 'yes'}
+    filetype_fail = RESULTS_DATA['valid_filetype'] not in {'not run', 'yes'}
     index_fail = RESULTS_DATA['index_result'] not in {'not run', 'succeeded'}
     vresult = checksum_fail or filetype_fail or index_fail
     RESULTS_DATA['fully_validated'] = 'no' if vresult else 'yes'
@@ -244,15 +251,25 @@ def run_indexing(fp, file_info, filetype):
     index_s3_key = upload_index(file_info, index_fp)
     RESULTS_DATA['index_result'] = 'succeeded'
     RESULTS_DATA['index_filename'] = index_fp
-    RESULTS_DATA['index_s3_bucket_results'] = RESULTS_BUCKET
-    RESULTS_DATA['index_s3_key_results'] = index_s3_key
+    RESULTS_DATA['index_s3_bucket'] = RESULTS_BUCKET
+    RESULTS_DATA['index_s3_key'] = index_s3_key
     # Log results
     result_str = f'result:    {RESULTS_DATA["index_result"]}'
     filename_str = f'filename:  {RESULTS_DATA["index_filename"]}'
-    bucket_str = f'S3 bucket: {RESULTS_DATA["index_s3_bucket_results"]}'
-    key_str = f'S3 key:    {RESULTS_DATA["index_s3_key_results"]}'
+    bucket_str = f'S3 bucket: {RESULTS_DATA["index_s3_bucket"]}'
+    key_str = f'S3 key:    {RESULTS_DATA["index_s3_key"]}'
     filetype_str = f'{result_str}\r\t{filename_str}\r\t{bucket_str}\r\t{key_str}'
-    LOGGER.info(f'file type validation results: {filetype_str}')
+    LOGGER.info(f'file indexing results:\r\t{filetype_str}')
+
+
+def get_results_data_s3_key(file_info):
+    s3_key_fn = f'{file_info["filename"]}__results.json'
+    return os.path.join(RESULTS_KEY_PREFIX, s3_key_fn)
+
+
+def get_log_s3_key(file_info):
+    s3_key_fn = f'{file_info["filename"]}__log.txt'
+    return os.path.join(RESULTS_KEY_PREFIX, s3_key_fn)
 
 
 def upload_index(file_info, index_fp):
@@ -270,8 +287,7 @@ def write_results_s3(file_info):
     }
     s3_object_body = f'{json.dumps(data, indent=4)}\n'
     # Upload results and log to S3
-    s3_key_fn = f'{file_info["filename"]}__results.json'
-    s3_key = os.path.join(RESULTS_KEY_PREFIX, s3_key_fn)
+    s3_key = get_results_data_s3_key(file_info)
     s3_object_body_log = s3_object_body.replace('\n', '\r')
     LOGGER.info(f'writing results to s3://{RESULTS_BUCKET}/{s3_key}:\r{s3_object_body_log}')
     CLIENT_S3.put_object(Body=s3_object_body, Bucket=RESULTS_BUCKET, Key=s3_key)
@@ -279,8 +295,7 @@ def write_results_s3(file_info):
 
 
 def upload_log(file_info):
-    s3_key_fn = f'{file_info["filename"]}__log.txt'
-    s3_key = os.path.join(RESULTS_KEY_PREFIX, s3_key_fn)
+    s3_key = get_log_s3_key(file_info)
     LOGGER.info(f'writing log file to s3://{RESULTS_BUCKET}/{s3_key}')
     LOG_FILE_HANDLER.flush()
     CLIENT_S3.upload_file(LOG_FILE_NAME, RESULTS_BUCKET, s3_key)

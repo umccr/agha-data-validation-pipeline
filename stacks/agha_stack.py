@@ -21,7 +21,7 @@ class AghaStack(core.Stack):
         dynamodb_table = dynamodb.Table(
             self,
             'DynamoDBTable',
-            table_name='agha-file-validation',
+            table_name=props['dynamodb_table'],
             partition_key=dynamodb.Attribute(
                 name='partition_key',
                 type=dynamodb.AttributeType.STRING,
@@ -99,7 +99,7 @@ class AghaStack(core.Stack):
                 device_name='/dev/xvda',
                 ebs=ec2.CfnLaunchTemplate.EbsProperty(
                     encrypted=True,
-                    volume_size=100,
+                    volume_size=500,
                     volume_type='gp2'
                 )
             ),
@@ -129,7 +129,7 @@ class AghaStack(core.Stack):
                 desiredv_cpus=0,
                 instance_role=batch_instance_profile.attr_arn,
                 launch_template=batch_launch_template_spec,
-                maxv_cpus=16,
+                maxv_cpus=64,
                 security_groups=[batch_security_group],
                 spot_fleet_role=batch_spot_fleet_role,
                 type=batch.ComputeResourceType.SPOT,

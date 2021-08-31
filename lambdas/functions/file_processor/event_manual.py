@@ -49,28 +49,28 @@ def handler(event_record):
             message_base = f'found existing records for {file_record.filename} with key {partition_key}'
             LOGGER.info(f'{message_base}: {records_existing}')
         elif data.record['record_mode'] == 'update':
-            message_p1 = f'no existing records found for {file_record.filename} with key {partition_key}'
-            message_p2 = 'in update mode, switching to create mode'
+            msg_p1 = f'no existing records found for {file_record.filename} with key {partition_key}'
+            msg_p2 = 'in update mode, switching to create mode'
             # NOTE(SW): we should allow this to continue and exit after job submission, refactor
-            shared.log_and_store_message(msg, level='info')
+            shared.log_and_store_message(f'{msg_p1} {msg_p2}', level='info')
             data.record['record_mode'] = 'create'
 
         # Set sort key, write data to DynamoDB
         if data.record['record_mode'] == 'create':
             sort_key = file_number_current + 1
-            shared.create_record(partition_key, sort_key, file_record)
+            record = shared.create_record(partition_key, sort_key, file_record)
             shared.inactivate_existing_records(records_existing)
-            tasks_list = shared.DEFAULT_TASKS_LIST
+            tasks_list = shared.get_tasks_list(record)
         elif data.record['record_mode'] == 'update':
             sort_key = file_number_current
             record = shared.update_record(partition_key, sort_key, file_record)
-            tasks_list = get_tasks_list(record)
+            tasks_list = shared.get_tasks_list(record)
         else:
             assert False
 
         # Replace tasks with those specified by user if available
         if 'tasks' in data.record:
-            tasks = data.record['tasks']
+            task_list = data.record['tasks']
 
         # Create job data
         job_data = shared.create_job_data(partition_key, sort_key, tasks_list, file_record)
@@ -97,7 +97,7 @@ def validate_event_data(event_record):
     args_unknown = [arg for arg in event_record if arg not in args_known]
     if args_unknown:
         plurality = 'arguments' if len(args_unknown) > 1 else 'argument'
-        args_unknown = '\r\t'.join(args_unknown)
+        args_unknown_str = '\r\t'.join(args_unknown)
         LOGGER.critical(f'got {len(args_unknown)} unknown arguments:\r\t{args_unknown_str}')
         sys.exit(1)
 
@@ -135,16 +135,23 @@ def validate_event_data(event_record):
             sys.exit(1)
 
     # Check tasks are valid if provided
-    tasks_unknown = [task for task in event.get('tasks', list()) if task not in shared.DEFAULT_TASKS_LIST]
+    tasks_unknown = [task for task in event_record.get('tasks', list()) if task not in shared.DEFAULT_TASKS_LIST]
     if tasks_unknown:
         tasks_str = '\r\t'.join(tasks_unknown)
         tasks_allow_str = '\', \''.join(shared.DEFAULT_TASKS_LIST)
         LOGGER.critical(f'expected tasks to be one of \'{tasks_allow_str}\' but got:\t\r{tasks_str}')
         sys.exit(1)
 
-    # Set defaults
-    if not 'record_mode' in event_record:
+    # Check record mode, if not present set default
+    if rm := event_record.get('record_mode'):
+        if rm not in {'create', 'update'}:
+            msg = f'expected \'record_mode\' as one of \'create\' or \'update\' but got \'{rm}\''
+            LOGGER.critical(msg)
+            sys.exit(1)
+    else:
         event_record['record_mode'] = 'create'
+
+    # Set remaining defaults
     if not 'exclude_fns' in event_record:
         event_record['exclude_fns'] = list()
     if not 'include_fns' in event_record:
@@ -170,12 +177,8 @@ def handle_input_manifest(data, submitter_info):
         data.record['exclude_fns']
     )
 
-    # Get output directory
-    # NOTE(SW): done here to avoid the incredibly unlikely event that jobs are processed across
-    # date boundary
-    output_prefix = shared.get_output_prefix(data.submission_prefix)
-
     # Create file records
+    output_prefix = shared.get_output_prefix(data.submission_prefix)
     for filename in files_included:
         file_record = shared.FileRecord.from_manifest_record(filename, output_prefix, data)
         data.files_accepted.append(file_record)
@@ -257,14 +260,3 @@ def log_matched_filename_filters(files_found, filter_list, filter_type):
         filenames_str = '\r\t'.join(filenames_missing)
         message_base = f'did not find all {plurality} in {filter_type} list, missing'
         LOGGER.warning(f'{message_base}:\r\t{filenames_str}')
-
-
-def get_tasks_list(record):
-    tasks_list = list()
-    if record['valid_checksum'] == 'not run':
-        tasks_list.append('checksum')
-    if record['valid_filetype'] == 'not run':
-        tasks_list.append('validate_filetype')
-    if record['index_result'] == 'not run':
-        tasks_list.append('create_index')
-    return tasks_list
