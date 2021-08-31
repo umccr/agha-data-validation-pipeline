@@ -3,8 +3,8 @@ This stack is used to handle and validate data received as part of the AGHA GDR 
 1. take receipt of genomic files in a staging area
 2. validate genomic files, and generate indexes if required
 3. store file validation results in a database
-4. move genomic files to a data store along with indexes
-5. generate validation reports
+4. move genomic files to a data store along with indexes _[planned]_
+5. generate validation reports _[planned]_
 
 
 ## Schematic
