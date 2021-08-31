@@ -28,19 +28,11 @@ CLIENT_S3 = util.get_client('s3')
 CLIENT_SSM = util.get_client('ssm')
 RESOURCE_DYNAMODB = boto3.resource('dynamodb').Table(DYNAMODB_TABLE)
 
-# Get SSM value
-SLACK_WEBHOOK_ENDPOINT = util.get_ssm_parameter(
-    '/slack/webhook/endpoint',
-    CLIENT_SSM,
-    with_decryption=True
-)
-
 
 def handler(event, context):
     # Log invocation data
     LOGGER.info(f'event: {json.dumps(event)}')
     LOGGER.info(f'context: {json.dumps(util.get_context_info(context))}')
-
 
     # Parse event data
     validate_event_data(event)

@@ -41,7 +41,7 @@ class AghaStack(core.Stack):
         vpc = ec2.Vpc.from_lookup(
             self,
             'MainVPC',
-            tags={'Name': 'main-vpc', 'Stack': 'networking'},
+            vpc_id='vpc-36fbdf51',
         )
 
         # NOTE(SW): may want to restrict as ro with write perms to specific directory for
@@ -91,7 +91,7 @@ class AghaStack(core.Stack):
         batch_security_group = ec2.SecurityGroup.from_security_group_id(
             self,
             'SecruityGroupOutBoundOnly',
-            'sg-0e4269cd9c7c1765a',
+            'sg-078bb0d9cd7d359b7',
         )
 
         block_device_mappings = [
@@ -133,7 +133,6 @@ class AghaStack(core.Stack):
                 security_groups=[batch_security_group],
                 spot_fleet_role=batch_spot_fleet_role,
                 type=batch.ComputeResourceType.SPOT,
-                vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE),
             )
         )
 
@@ -285,6 +284,7 @@ class AghaStack(core.Stack):
             handler='file_processor.handler',
             runtime=lmbda.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(60),
+            memory_size=512,
             code=lmbda.Code.from_asset('lambdas/functions/file_processor/'),
             environment={
                 'STAGING_BUCKET': props['staging_bucket'],
