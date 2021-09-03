@@ -212,7 +212,7 @@ def retrieve_manifest_data(data, submitter_info=None):
     return manifest_data
 
 
-def validate_manifest(data, submitter_info=None):
+def validate_manifest(data, submitter_info=None, strict_mode=True):
     # Head validation
     columns_present = set(data.manifest_data.columns.tolist())
     columns_missing = MANIFEST_REQUIRED_COLUMNS.difference(columns_present)
@@ -285,17 +285,20 @@ def validate_manifest(data, submitter_info=None):
             message = f'got malformed MD5 checksum for {row.Index} ({row.checksum})'
             messages_error.append(message)
 
-    # Check for errors
+    # Check for errors, only exit in strict mode
     if messages_error:
         plurality = 'message' if len(messages_error) == 1 else 'messages'
         errors = '\r\t'.join(messages_error)
         message_base = f'Manifest failed validation with the following {plurality}'
         message = f'{message_base}:\r\t{errors}'
         log_and_store_message(message, level='critical')
-        notify_and_exit(submitter_info)
+        if strict_mode:
+            notify_and_exit(submitter_info)
+        else:
+            LOGGER.info('operating in non-strict mode, proceeding')
 
     # Notify with success message
-    message = f'Manifest succesfully validated, continuing with file validation'
+    message = f'Manifest successfully validated, continuing with file validation'
     log_and_store_message(message)
     send_notifications(
         MESSAGE_STORE,

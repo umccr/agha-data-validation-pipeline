@@ -32,7 +32,7 @@ def handler(event_record):
     # NOTE(SW): FileRecords are used so that we have single interface for record creation and job
     # submission later, and are available through data.files_accepted.
     if 'manifest_fp' in data.record:
-        data = handle_input_manifest(data, submitter_info)
+        data = handle_input_manifest(data, submitter_info, data.record['strict_mode'])
     elif 'filepaths' in data.record:
         data = handle_input_filepaths(data, submitter_info)
     else:
@@ -93,6 +93,7 @@ def validate_event_data(event_record):
         'email_address',
         'email_name',
         'tasks',
+        'strict_mode',
     }
     args_unknown = [arg for arg in event_record if arg not in args_known]
     if args_unknown:
@@ -151,6 +152,20 @@ def validate_event_data(event_record):
     else:
         event_record['record_mode'] = 'create'
 
+    # Process strict mode, must be bool
+    if 'strict_mode' in event_record:
+        strict_mode_str = event_record.get('strict_mode')
+        if strict_mode_str.lower() == 'true':
+            event_record['strict_mode'] = True
+        elif strict_mode_str.lower() == 'false':
+            event_record['strict_mode'] = False
+        else:
+            msg = f'expected \'True\' or \'False\' for strict_mode but got {strict_mode_str}'
+            LOGGER.critical(msg)
+            sys.exit(1)
+    else:
+        event_record['strict_mode'] = True
+
     # Set remaining defaults
     if not 'exclude_fns' in event_record:
         event_record['exclude_fns'] = list()
@@ -158,18 +173,18 @@ def validate_event_data(event_record):
         event_record['include_fns'] = list()
 
 
-def handle_input_manifest(data, submitter_info):
+def handle_input_manifest(data, submitter_info, strict_mode):
     data.manifest_key = data.record['manifest_fp']
 
     data.submission_prefix = os.path.dirname(data.manifest_key)
-    data.flagship = shared.get_flagship_from_key(data.manifest_key, submitter_info, strict_mode=False)
+    data.flagship = shared.get_flagship_from_key(data.manifest_key, submitter_info, strict_mode)
 
     data.file_metadata = shared.get_s3_object_metadata(data, submitter_info)
     data.file_etags = shared.get_s3_etags_by_filename(data.file_metadata)
 
     data.manifest_data = shared.retrieve_manifest_data(data, submitter_info)
 
-    file_list, data.files_extra = shared.validate_manifest(data, submitter_info)
+    file_list, data.files_extra = shared.validate_manifest(data, submitter_info, strict_mode)
 
     files_included, data.files_rejected = filter_filelist(
         file_list,
