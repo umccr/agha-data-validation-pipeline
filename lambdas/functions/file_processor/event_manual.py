@@ -136,7 +136,8 @@ def validate_event_data(event_record):
             sys.exit(1)
 
     # Check tasks are valid if provided
-    tasks_unknown = [task for task in event_record.get('tasks', list()) if task not in shared.DEFAULT_TASKS_LIST]
+    tasks_list = event_record.get('tasks', list())
+    tasks_unknown = [task for task in tasks_list if task not in shared.TASKS_AVAILABLE]
     if tasks_unknown:
         tasks_str = '\r\t'.join(tasks_unknown)
         tasks_allow_str = '\', \''.join(shared.DEFAULT_TASKS_LIST)

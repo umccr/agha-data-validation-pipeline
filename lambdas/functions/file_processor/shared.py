@@ -49,6 +49,7 @@ SLACK_WEBHOOK_ENDPOINT = util.get_ssm_parameter(
 )
 
 # Other
+TASKS_AVAILABLE = ['checksum', 'validate_filetype', 'create_index']
 EMAIL_SUBJECT = '[AGHA service] Submission received'
 MANIFEST_REQUIRED_COLUMNS = {'filename', 'checksum', 'agha_study_id'}
 JOB_NAME_RE = re.compile(r'[.\\/]')
