@@ -256,9 +256,12 @@ def filter_filelist(file_list, include_fns, exclude_fns):
     if exclude_fns:
         log_matched_filename_filters(excluded, exclude_fns, 'exclude')
     if accepted:
-        plurality = 'files' if len(accepted) > 1 else 'file'
-        filenames_str = '\r\t'.join(accepted)
-        LOGGER.info(f'{len(accepted)}/{len(file_list)} {plurality} passed filtering:\r\t{filenames_str}')
+        if include_fns or exclude_fns:
+            plurality = 'files' if len(accepted) > 1 else 'file'
+            filenames_str = '\r\t'.join(accepted)
+            LOGGER.info(f'{len(accepted)}/{len(file_list)} {plurality} passed filtering:\r\t{filenames_str}')
+        else:
+            LOGGER.info(f'no file include/exclude lists provided, skipping file filtering')
     else:
         LOGGER.critical(f'no files remaining after filtering')
         sys.exit(1)
