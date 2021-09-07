@@ -182,18 +182,18 @@ The compiled validation results in the DynamoDB table can be viewed and modified
 
 ## Lambda arguments
 ### File processor
-| Argument          | Description                                                                                              |
-| ---               | ---                                                                                                      |
-| `manifest_fp`     | S3 key for an input manifest file. Cannot be used with `filepaths` or `output_prefix`.                   |
-| `filepaths`       | List of S3 keys of input files. Requires `output_prefix`, cannot be used with `manifest_fp`.             |
-| `output_prefix`   | Output S3 key prefix when using `filepaths`, cannot be used with `manifest_fp`.                          |
-| `include_fns`     | List of *filenames* to include for validation from `manifest_fp`, all other files excluded.              |
-| `exclude_fns`     | List of *filenames* to exclude for validation form `manifest_fp`, all other file included.               |
-| `record_mode`     | Operation used add result data to database: can be either `create` or `update` [_default:_ `create`].    |
-| `email_address`   | Email of submitter (_optional_).                                                                         |
-| `email_name`      | Name of submitter (_optional_).                                                                          |
-| `tasks`           | List of tasks to run (_optional_). Tasks: `checksum`, `validate_filetype`, `create_index`.               |
-| `strict_mode`     | Run in strict mode and fail on unexpected file or flagship. Choices `True`, `False` [_default:_ `True`]. |
+| Argument          | Description                                                                                                    |
+| ---               | ---                                                                                                            |
+| `manifest_fp`     | S3 key for an input manifest file. Cannot be used with `filepaths` or `output_prefix`.                         |
+| `filepaths`       | List of S3 keys of input files. Requires `output_prefix`, cannot be used with `manifest_fp`.                   |
+| `output_prefix`   | Output S3 key prefix when using `filepaths`, cannot be used with `manifest_fp`.                                |
+| `include_fns`     | List of *filenames* to include for validation from `manifest_fp`, all other files excluded.                    |
+| `exclude_fns`     | List of *filenames* to exclude for validation form `manifest_fp`, all other file included.                     |
+| `record_mode`     | Operation used add result data to database: can be either `create` or `update` [_default:_ `create`].          |
+| `email_address`   | Email of submitter (_optional_).                                                                               |
+| `email_name`      | Name of submitter (_optional_).                                                                                |
+| `tasks`           | List of tasks to run (_optional_). Tasks: `checksum`, `validate_filetype`, `create_index`.                     |
+| `strict_mode`     | Run in strict mode: fail on unexpected files, flagship, study ID. Choices `True`, `False` [_default:_ `True`]. |
 
 ### Data import
 | Argument          | Description                                                                                                        |

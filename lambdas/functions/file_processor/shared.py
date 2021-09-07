@@ -272,31 +272,25 @@ def validate_manifest(data, submitter_info=None, strict_mode=True):
     # Field validation
     for row in data.manifest_data.itertuples():
         # Study ID
-        if row.agha_study_id == 'not provided':
-            # Allow 'empty' values
-            continue
-        elif not AGHA_ID_RE.match(row.agha_study_id):
+        if not AGHA_ID_RE.match(row.agha_study_id):
             message = f'got malformed AGHA study ID for {row.Index} ({row.agha_study_id})'
             messages_error.append(message)
         # Checksum
-        if row.checksum == 'not provided':
-            # Allow 'empty' values
-            continue
-        elif not MD5_RE.match(row.checksum):
+        if not MD5_RE.match(row.checksum):
             message = f'got malformed MD5 checksum for {row.Index} ({row.checksum})'
             messages_error.append(message)
 
-    # Check for errors, only exit in strict mode
+    # Check for error messages, exit in strict mode otherwise just emit warnings
     if messages_error:
         plurality = 'message' if len(messages_error) == 1 else 'messages'
         errors = '\r\t'.join(messages_error)
         message_base = f'Manifest failed validation with the following {plurality}'
         message = f'{message_base}:\r\t{errors}'
-        log_and_store_message(message, level='critical')
         if strict_mode:
+            log_and_store_message(message, level='critical')
             notify_and_exit(submitter_info)
         else:
-            LOGGER.info('operating in non-strict mode, proceeding')
+            log_and_store_message(message, level='warning')
 
     # Notify with success message
     message = f'Manifest successfully validated, continuing with file validation'
