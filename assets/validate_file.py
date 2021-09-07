@@ -128,7 +128,7 @@ def main():
         run_indexing(fp_local, file_info, filetype)
 
     # Set whether the file was validated (unpack for clarity)
-    checksum_fail = RESULTS_DATA['valid_checksum'] not in {'not run', 'yes'}
+    checksum_fail = RESULTS_DATA['valid_checksum'] not in {'not run', 'yes', 'na'}
     filetype_fail = RESULTS_DATA['valid_filetype'] not in {'not run', 'yes'}
     index_fail = RESULTS_DATA['index_result'] not in {'not run', 'succeeded'}
     vresult = checksum_fail or filetype_fail or index_fail
@@ -179,6 +179,8 @@ def run_checksum(fp, file_info):
         sys.exit(1)
     # Determine results and store
     RESULTS_DATA['calculated_checksum'] = result.stdout.rstrip()
+    if RESULTS_DATA['provided_checksum'] == 'not provided':
+        RESULTS_DATA['valid_checksum'] = 'na'
     if RESULTS_DATA['provided_checksum'] == RESULTS_DATA['calculated_checksum']:
         RESULTS_DATA['valid_checksum'] = 'yes'
     else:

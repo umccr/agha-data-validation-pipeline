@@ -450,7 +450,7 @@ def inactivate_existing_records(records):
 ####################
 def get_tasks_list(record):
     tasks_list = list()
-    if record['provided_checksum'] != 'not provided' and record['valid_checksum'] == 'not run':
+    if record['valid_checksum'] == 'not run':
         tasks_list.append('checksum')
     if record['valid_filetype'] == 'not run':
         tasks_list.append('validate_filetype')
