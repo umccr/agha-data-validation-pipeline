@@ -45,7 +45,7 @@ Configure
 NAME=agha-gdr-file-validation
 VERSION=0.0.1
 URI_LOCAL="${NAME}:${VERSION}"
-AWS_PROVIDER_URL=843407916570.dkr.ecr.ap-southeast-2.amazonaws.com
+AWS_PROVIDER_URL=602836945884.dkr.ecr.ap-southeast-2.amazonaws.com
 AWS_URI_REMOTE="${AWS_PROVIDER_URL}/${NAME}:${VERSION}"
 ```
 
@@ -57,11 +57,11 @@ docker build -t "${NAME}" -f assets/Dockerfile .
 Upload
 ```bash
 # Tag image with remote Docker Hub URI
-docker tag "${NAME}" "${HUB_URI_REMOTE}"
+docker tag "${NAME}" "${AWS_URI_REMOTE}"
 
 # Configure Docker with AWS credentials and upload
 aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin "${AWS_PROVIDER_URL}"
-docker push "${HUB_URI_REMOTE}"
+docker push "${AWS_URI_REMOTE}"
 
 # Remove unencrypted credentials
 rm /Users/stephen/.docker/config.json
