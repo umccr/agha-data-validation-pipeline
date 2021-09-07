@@ -58,7 +58,7 @@ def handler(event_record):
     LOGGER.info(f'Submission with prefix: {data.submission_prefix}')
 
     # Obtain flagship from S3 key and require it to be a known value
-    data.flagship = shared.get_flagship_from_key(data.manifest_key, submitter_info, strict_mode=False)
+    data.flagship = shared.get_flagship_from_key(data.manifest_key, submitter_info)
 
     # Pull file metadata from S3 and get ETags by filename
     data.file_metadata = shared.get_s3_object_metadata(data, submitter_info)
