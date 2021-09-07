@@ -196,8 +196,10 @@ The compiled validation results in the DynamoDB table can be viewed and modified
 | `strict_mode`     | Run in strict mode and fail on unexpected file or flagship. Choices `True`, `False` [_default:_ `True`]. |
 
 ### Data import
-| Argument          | Description                                                                       |
-| ---               | ---                                                                               |
-| `bucket_name`     | Name of bucket containing result files.                                           |
-| `results_dir`     | Results directly containing result JSON files. Cannot be used with `results_fps`. |
-| `results_fps`     | List of S3 keys of result JSON filepaths. Cannot be used with `results_dir`.      |
+| Argument          | Description                                                                                                        |
+| ---               | ---                                                                                                                |
+| `bucket_name`     | Name of bucket containing result files.                                                                            |
+| `results_dir`     | Results directly containing result JSON files. Cannot be used with `results_fps`.                                  |
+| `results_fps`     | List of S3 keys of result JSON filepaths. Cannot be used with `results_dir`.                                       |
+| `update_fields`   | Update a specific set of fields only. [_default:_ all].                                                            |
+| `strict_mode`     | Run in strict mode: fail on missing update fields or missing records. Choices `True`, `False` [_default:_ `True`]. |
