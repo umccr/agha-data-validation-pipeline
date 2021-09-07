@@ -309,7 +309,7 @@ def validate_manifest(data, submitter_info=None, strict_mode=True):
 ####################
 # DynamoDB
 ####################
-def get_existing_records(filename, partition_key):
+def get_existing_records(partition_key):
     records = get_records(partition_key)
     if records:
         records_current = [r for r in records if r['active']]

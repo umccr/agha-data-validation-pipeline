@@ -77,7 +77,7 @@ def handler(event_record):
 
         # Get partition key and existing records, and set sort key
         partition_key = f'{data.submission_prefix}/{file_record.filename}'
-        records_existing = shared.get_existing_records(file_record.filename, partition_key)
+        records_existing = shared.get_existing_records(partition_key)
         file_number_current = shared.get_file_number(records_existing)
         if records_existing:
             message_base = f'found existing records for {filename} with key {partition_key}'
