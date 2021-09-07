@@ -67,6 +67,10 @@ docker push "${AWS_URI_REMOTE}"
 rm /Users/stephen/.docker/config.json
 ```
 
+>Docker Hub was previously used but we enountered issues where Batch instances would timeout before they were able to pull
+>the image, which is likely due to request rate limits or limited download connection. These problems were resolved when
+>moving the Docker image to ECR.
+
 ### Deploy stack
 ```bash
 cdk deploy
