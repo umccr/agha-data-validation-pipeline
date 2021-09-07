@@ -30,8 +30,7 @@ class AghaStack(core.Stack):
                 name='sort_key',
                 type=dynamodb.AttributeType.NUMBER,
             ),
-            # NOTE(SW): set to retain in production
-            removal_policy=core.RemovalPolicy.DESTROY,
+            removal_policy=core.RemovalPolicy.RETAIN,
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
 
