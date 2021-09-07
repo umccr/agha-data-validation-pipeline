@@ -36,7 +36,7 @@ RESULTS_DATA = {
     'results_s3_bucket': 'na',
     'results_data_s3_key': 'na',
     'results_log_s3_key': 'na',
-    'fully_validated': 'no'
+    'tasks_completed': 'no'
 }
 
 # Get environment variables
@@ -132,7 +132,7 @@ def main():
     filetype_fail = RESULTS_DATA['valid_filetype'] not in {'not run', 'yes'}
     index_fail = RESULTS_DATA['index_result'] not in {'not run', 'succeeded'}
     vresult = checksum_fail or filetype_fail or index_fail
-    RESULTS_DATA['fully_validated'] = 'no' if vresult else 'yes'
+    RESULTS_DATA['tasks_completed'] = 'no' if vresult else 'yes'
 
     # Write completed result to log and S3
     write_results_s3(file_info)

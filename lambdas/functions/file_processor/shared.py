@@ -383,7 +383,7 @@ def create_record(partition_key, sort_key, data):
         'results_data_s3_key': 'na',
         'results_log_s3_key': 'na',
         # Misc
-        'fully_validated': 'no',
+        'tasks_completed': 'no',
         'etag': data.s3_etag,
         'ts_record_creation': util.get_datetimestamp(),
         'ts_record_update': 'na',

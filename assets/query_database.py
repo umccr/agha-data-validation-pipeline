@@ -8,7 +8,7 @@ import boto3
 import boto3.dynamodb
 
 
-RECORD_STATE_CHOICE = ['not_complete', 'not_fully_validated']
+RECORD_STATE_CHOICE = ['any_task_run', 'tasks_completed']
 
 
 def get_arguments():
@@ -42,7 +42,7 @@ def main():
         'partition_key',
         'sort_key',
         'active',
-        'fully_validated',
+        'tasks_completed',
         'valid_checksum',
         'valid_filetype'
     ]
@@ -55,10 +55,10 @@ def main():
 def get_records(dynamodb_resource, record_type, submission_prefix=None, active_only=None):
     # Conditionally construct query expression
     exprs = list()
-    if record_type == 'not_complete':
+    if record_type == 'any_task_run':
         exprs.append(boto3.dynamodb.conditions.Attr('ts_validation_job').eq('na'))
-    elif record_type == 'not_fully_validated':
-        exprs.append(boto3.dynamodb.conditions.Attr('fully_validated').eq('no'))
+    elif record_type == 'tasks_completed':
+        exprs.append(boto3.dynamodb.conditions.Attr('tasks_completed').eq('no'))
     else:
         assert False
     if submission_prefix:
