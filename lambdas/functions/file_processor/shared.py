@@ -214,7 +214,7 @@ def retrieve_manifest_data(data, submitter_info=None):
 
 
 def validate_manifest(data, submitter_info=None, strict_mode=True):
-    # Head validation
+    # Check manifest columns
     columns_present = set(data.manifest_data.columns.tolist())
     columns_missing = MANIFEST_REQUIRED_COLUMNS.difference(columns_present)
     if columns_missing:
@@ -257,15 +257,12 @@ def validate_manifest(data, submitter_info=None, strict_mode=True):
     log_and_store_file_message(message_text, files_matched_prohibited)
     message_text = f'Matched entries eligible for validation'
     log_and_store_file_message(message_text, files_matched_accepted)
-    # Fail if there are extra files (other than manifest.txt) or missing files
+    # Record error messages for extra files (other than manifest.txt) or missing files
     if 'manifest.txt' in files_missing_from_manifest:
         files_missing_from_manifest.remove('manifest.txt')
     messages_error = list()
     if files_missing_from_s3:
         messages_error.append('files listed in manifest were absent from S3')
-    # NOTE(SW): failing on this might be too strict; we may want to re-run validation on some
-    # files in-place. Though this would probably be triggered through a different entry point.
-    # Strict manifest validation could be appropriate here in that case.
     if files_missing_from_manifest:
         messages_error.append('files found on S3 absent from manifest.tsv')
 
