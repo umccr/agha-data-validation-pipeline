@@ -182,6 +182,7 @@ def handle_input_manifest(data, submitter_info, strict_mode):
 
     data.file_metadata = shared.get_s3_object_metadata(data, submitter_info)
     data.file_etags = shared.get_s3_etags_by_filename(data.file_metadata)
+    data.file_sizes = shared.get_s3_filesizes_by_filename(data.file_metadata)
 
     data.manifest_data = shared.retrieve_manifest_data(data, submitter_info)
 
@@ -221,6 +222,7 @@ def handle_input_filepaths(data, submitter_info):
         log_and_store_message(f'{message_base}:\r\t{files_str}', level='critical')
         notify_and_exit(submitter_info)
     data.file_etags = shared.get_s3_etags_by_filename(data.file_metadata)
+    data.file_sizes = shared.get_s3_filesizes_by_filename(data.file_metadata)
 
     for filepath in data.record['filepaths']:
         file_record = shared.FileRecord.from_filepath(

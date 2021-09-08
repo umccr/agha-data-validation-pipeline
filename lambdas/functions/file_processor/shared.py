@@ -108,6 +108,7 @@ class FileRecord:
         self.s3_key = str()
         self.s3_etag = str()
         self.provided_checksum = str()
+        self.file_size = int()
 
     @classmethod
     def from_manifest_record(cls, filename, output_prefix, data):
@@ -121,9 +122,11 @@ class FileRecord:
         record.output_prefix = output_prefix
         record.flagship = data.flagship
         record.study_id = file_info['agha_study_id']
+        record.submission_name = data.submission_prefix
         record.s3_key = os.path.join(data.submission_prefix, filename)
         record.s3_etag = data.file_etags[filename]
         record.provided_checksum = file_info['checksum']
+        record.file_size = data.file_sizes[filename]
         return record
 
 
@@ -133,8 +136,10 @@ class FileRecord:
         record = cls()
         record.filename = os.path.basename(filepath)
         record.output_prefix = output_prefix
+        record.submission_name = data.submission_prefix
         record.s3_key = filepath
         record.s3_etag = data.file_etags[record.filename]
+        record.file_size = data.file_sizes[filename]
         return record
 
 
@@ -179,6 +184,10 @@ def get_s3_object_metadata(data, submitter_info=None):
 
 def get_s3_etags_by_filename(metadata_records):
     return {get_s3_filename(md): md.get('ETag') for md in metadata_records}
+
+
+def get_s3_filesizes_by_filename(metadata_records):
+    return {get_s3_filename(md): md.get('Size') for md in metadata_records}
 
 
 def get_s3_filename(metadata_record):
@@ -361,6 +370,7 @@ def create_record(partition_key, sort_key, data):
         'flagship': data.flagship,
         'filename': data.filename,
         'file_number': sort_key,
+        'file_size': data.file_size,
         # Checksum
         'provided_checksum': data.provided_checksum,
         'calculated_checksum': 'not run',
@@ -393,26 +403,28 @@ def create_record(partition_key, sort_key, data):
     return record
 
 
-def update_record(partition_key, sort_key, file_record):
-    data = {
+def update_record(partition_key, sort_key, data):
+    record_data = {
         'active': True,
-        'study_id': file_record.study_id,
-        'flagship': file_record.flagship,
-        'filename': file_record.filename,
-        'provided_checksum': file_record.provided_checksum,
-        's3_key': file_record.s3_key,
-        'etag': file_record.s3_etag,
+        'filename': data.filename,
+        'flagship': data.flagship,
+        'study_id': data.study_id,
+        'submission_name': data.submission_name,
+        's3_key': data.s3_key,
+        'etag': data.s3_etag,
+        'provided_checksum': data.provided_checksum,
+        'file_size': data.file_size,
         'ts_record_update': util.get_datetimestamp(),
     }
-    results_str = '\r\t'.join(f'{k}: {v}' for k, v in data.items())
+    results_str = '\r\t'.join(f'{k}: {v}' for k, v in record_data.items())
     # Get update expression string and attribute values
     update_expr_items = list()
     attr_values = dict()
-    for i, k in enumerate(data):
+    for i, k in enumerate(record_data):
         update_expr_key = f':{i}'
         assert update_expr_key not in attr_values
         update_expr_items.append(f'{k} = {update_expr_key}')
-        attr_values[update_expr_key] = data[k]
+        attr_values[update_expr_key] = record_data[k]
     update_expr_items_str = ', '.join(update_expr_items)
     update_expr = f'SET {update_expr_items_str}'
     # Update record

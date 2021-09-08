@@ -60,9 +60,10 @@ def handler(event_record):
     # Obtain flagship from S3 key and require it to be a known value
     data.flagship = shared.get_flagship_from_key(data.manifest_key, submitter_info)
 
-    # Pull file metadata from S3 and get ETags by filename
+    # Pull file metadata from S3 and get ETags, file sizes by filename
     data.file_metadata = shared.get_s3_object_metadata(data, submitter_info)
     data.file_etags = shared.get_s3_etags_by_filename(data.file_metadata)
+    data.file_sizes = shared.get_s3_filesizes_by_filename(data.file_metadata)
 
     # Collect manifest data and then validate
     data.manifest_data = shared.retrieve_manifest_data(data, submitter_info)
