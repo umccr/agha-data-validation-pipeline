@@ -325,6 +325,7 @@ class AghaStack(core.Stack):
                 actions=[
                     'dynamodb:GetItem',
                     'dynamodb:PutItem',
+                    'dynamodb:Query',
                     'dynamodb:UpdateItem',
                 ],
                 resources=[dynamodb_table.table_arn]
