@@ -459,6 +459,10 @@ def get_tasks_list(record):
 def create_job_data(partition_key, sort_key, tasks_list, file_record):
     name_raw = f'agha_validation__{partition_key}__{sort_key}'
     name = JOB_NAME_RE.sub('_', name_raw)
+    # Job name must be less than 128 characters. If job name exceeds this length, truncate to the
+    # first 120 characters and append a 7 character uid separated by an underscore.
+    if len(name) > 128:
+        name = f'{name[:120]}_{uuid.uuid1().hex[:7]}'
     tasks = ' '.join(tasks_list)
     command = textwrap.dedent(f'''
         /opt/validate_file.py \
