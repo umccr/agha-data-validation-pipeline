@@ -70,7 +70,7 @@ def handler(event_record):
 
         # Replace tasks with those specified by user if available
         if 'tasks' in data.record:
-            task_list = data.record['tasks']
+            tasks_list = data.record['tasks']
 
         # Create job data
         job_data = shared.create_job_data(partition_key, sort_key, tasks_list, file_record)
@@ -270,12 +270,11 @@ def filter_filelist(file_list, include_fns, exclude_fns):
 
 def log_matched_filename_filters(files_found, filter_list, filter_type):
     # Emit matched files
-    plurality = 'files' if len(filter_list) > 1 else 'file'
     filenames_str = '\r\t'.join(files_found)
-    LOGGER.info(f'{filter_type}d {len(files_found)}/{len(filter_list)} {plurality}:\r\t{filenames_str}')
+    LOGGER.info(f'{filter_type}d {len(files_found)}/{len(filter_list)} files:\r\t{filenames_str}')
     # Check for missing files
     filenames_missing = set(filter_list).difference(files_found)
     if filenames_missing:
         filenames_str = '\r\t'.join(filenames_missing)
-        message_base = f'did not find all {plurality} in {filter_type} list, missing'
+        message_base = f'did not find all files in {filter_type} list, missing'
         LOGGER.warning(f'{message_base}:\r\t{filenames_str}')

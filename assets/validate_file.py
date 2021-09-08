@@ -171,7 +171,7 @@ def run_checksum(fp, file_info):
     command = f"md5sum {fp} | cut -f1 -d' '"
     result = util.execute_command(command)
     if result.returncode != 0:
-        stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr {result.stderr}'
+        stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr: {result.stderr}'
         LOGGER.critical(f'failed to run checksum ({command}): {stdstrm_msg}')
         RESULTS_DATA['calculated_checksum'] = 'failed'
         RESULTS_DATA['valid_checksum'] = 'no'
@@ -215,7 +215,7 @@ def run_filetype_validation(fp, file_info):
     RESULTS_DATA['inferred_filetype'] = filetype.value
     result = util.execute_command(command)
     if result.returncode != 0:
-        stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr {result.stderr}'
+        stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr: {result.stderr}'
         LOGGER.info(f'file validation failed (invalid filetype or other failure): {stdstrm_msg}')
         RESULTS_DATA['valid_filetype'] = 'no'
         write_results_s3(file_info)
@@ -244,7 +244,7 @@ def run_indexing(fp, file_info, filetype):
         assert False
     result = util.execute_command(command)
     if result.returncode != 0:
-        stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr {result.stderr}'
+        stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr: {result.stderr}'
         LOGGER.critical(f'failed to run indexing ({command}): {stdstrm_msg}')
         RESULTS_DATA['index_result'] = 'failed'
         write_results_s3(file_info)
