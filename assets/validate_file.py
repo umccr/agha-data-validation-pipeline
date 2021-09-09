@@ -181,7 +181,7 @@ def run_checksum(fp, file_info):
     RESULTS_DATA['calculated_checksum'] = result.stdout.rstrip()
     if RESULTS_DATA['provided_checksum'] == 'not provided':
         RESULTS_DATA['valid_checksum'] = 'na'
-    if RESULTS_DATA['provided_checksum'] == RESULTS_DATA['calculated_checksum']:
+    elif RESULTS_DATA['provided_checksum'] == RESULTS_DATA['calculated_checksum']:
         RESULTS_DATA['valid_checksum'] = 'yes'
     else:
         RESULTS_DATA['valid_checksum'] = 'no'
