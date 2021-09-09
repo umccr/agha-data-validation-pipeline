@@ -12,6 +12,7 @@ This stack is used to handle and validate data received as part of the AGHA GDR 
 * [Deployment](#deployment)
 * [Usage](#usage)
 * [Lambda arguments](#lambda-arguments)
+* [Accessory scripts](#accessory-scripts)
 
 ## Schematic
 <p align="center"><img src="images/schematic.png" width="80%"></p>
@@ -207,3 +208,26 @@ The compiled validation results in the DynamoDB table can be viewed and modified
 | `results_fps`     | List of S3 keys of result JSON filepaths. Cannot be used with `results_dir`.                                       |
 | `update_fields`   | Update a specific set of fields only. [_default:_ all].                                                            |
 | `strict_mode`     | Run in strict mode: fail on missing update fields or missing records. Choices `True`, `False` [_default:_ `True`]. |
+
+## Accessory scripts
+### `query_database.py`
+The script provides functionality to perform useful database queries. Query space can be limited by submission name or S3
+prefix.
+
+#### Record query
+| Query type          | Description                                         |
+| ---                 | ---                                                 |
+| `no_task_run`       | No tasks run                                        |
+| `any_task_run`      | ≥1 tasks run (result agnostic)                      |
+| `tasks_incompleted` | ≥1 incomplete runnable tasks                        |
+| `tasks_completed`   | All runnable tasks complete                         |
+| `fully_validated`   | All tasks sucessfully complete (incl. non-runnable) |
+
+#### File query
+| Query type   | Description                                                |
+| ---          | ---                                                        |
+| `has_record` | Files *with* any database record                           |
+| `no_record`  | Files *without* any database record                        |
+
+### `dump_database.py`
+Simply dump the given DynamoDB table to disk.
