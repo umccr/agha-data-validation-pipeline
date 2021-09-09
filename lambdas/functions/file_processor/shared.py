@@ -105,6 +105,7 @@ class FileRecord:
         self.output_prefix = str()
         self.flagship = str()
         self.study_id = str()
+        self.submission_name = str()
         self.s3_key = str()
         self.s3_etag = str()
         self.provided_checksum = str()
@@ -368,6 +369,7 @@ def create_record(partition_key, sort_key, data):
         'active': True,
         'study_id': data.study_id,
         'flagship': data.flagship,
+        'submission_name': data.submission_name,
         'filename': data.filename,
         'file_number': sort_key,
         'file_size': data.file_size,
