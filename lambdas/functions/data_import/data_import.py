@@ -129,6 +129,8 @@ def collect_result_filepaths(event):
         results_fps = list()
         results_dir = event['results_dir']
         file_metadata = util.get_s3_object_metadata(bucket_name, results_dir, CLIENT_S3)
+        if file_metadata is False:
+            file_metadata = list()
         for mdata in file_metadata:
             file_key = mdata.get('Key')
             if not file_key.endswith('.json'):
