@@ -280,11 +280,11 @@ def validate_manifest(data, submitter_info=None, strict_mode=True):
     for row in data.manifest_data.itertuples():
         # Study ID
         if not AGHA_ID_RE.match(row.agha_study_id):
-            message = f'got malformed AGHA study ID for {row.Index} ({row.agha_study_id})'
+            message = f'got malformed AGHA study ID for {row.filename} ({row.agha_study_id})'
             messages_error.append(message)
         # Checksum
         if not MD5_RE.match(row.checksum):
-            message = f'got malformed MD5 checksum for {row.Index} ({row.checksum})'
+            message = f'got malformed MD5 checksum for {row.filename} ({row.checksum})'
             messages_error.append(message)
 
     # Check for error messages, exit in strict mode otherwise just emit warnings
