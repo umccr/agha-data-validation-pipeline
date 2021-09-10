@@ -215,13 +215,14 @@ The script provides functionality to perform useful database queries. Query spac
 prefix.
 
 #### Record query
-| Query type          | Description                                         |
-| ---                 | ---                                                 |
-| `no_task_run`       | No tasks run                                        |
-| `any_task_run`      | ≥1 tasks run (result agnostic)                      |
-| `tasks_incompleted` | ≥1 incomplete runnable tasks                        |
-| `tasks_completed`   | All runnable tasks complete                         |
-| `fully_validated`   | All tasks sucessfully complete (incl. non-runnable) |
+| Query type                            | Description                                          |
+| ---                                   | ---                                                  |
+| `no_task_run`                         | No tasks run                                         |
+| `any_task_run`                        | ≥1 tasks run                                         |
+| `tasks_incompleted`                   | ≥1 runnable tasks incomplete                         |
+| `tasks_completed`                     | All runnable tasks complete                          |
+| `tasks_completed_not_fully_validated` | All tasks run (incl. non-runnable) with ≥1 failed    |
+| `fully_validated`                     | All tasks successfully complete (incl. non-runnable) |
 
 #### File query
 | Query type   | Description                                                |

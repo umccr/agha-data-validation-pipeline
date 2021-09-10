@@ -13,6 +13,7 @@ RECORD_STATE_CHOICE = [
     'any_task_run',
     'tasks_incompleted',
     'tasks_completed',
+    'tasks_completed_not_fully_validated',
     'fully_validated',
 ]
 
@@ -122,10 +123,17 @@ def query_record_state(dynamodb_resource, record_state, submission_name=None, ac
         exprs.append(boto3.dynamodb.conditions.Attr('valid_checksum').eq('yes'))
         exprs.append(boto3.dynamodb.conditions.Attr('valid_filetype').eq('yes'))
         exprs.append(boto3.dynamodb.conditions.Attr('index_result').is_in(['succeeded', 'not run']))
+    elif record_state == 'tasks_completed_not_fully_validated':
+        exprs_any = list()
+        exprs_any.append(boto3.dynamodb.conditions.Attr('valid_checksum').eq('no'))
+        exprs_any.append(boto3.dynamodb.conditions.Attr('valid_filetype').eq('no'))
+        exprs_any.append(boto3.dynamodb.conditions.Attr('index_result').eq('failed'))
+        exprs.append(functools.reduce(lambda acc, new: acc | new, exprs_any))
+        exprs.append(boto3.dynamodb.conditions.Attr('tasks_completed').eq('yes'))
     else:
         assert False
     if submission_name:
-        exprs.append(boto3.dynamodb.conditions.Key('partition_key').begins_with(submission_name))
+        exprs.append(boto3.dynamodb.conditions.Key('submission_name').begins_with(submission_name))
     if active_only is True:
         exprs.append(boto3.dynamodb.conditions.Attr('active').eq(True))
     elif active_only is not False:
