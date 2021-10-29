@@ -26,6 +26,7 @@ def main():
     attrs = set()
     for record in records:
         attrs.update(record.keys())
+    attrs = sorted(attrs)
 
     # Output record data
     print(*attrs, sep='\t')
