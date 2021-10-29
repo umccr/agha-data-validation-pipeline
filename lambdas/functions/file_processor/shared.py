@@ -325,8 +325,7 @@ def get_existing_records(partition_key):
             msg_records = '\r\t'.join(r.__repr__() for r in records_current)
             msg_base = f'expected one active record but got {len(records_current)}'
             msg = f'{msg_base}:\r\t{msg_records}'
-            log_and_store_message(msg, level='critical')
-            sys.exit(1)
+            log_and_store_message(msg, level='warning')
     return records
 
 
