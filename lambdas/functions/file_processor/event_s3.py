@@ -94,9 +94,10 @@ def handler(event_record):
         job_data = shared.create_job_data(partition_key, sort_key, tasks_list, file_record)
         batch_job_data.append(job_data)
 
-    # Submit Batch jobs
-    for job_data in batch_job_data:
-        shared.submit_batch_job(job_data)
+    # Submit validation jobs automatically if configured as such
+    if shared.AUTORUN_VALIDATION_JOBS == 'yes':
+        for job_data in batch_job_data:
+            shared.submit_batch_job(job_data)
 
 
 def validate_event_data(event_record):

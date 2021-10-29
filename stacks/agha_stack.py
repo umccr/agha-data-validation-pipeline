@@ -318,6 +318,7 @@ class AghaStack(core.Stack):
                 'STAGING_BUCKET': props['staging_bucket'],
                 'RESULTS_BUCKET': props['results_bucket'],
                 'DYNAMODB_TABLE': props['dynamodb_table'],
+                'AUTORUN_VALIDATION_JOBS': props['autorun_validation_jobs'],
                 'JOB_DEFINITION_ARN': batch_job_definition.job_definition_arn,
                 'FOLDER_LOCK_LAMBDA_ARN': folder_lock_lambda.function_arn,
                 'BATCH_QUEUE_NAME': props['batch_queue_name'],

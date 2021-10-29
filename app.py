@@ -11,6 +11,7 @@ from stacks.agha_stack import AghaStack
 # Set config
 namespace = 'agha-gdr-batch-dynamodb'
 dynamodb_table = 'agha-gdr'
+autorun_validation_jobs = 'no'
 batch_queue_name = 'agha-gdr-job-queue'
 job_definition_name = 'agha-gdr-input-validation'
 staging_bucket = 'agha-gdr-staging'
@@ -36,6 +37,7 @@ stack_props = {
     'results_bucket': results_bucket,
     'store_bucket': store_bucket,
     'dynamodb_table': dynamodb_table,
+    'autorun_validation_jobs': autorun_validation_jobs,
     'job_definition_name': job_definition_name,
     'batch_queue_name': batch_queue_name,
     'slack_notify': slack_notify,
