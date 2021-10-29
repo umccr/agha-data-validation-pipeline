@@ -17,12 +17,12 @@ staging_bucket = 'agha-gdr-staging'
 results_bucket = 'agha-gdr-results'
 store_bucket = 'agha-gdr-store'
 container_image = '602836945884.dkr.ecr.ap-southeast-2.amazonaws.com/agha-gdr-file-validation:0.0.1'
-email_notify = 'no'
-slack_notify = 'no'
-manager_email = 'stephen.watts@umccr.org'
+email_notify = 'yes'
+slack_notify = 'yes'
+manager_email = 'sarah.casauria@mcri.edu.au'
 sender_email = 'services@umccr.org'
 slack_host = 'hooks.slack.com'
-slack_channel = '#arteria-dev'
+slack_channel = '#agha-gdr'
 # Retrieve AWS details from currently active AWS profile/credentials
 aws_env = {
     'account': os.environ.get('CDK_DEFAULT_ACCOUNT'),
