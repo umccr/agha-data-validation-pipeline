@@ -118,6 +118,34 @@ class AghaStack(core.Stack):
             version='$Latest',
         )
 
+        instance_types = [
+            'c3.xlarge',
+            'c4.xlarge',
+            'c5.large',
+            'c5.xlarge',
+            'c5a.large',
+            'c5a.xlarge',
+            'c5ad.xlarge',
+            'c5d.xlarge',
+            'c5n.xlarge',
+            'm3.large',
+            'm3.xlarge',
+            'm4.large',
+            'm4.xlarge',
+            'm5.large',
+            'm5.xlarge',
+            'm5a.large',
+            'm5a.xlarge',
+            'm5ad.xlarge',
+            'm5d.large',
+            'm5d.xlarge',
+            'r4.large',
+            'r5.large',
+            'r5a.large',
+            'r5d.large',
+            'r5n.large',
+        ]
+
         batch_compute_environment = batch.ComputeEnvironment(
             self,
             'BatchComputeEnvironment',
@@ -127,6 +155,7 @@ class AghaStack(core.Stack):
                 allocation_strategy=batch.AllocationStrategy.SPOT_CAPACITY_OPTIMIZED,
                 desiredv_cpus=0,
                 instance_role=batch_instance_profile.attr_arn,
+                instance_types=[ec2.InstanceType(it) for it in instance_types],
                 launch_template=batch_launch_template_spec,
                 maxv_cpus=64,
                 security_groups=[batch_security_group],
