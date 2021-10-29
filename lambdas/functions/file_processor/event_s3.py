@@ -127,11 +127,11 @@ def validate_event_data(event_record):
 def get_name_email_from_principalid(principal_id):
     if USER_RE.fullmatch(principal_id):
         user_id = re.search(USER_RE, principal_id).group(1)
-        user_list = IAM_CLIENT.list_users()
+        user_list = shared.IAM_CLIENT.list_users()
         for user in user_list['Users']:
             if user['UserId'] == user_id:
                 username = user['UserName']
-        user_details = IAM_CLIENT.get_user(UserName=username)
+        user_details = shared.IAM_CLIENT.get_user(UserName=username)
         tags = user_details['User']['Tags']
         for tag in tags:
             if tag['Key'] == 'email':

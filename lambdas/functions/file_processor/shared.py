@@ -35,6 +35,7 @@ SENDER_EMAIL = util.get_environment_variable('SENDER_EMAIL')
 
 # Get AWS clients, resources
 CLIENT_BATCH = util.get_client('batch')
+CLIENT_IAM = util.get_client('iam')
 CLIENT_LAMBDA = util.get_client('lambda')
 CLIENT_S3 = util.get_client('s3')
 CLIENT_SES = util.get_client('ses')
@@ -537,29 +538,28 @@ def notify_and_exit(submitter_info):
     sys.exit(1)
 
 
-def send_notifications(messages, subject, info):
+def send_notifications(messages, subject, submitter_info):
     if EMAIL_NOTIFY == 'yes':
-        LOGGER.info(f'Sending notifications messages', end='\r')
-        LOGGER.info(*messages, sep='\r')
-        LOGGER.info(f'Sending email to {info.submitter_name} <{info.submitter_email}>')
-        recipients = [MANAGER_EMAIL, info.submitter_email]
-        email_body = make_email_body_html(
-            info.submission_prefix,
-            info.submitter_name,
+        LOGGER.info(f'Sending email to {submitter_info.name} <{submitter_info.email}>')
+        LOGGER.info('\r'.join(messages))
+        recipients = [MANAGER_EMAIL, submitter_info.email]
+        email_body = util.make_email_body_html(
+            submitter_info.submission_prefix,
+            submitter_info.name,
             messages
         )
         email_response = util.send_email(
             recipients,
-            EMAIL_SENDER,
+            SENDER_EMAIL,
             EMAIL_SUBJECT,
             email_body,
-            SES_CLIENT
+            CLIENT_SES,
         )
     if SLACK_NOTIFY == 'yes':
         LOGGER.info(f'Sending notification to {SLACK_CHANNEL}')
         slack_response = util.call_slack_webhook(
             subject,
-            f'Submission: {submission_prefix} ({submitter_name})',
+            f'Submission: {submitter_info.submission_prefix} ({submitter_info.name})',
             '\n'.join(messages),
             SLACK_HOST,
             SLACK_CHANNEL,
