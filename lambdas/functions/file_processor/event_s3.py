@@ -39,7 +39,7 @@ def handler(event_record):
     shared.CLIENT_LAMBDA.invoke(
         FunctionName=shared.FOLDER_LOCK_LAMBDA_ARN,
         InvocationType='Event',
-        Payload=json.dumps({'Record': event_record})
+        Payload=json.dumps({'Records': [event_record]})
     )
 
     # Prepare submitter info
