@@ -29,7 +29,7 @@ aws_env = {
     'region': os.environ.get('CDK_DEFAULT_REGION')
 }
 # Construct full set of properties for stack
-agha_props = {
+stack_props = {
     'namespace': namespace,
     'container_image': container_image,
     'staging_bucket': staging_bucket,
@@ -45,12 +45,20 @@ agha_props = {
     'manager_email': manager_email,
     'sender_email': sender_email,
 }
-# Create stack as configured
+# Initialise stack
 app = core.App()
 AghaStack(
     app,
-    agha_props['namespace'],
-    agha_props,
+    stack_props['namespace'],
+    stack_props,
     env=aws_env
 )
+# Set tags
+tags = {
+    'Stack': stack_props['namespace'],
+    'Creator': 'cdk',
+    'Owner': 'swatts',
+}
+for k, v in tags.items():
+    core.Tags.of(app).add(key=k, value=v)
 app.synth()
