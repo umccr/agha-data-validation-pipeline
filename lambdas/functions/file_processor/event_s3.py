@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import re
-import sys
 
 
 import shared
@@ -103,26 +102,26 @@ def handler(event_record):
 def validate_event_data(event_record):
     if 's3' not in event_record:
         LOGGER.critical('no \'s3\' entry found in record')
-        sys.exit(1)
+        raise ValueError
     record_s3 = event_record['s3']
 
     if 'bucket' not in record_s3:
         LOGGER.critical('S3 record missing bucket info')
-        sys.exit(1)
+        raise ValueError
     elif 'name' not in record_s3['bucket']:
         LOGGER.critical('S3 bucket record missing name info')
-        sys.exit(1)
+        raise ValueError
 
     if 'object' not in record_s3:
         LOGGER.critical('S3 record missing object info')
-        sys.exit(1)
+        raise ValueError
     elif 'key' not in record_s3['object']:
         LOGGER.critical('S3 object record missing key info')
-        sys.exit(1)
+        raise ValueError
 
     if record_s3['bucket']['name'] != shared.STAGING_BUCKET:
         LOGGER.critical(f'expected {shared.STAGING_BUCKET} bucket but got {record_s3["bucket"]["name"]}')
-        sys.exit(1)
+        raise ValueError
 
 
 def get_name_email_from_principalid(principal_id):

@@ -3,7 +3,6 @@ import io
 import logging
 import os
 import re
-import sys
 import textwrap
 import uuid
 
@@ -336,7 +335,7 @@ def get_file_number(records):
         file_number = 0
     elif len(records_active) > 1:
         LOGGER.critical(f'found more than one active record: {records_active}')
-        sys.exit(1)
+        raise ValueError
     else:
         [record_current] = records_active
         file_number = record_current['file_number']
@@ -535,7 +534,7 @@ def notify_and_exit(submitter_info):
             EMAIL_SUBJECT,
             submitter_info,
         )
-    sys.exit(1)
+    raise Exception
 
 
 def send_notifications(messages, subject, submitter_info):

@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import re
-import sys
 
 
 import util
@@ -100,23 +99,23 @@ def validate_event_data(event_record):
         plurality = 'arguments' if len(args_unknown) > 1 else 'argument'
         args_unknown_str = '\r\t'.join(args_unknown)
         LOGGER.critical(f'got {len(args_unknown)} unknown arguments:\r\t{args_unknown_str}')
-        sys.exit(1)
+        raise ValueError
 
     # Only allow either manifest_fp or filepaths
     if 'manifest_fp' in event_record and 'filepaths' in event_record:
         LOGGER.critical('\'manifest_fp\' or \'filepaths\' cannot both be provided')
-        sys.exit(1)
+        raise ValueError
     if not ('manifest_fp' in event_record or 'filepaths' in event_record):
         LOGGER.critical('either \'manifest_fp\' or \'filepaths\' must be provided')
-        sys.exit(1)
+        raise ValueError
 
     # If given filepaths require output directory, prohibit for manifest_fp
     if 'filepaths' in event_record and not 'output_prefix' in event_record:
         LOGGER.critical('\'output_prefix\' must be set when providing \'filepaths\'')
-        sys.exit(1)
+        raise ValueError
     if 'manifest_fp' in event_record and 'output_prefix' in event_record:
         LOGGER.critical('use of \'output_prefix\' is prohibited with \'manifest_fp\'')
-        sys.exit(1)
+        raise ValueError
 
     # TODO: ensure that manifest and filepaths are just S3 key prefices
     # TODO: check that output_prefix is prefix only - no bucket name
@@ -125,15 +124,15 @@ def validate_event_data(event_record):
     # Only allow exclude or include at one time
     if 'exclude_fns' in event_record and 'include_fns' in event_record:
         LOGGER.critical('you cannot specify both \'exclude_fns\' and \'include_fns\'')
-        sys.exit(1)
+        raise ValueError
     # Only allow exclude_fns/include_fns for manifest_fp input
     if 'filepaths' in event_record:
         if 'exclude_fns' in event_record:
             LOGGER.critical('you cannot specify \'exclude_fns\' with \'filepaths\'')
-            sys.exit(1)
+            raise ValueError
         elif 'include_fns' in event_record:
             LOGGER.critical('you cannot specify \'include_fps\' with \'filepaths\'')
-            sys.exit(1)
+            raise ValueError
 
     # Check tasks are valid if provided
     tasks_list = event_record.get('tasks', list())
@@ -142,14 +141,14 @@ def validate_event_data(event_record):
         tasks_str = '\r\t'.join(tasks_unknown)
         tasks_allow_str = '\', \''.join(shared.DEFAULT_TASKS_LIST)
         LOGGER.critical(f'expected tasks to be one of \'{tasks_allow_str}\' but got:\t\r{tasks_str}')
-        sys.exit(1)
+        raise ValueError
 
     # Check record mode, if not present set default
     if rm := event_record.get('record_mode'):
         if rm not in {'create', 'update'}:
             msg = f'expected \'record_mode\' as one of \'create\' or \'update\' but got \'{rm}\''
             LOGGER.critical(msg)
-            sys.exit(1)
+            raise ValueError
     else:
         event_record['record_mode'] = 'create'
 
@@ -163,7 +162,7 @@ def validate_event_data(event_record):
         else:
             msg = f'expected \'True\' or \'False\' for strict_mode but got {strict_mode_str}'
             LOGGER.critical(msg)
-            sys.exit(1)
+            raise ValueError
     else:
         event_record['strict_mode'] = True
 
@@ -266,7 +265,7 @@ def filter_filelist(file_list, include_fns, exclude_fns):
             LOGGER.info(f'no file include/exclude lists provided, skipping file filtering')
     else:
         LOGGER.critical(f'no files remaining after filtering')
-        sys.exit(1)
+        raise Exception
     return accepted, excluded
 
 
