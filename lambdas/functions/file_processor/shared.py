@@ -224,7 +224,7 @@ def retrieve_manifest_data(data, submitter_info=None):
     return manifest_data
 
 
-def validate_manifest(data, submitter_info=None, strict_mode=True):
+def validate_manifest(data, submitter_info=None, strict_mode=True, notify=True):
     # Check manifest columns
     columns_present = set(data.manifest_data.columns.tolist())
     columns_missing = MANIFEST_REQUIRED_COLUMNS.difference(columns_present)
@@ -296,18 +296,22 @@ def validate_manifest(data, submitter_info=None, strict_mode=True):
         message = f'{message_base}:\r\t{errors}'
         if strict_mode:
             log_and_store_message(message, level='critical')
-            notify_and_exit(submitter_info)
+            if notify:
+                notify_and_exit(submitter_info)
+            else:
+                raise ValueError()
         else:
             log_and_store_message(message, level='warning')
 
     # Notify with success message
     message = f'Manifest successfully validated, continuing with file validation'
     log_and_store_message(message)
-    send_notifications(
-        MESSAGE_STORE,
-        EMAIL_SUBJECT,
-        submitter_info,
-    )
+    if notify:
+        send_notifications(
+            MESSAGE_STORE,
+            EMAIL_SUBJECT,
+            submitter_info,
+        )
     # NOTE(SW): returning files that are on S3 and (1) in manifest, and (2) not in manifest. This
     # will allow flexbility in the future for any refactor if we decide to modify handling of
     # missing files

@@ -185,7 +185,12 @@ def handle_input_manifest(data, submitter_info, strict_mode):
 
     data.manifest_data = shared.retrieve_manifest_data(data, submitter_info)
 
-    file_list, data.files_extra = shared.validate_manifest(data, submitter_info, strict_mode)
+    file_list, data.files_extra = shared.validate_manifest(
+        data,
+        submitter_info,
+        strict_mode,
+        notify=False,
+    )
 
     files_included, data.files_rejected = filter_filelist(
         file_list,
