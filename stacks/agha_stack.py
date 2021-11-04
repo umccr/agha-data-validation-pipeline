@@ -119,15 +119,6 @@ class AghaStack(core.Stack):
         )
 
         instance_types = [
-            'c3.xlarge',
-            'c4.xlarge',
-            'c5.large',
-            'c5.xlarge',
-            'c5a.large',
-            'c5a.xlarge',
-            'c5ad.xlarge',
-            'c5d.xlarge',
-            'c5n.xlarge',
             'm3.large',
             'm3.xlarge',
             'm4.large',
