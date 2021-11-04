@@ -8,6 +8,7 @@ import sys
 
 
 import boto3
+import botocore.exceptions
 
 
 LOGGER = logging.getLogger(__name__)
