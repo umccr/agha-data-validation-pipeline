@@ -5,7 +5,7 @@ import os
 import re
 import textwrap
 import uuid
-
+import json
 
 import boto3
 import pandas as pd
@@ -22,16 +22,15 @@ LOGGER.setLevel(logging.INFO)
 STAGING_BUCKET = util.get_environment_variable('STAGING_BUCKET')
 RESULTS_BUCKET = util.get_environment_variable('RESULTS_BUCKET')
 DYNAMODB_TABLE = util.get_environment_variable('DYNAMODB_TABLE')
-AUTORUN_VALIDATION_JOBS = util.get_environment_variable('AUTORUN_VALIDATION_JOBS')
+AUTORUN_VALIDATION_JOBS = util.get_environment_variable(
+    'AUTORUN_VALIDATION_JOBS')
 BATCH_QUEUE_NAME = util.get_environment_variable('BATCH_QUEUE_NAME')
 JOB_DEFINITION_ARN = util.get_environment_variable('JOB_DEFINITION_ARN')
-FOLDER_LOCK_LAMBDA_ARN = util.get_environment_variable('FOLDER_LOCK_LAMBDA_ARN')
-SLACK_NOTIFY = util.get_environment_variable('SLACK_NOTIFY')
-EMAIL_NOTIFY = util.get_environment_variable('EMAIL_NOTIFY')
-SLACK_HOST = util.get_environment_variable('SLACK_HOST')
-SLACK_CHANNEL = util.get_environment_variable('SLACK_CHANNEL')
-MANAGER_EMAIL = util.get_environment_variable('MANAGER_EMAIL')
-SENDER_EMAIL = util.get_environment_variable('SENDER_EMAIL')
+FOLDER_LOCK_LAMBDA_ARN = util.get_environment_variable(
+    'FOLDER_LOCK_LAMBDA_ARN')
+
+NOTIFICATION_LAMBDA_ARN = util.get_environment_variable(
+    'NOTIFICATION_LAMBDA_ARN')
 
 # Get AWS clients, resources
 CLIENT_BATCH = util.get_client('batch')
@@ -80,71 +79,33 @@ FLAGSHIPS = {
 # Collection of input/submission data
 class SubmissionData:
 
-    # TODO: update these fields and check they are consistent for event types
-    def __init__(self, record):
-        self.record = record
+    def __init__(self, event_record):
 
-        self.manifest_key = str()
-        self.submission_prefix = str()
-        self.flagship = str()
-        self.study_id = str()
+        # S3 event data
+        self.bucket_name = event_record['s3']['bucket']['name']
+        self.manifest_key = event_record['s3']['object']['key']
+        self.submission_prefix = os.path.dirname(self.manifest_key)
 
+        # Data from current S3 bucket
         self.file_metadata = list()
-        self.file_etags = dict()
 
+        # The content of manifest.txt
         self.manifest_data = pd.DataFrame()
 
+        # Validation result from the manifest
         self.files_accepted = list()
         self.files_rejected = list()
         self.files_extra = list()
 
 
-class FileRecord:
+def find_study_id_from_manifest_df_and_filename(manifest_df, filename):
+    file_info = manifest_df.loc[manifest_df['filename'] == filename].iloc[0]
+    return file_info['agha_study_id']
 
-    def __init__(self):
-        self.filename = str()
-        self.output_prefix = str()
-        self.flagship = str()
-        self.study_id = str()
-        self.submission_name = str()
-        self.s3_key = str()
-        self.s3_etag = str()
-        self.provided_checksum = str()
-        self.file_size = int()
-
-    @classmethod
-    def from_manifest_record(cls, filename, output_prefix, data):
-        # Check for some required data, and get record from manifest data
-        assert not data.manifest_data.empty
-        assert data.file_etags
-        file_info = data.manifest_data.loc[data.manifest_data['filename']==filename].iloc[0]
-        # Create class instance
-        record = cls()
-        record.filename = filename
-        record.output_prefix = output_prefix
-        record.flagship = data.flagship
-        record.study_id = file_info['agha_study_id']
-        record.submission_name = data.submission_prefix
-        record.s3_key = os.path.join(data.submission_prefix, filename)
-        record.s3_etag = data.file_etags[filename]
-        record.provided_checksum = file_info['checksum']
-        record.file_size = data.file_sizes[filename]
-        return record
-
-
-    @classmethod
-    def from_filepath(cls, filepath, output_prefix, data):
-        assert data.file_etags
-        record = cls()
-        record.filename = os.path.basename(filepath)
-        record.output_prefix = output_prefix
-        record.submission_name = data.submission_prefix
-        record.s3_key = filepath
-        record.s3_etag = data.file_etags[record.filename]
-        record.file_size = data.file_sizes[filename]
-        return record
-
-
+def find_checksum_from_manifest_df_and_filename(manifest_df, filename):
+    file_info = manifest_df.loc[manifest_df['filename'] == filename].iloc[0]
+    return file_info['checksum']
+    
 class SubmitterInfo:
 
     def __init__(self):
@@ -170,7 +131,8 @@ def get_flagship_from_key(s3_key, submitter_info=None, strict_mode=True):
         flagships_str = '\r\t'.join(FLAGSHIPS)
         comp_type = 'sensitive' if strict_mode else 'insensitive'
         message_base = f'got unrecognised flagship \'{flagship}\', expected one from (case-{comp_type})'
-        log_and_store_message(f'{message_base}:\r\t{flagships_str}', level='critical')
+        log_and_store_message(
+            f'{message_base}:\r\t{flagships_str}', level='critical')
         notify_and_exit(submitter_info)
     return flagship_str
 
@@ -182,15 +144,6 @@ def get_s3_object_metadata(data, submitter_info=None):
         message = f'could not retrieve manifest data from S3:\r{e}'
         log_and_store_message(message, level='critical')
         notify_and_exit(submitter_info)
-
-
-def get_s3_etags_by_filename(metadata_records):
-    return {get_s3_filename(md): md.get('ETag') for md in metadata_records}
-
-
-def get_s3_filesizes_by_filename(metadata_records):
-    return {get_s3_filename(md): md.get('Size') for md in metadata_records}
-
 
 def get_s3_filename(metadata_record):
     filepath = metadata_record.get('Key')
@@ -206,9 +159,11 @@ def get_output_prefix(submission_prefix):
 # MANIFEST
 ####################
 def retrieve_manifest_data(data, submitter_info=None):
-    LOGGER.info(f'Getting manifest from: {data.bucket_name}/{data.manifest_key}')
+    LOGGER.info(
+        f'Getting manifest from: {data.bucket_name}/{data.manifest_key}')
     try:
-        manifest_obj = CLIENT_S3.get_object(Bucket=data.bucket_name, Key=data.manifest_key)
+        manifest_obj = CLIENT_S3.get_object(
+            Bucket=data.bucket_name, Key=data.manifest_key)
     except botocore.exceptions.ClientError as e:
         message = f'could not retrieve manifest data from S3:\r{e}'
         log_and_store_message(message, level='critical')
@@ -233,7 +188,8 @@ def validate_manifest(data, submitter_info=None, strict_mode=True, notify=True):
         cmissing_str = '\r\t'.join(columns_missing)
         cfound_str = '\r\t'.join(columns_present)
         message_base = f'required {plurality} missing from manifest:'
-        log_and_store_message(f'{message_base}\r\t{cmissing_str}\rGot:\r\t{cfound_str}', level='critical')
+        log_and_store_message(
+            f'{message_base}\r\t{cmissing_str}\rGot:\r\t{cfound_str}', level='critical')
         notify_and_exit(submitter_info)
 
     # File discovery
@@ -349,7 +305,8 @@ def get_file_number(records):
 def get_records(partition_key):
     records = list()
     response = RESOURCE_DYNAMODB.query(
-        KeyConditionExpression=boto3.dynamodb.conditions.Key('partition_key').eq(partition_key)
+        KeyConditionExpression=boto3.dynamodb.conditions.Key(
+            'partition_key').eq(partition_key)
     )
     if 'Items' not in response:
         message = f'could not any records using partition key ({partition_key}) in {DYNAMODB_TABLE}'
@@ -359,7 +316,8 @@ def get_records(partition_key):
         records.extend(response.get('Items'))
     while last_result_key := response.get('LastEvaluatedKey'):
         response = DYNAMODB_TABLE.query(
-            KeyConditionExpression=boto3.dynamodb.conditions.Key('partition_key').eq(partition_key),
+            KeyConditionExpression=boto3.dynamodb.conditions.Key(
+                'partition_key').eq(partition_key),
             ExclusiveStartKey=last_result_key,
         )
         records.extend(response.get('Items'))
@@ -368,6 +326,8 @@ def get_records(partition_key):
 
 def create_record(partition_key, sort_key, data):
     record = {
+
+
         'partition_key': partition_key,
         'sort_key': sort_key,
         'active': True,
@@ -405,7 +365,7 @@ def create_record(partition_key, sort_key, data):
         'excluded': False,
     }
     LOGGER.info(f'creating record for {data.filename}: {record}')
-    RESOURCE_DYNAMODB.put_item(Item=record)
+    RESOURCE_DYNAMODB.put_item(Item=record.__dict__)
     return record
 
 
@@ -542,30 +502,16 @@ def notify_and_exit(submitter_info):
 
 
 def send_notifications(messages, subject, submitter_info):
-    if EMAIL_NOTIFY == 'yes':
-        LOGGER.info(f'Sending email to {submitter_info.name} <{submitter_info.email}>')
-        LOGGER.info('\r'.join(messages))
-        recipients = [MANAGER_EMAIL, submitter_info.email]
-        email_body = util.make_email_body_html(
-            submitter_info.submission_prefix,
-            submitter_info.name,
-            messages
-        )
-        email_response = util.send_email(
-            recipients,
-            SENDER_EMAIL,
-            EMAIL_SUBJECT,
-            email_body,
-            CLIENT_SES,
-        )
-    if SLACK_NOTIFY == 'yes':
-        LOGGER.info(f'Sending notification to {SLACK_CHANNEL}')
-        slack_response = util.call_slack_webhook(
-            subject,
-            f'Submission: {submitter_info.submission_prefix} ({submitter_info.name})',
-            '\n'.join(messages),
-            SLACK_HOST,
-            SLACK_CHANNEL,
-            SLACK_WEBHOOK_ENDPOINT
-        )
-        LOGGER.info(f'Slack call response: {slack_response}')
+
+    notification_payload = {
+        "messages": messages,
+        "subject": subject,
+        "submitter_info": submitter_info.__init__
+    }
+
+    # Handle notification to another lambda
+    CLIENT_LAMBDA.invoke(
+        FunctionName=NOTIFICATION_LAMBDA_ARN,
+        InvocationType='Event',
+        Payload=json.dumps(notification_payload)
+    )
