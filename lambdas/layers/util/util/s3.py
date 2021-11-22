@@ -2,7 +2,11 @@ import logging
 import json
 from enum import Enum
 from typing import List
+import os
+import uuid
 
+import util
+from util import get_client
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -77,3 +81,54 @@ def parse_s3_event(s3_event: dict) -> List[S3EventRecord]:
                                               size_in_bytes=s3_object_size))
 
     return s3_event_records
+
+def get_s3_object_metadata(bucket_name: str, directory_prefix: str):
+    """
+    Expected Output:
+    [
+        {
+            'Key': 'string',
+            'LastModified': datetime(2015, 1, 1),
+            'ETag': 'string',
+            'Size': 123,
+            'StorageClass': 'STANDARD'|'REDUCED_REDUNDANCY'|'GLACIER'|'STANDARD_IA'|'ONEZONE_IA'|'INTELLIGENT_TIERING'|'DEEP_ARCHIVE'|'OUTPOSTS',
+            'Owner': {
+                'DisplayName': 'string',
+                'ID': 'string'
+            }
+        },
+        ...,
+    ]
+    """
+    client_s3 = get_client('s3')
+
+    results = list()
+    response = client_s3.list_objects_v2(
+        Bucket=bucket_name,
+        Prefix=directory_prefix
+    )
+
+    if not (object_mdata := response.get('Contents')):
+        return False
+    else:
+        results.extend(object_mdata)
+
+    while response['IsTruncated']:
+        token = response['NextContinuationToken']
+        response = client_s3.list_objects_v2(
+            Bucket=bucket_name,
+            Prefix=directory_prefix,
+            ContinuationToken=token
+        )
+        results.extend(object_mdata)
+
+    return results
+
+
+def get_s3_filename(metadata_record):
+    filepath = metadata_record.get('Key')
+    return os.path.basename(filepath)
+
+def get_output_prefix(submission_prefix):
+    output_dn = f'{util.get_datetimestamp()}_{uuid.uuid1().hex[:7]}'
+    return os.path.join(submission_prefix, output_dn)

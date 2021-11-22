@@ -7,7 +7,7 @@ from aws_cdk import (
 
 class LambdaStack(core.NestedStack):
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, batch, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         # Grab stack properties
@@ -15,6 +15,7 @@ class LambdaStack(core.NestedStack):
         bucket_name = self.node.try_get_context("bucket_name")
         notification = self.node.try_get_context("notification")
         dynamodb_table = self.node.try_get_context("dynamodb_table")
+        batch_environment = self.node.try_get_context("batch_environment")
 
         ################################################################################
         # Lambda layers
@@ -123,11 +124,11 @@ class LambdaStack(core.NestedStack):
         )
 
         ################################################################################
-        # Validation Lambda
+        # File Processor Lambda
 
-        validation_lambda_role = iam.Role(
+        file_processor_lambda_role = iam.Role(
             self,
-            'ValidationLambdaRole',
+            'FileProcessorLambdaRole',
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name(
@@ -141,14 +142,14 @@ class LambdaStack(core.NestedStack):
             ]
         )
 
-        self.validation_lambda = lambda_.Function(
+        self.file_processor_lambda = lambda_.Function(
             self,
-            'ValidationLambda',
-            function_name=f"{namespace}_validation_lambda",
+            'FileProcessorLambda',
+            function_name=f"{namespace}_file_processor_lambda",
             handler='file_processor.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
-            code=lambda_.Code.from_asset('lambdas/functions/validation'),
+            code=lambda_.Code.from_asset('lambdas/functions/file_processor'),
             environment={
                 # Lambda ARN
                 'FOLDER_LOCK_LAMBDA_ARN': self.folder_lock_lambda.function_arn,
@@ -157,12 +158,59 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
                 'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"]
             },
-            role=validation_lambda_role,
+            role=file_processor_lambda_role,
             layers=[
                 util_layer,
                 runtime_layer
             ]
         )
+
+        ################################################################################
+        # File Validation Lambda (Trigger Batch)
+
+        validation_manager_lambda_role = iam.Role(
+            self,
+            'ValidationManagerLambdaRole',
+            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'service-role/AWSLambdaBasicExecutionRole'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonSSMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonS3ReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'IAMReadOnlyAccess')
+            ]
+        )
+
+        self.validation_manager_lambda = lambda_.Function(
+            self,
+            'ValidationManagerLambda',
+            function_name=f"{namespace}_validation_manager_lambda",
+            handler='validation_manager.handler',
+            runtime=lambda_.Runtime.PYTHON_3_8,
+            timeout=core.Duration.seconds(10),
+            code=lambda_.Code.from_asset('lambdas/functions/validation_manager'),
+            environment={
+                # Lambda ARN
+                'NOTIFICATION_LAMBDA_ARN': self.notification_lambda.function_arn,
+                # Table
+                'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
+                'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
+                # Batch
+                'BATCH_QUEUE_NAME':batch_environment['batch_queue_name'],
+                'JOB_DEFINITION_ARN': batch.batch_job_definition.job_definition_arn,
+                'RESULTS_BUCKET':bucket_name['results_bucket']
+
+            },
+            role=file_processor_lambda_role,
+            layers=[
+                util_layer,
+                runtime_layer
+            ]
+        )
+
         ################################################################################
         # S3 event recorder Lambda
 
@@ -221,7 +269,7 @@ class LambdaStack(core.NestedStack):
                 ],
                 resources=[
                     self.folder_lock_lambda.function_arn,
-                    self.validation_lambda.function_arn,
+                    self.file_processor_lambda.function_arn,
                     self.s3_event_recorder_lambda.function_arn
                 ]
             )
@@ -237,7 +285,7 @@ class LambdaStack(core.NestedStack):
             code=lambda_.Code.from_asset('lambdas/functions/s3_event_router'),
             environment={
                 'STAGING_BUCKET': bucket_name["staging_bucket"],
-                'VALIDATION_LAMBDA_ARN': self.validation_lambda.function_arn,
+                'FILE_PROCESSOR_LAMBDA_ARN': self.file_processor_lambda.function_arn,
                 'FOLDER_LOCK_LAMBDA_ARN': self.folder_lock_lambda.function_arn,
                 'S3_RECORDER_LAMBDA_ARN': self.s3_event_recorder_lambda.function_arn
             },

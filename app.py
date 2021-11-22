@@ -14,7 +14,6 @@ aws_env = {
 # Construct full set of properties for stack
 stack_props = {
     'namespace': 'agha-gdr-batch-dynamodb',
-    'container_image': '602836945884.dkr.ecr.ap-southeast-2.amazonaws.com/agha-gdr-file-validation:0.0.1',
     'bucket_name': {
         'staging_bucket': 'agha-gdr-staging-onboard',
         'results_bucket': 'agha-gdr-results-onboard',
@@ -30,10 +29,6 @@ stack_props = {
         "e-tag": 'agha-gdr-e-tag'
     },
     'autorun_validation_jobs': 'no',
-    'batch_job': {
-        'job_definition_name': 'agha-gdr-job-queue',
-        'batch_queue_name': 'agha-gdr-job-queue',
-    },
     'notification': {
         'slack_notify': 'yes',
         'email_notify': 'yes',
@@ -41,9 +36,18 @@ stack_props = {
         'slack_channel': '#agha-gdr',
         'manager_email': 'sarah.casauria@mcri.edu.au',
         'sender_email': 'services@umccr.org'
+    },
+    'batch_environment' : {
+        'job_definition_name': 'agha-gdr-input-validation',
+        'batch_queue_name': 'agha-gdr-job-queue',
+        'vpc_id':'vpc-6ceacc0b',
+        'security_group_id' : 'sg-087b969ecd89cf993',
+        'container_image': '843407916570.dkr.ecr.ap-southeast-2.amazonaws.com/agha-gdr-file-validation'
     }
 
 }
+### TODO IMPORTANT:  sec_group, vpc, cont_image is based on dev account NOT agha ccount
+
 
 # Initialise stack
 app = core.App(
@@ -57,6 +61,7 @@ AghaStack(
         'Stack': stack_props['namespace'],
         'Creator': f"cdk-{stack_props['namespace']}",
     },
+    env=aws_env
 )
 
 app.synth()

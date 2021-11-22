@@ -64,14 +64,14 @@ def get_file_type(file: str) -> FileType:
         return FileType.OTHER
 
 
-def get_flagship_from_key(s3key: str) -> str:
+def get_flagship_from_key(s3key: str, strict_mode: bool = True) -> str:
     # the S3 key has to start with the flagship abbreviation
     fs = s3key.split("/")[0]
+
+    if not strict_mode:
+        fs = fs.upper()
+
     if fs not in FLAGSHIPS:
         raise ValueError(f"Unsupported flagship {fs} in S3 key {s3key}!")
 
     return fs
-
-
-
-

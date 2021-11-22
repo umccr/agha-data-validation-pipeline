@@ -303,6 +303,7 @@ def get_file_number(records):
 
 
 def get_records(partition_key):
+    
     records = list()
     response = RESOURCE_DYNAMODB.query(
         KeyConditionExpression=boto3.dynamodb.conditions.Key(

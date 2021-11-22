@@ -8,7 +8,9 @@ import pandas as pd
 
 # From layers
 import util
-import util.dynamodb as dyndb
+import util.dynamodb as dynamodb
+
+from lambdas.layers.util.util import dynamodb, notification, submission_data, s3
 
 import shared
 
@@ -70,10 +72,10 @@ def handler(event_record):
     validate_event_data(event_record)
 
     # Store submission data into a class
-    data = shared.SubmissionData(event_record)
-
+    data = submission_data.SubmissionData(event_record)
+  
     # Prepare submitter info
-    submitter_info = shared.SubmitterInfo()
+    submitter_info = notification.SubmitterInfo()
     if 'userIdentity' in event_record and 'principalId' in event_record['userIdentity']:
         principal_id = event_record['userIdentity']['principalId']
         submitter_info.name, submitter_info.email = get_name_email_from_principalid(principal_id)
@@ -83,15 +85,16 @@ def handler(event_record):
     
 
     # Pull file metadata from S3
-    data.file_metadata = shared.get_s3_object_metadata(data, submitter_info)
+    data.file_metadata = s3.get_s3_object_metadata(data.bucket_name, data.submission_prefix)
 
     # Collect manifest data and then validate
-    data.manifest_data = shared.retrieve_manifest_data(data, submitter_info)
-    file_list, data.extra_files = shared.validate_manifest(data, submitter_info)
+    data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_key)
+    file_list, data.files_extra = submission_data.validate_manifest(data)
 
     # Process each record and prepare Batc commands
     batch_job_data = list()
     output_prefix = shared.get_output_prefix(data.submission_prefix)
+    
     for filename in file_list:
 
         partition_key = f'{data.submission_prefix}/{filename}'
@@ -102,12 +105,12 @@ def handler(event_record):
 
         # Search for existing record
         try:
-            file_record = dyndb.get_record_from_s3_key(DYNAMODB_STAGING_TABLE_NAME, partition_key)
+            file_record = dynamodb.get_record_from_s3_key(DYNAMODB_STAGING_TABLE_NAME, partition_key)
         except ValueError as e:
 
             logger.warn(e)
             logger.info(f'Create a new record for {partition_key}')
-            file_record = dyndb.convert_s3_record_to_db_record(event_record)
+            file_record = dynamodb.BucketFileRecord.from_manifest_record(filename,data)
 
         finally:
         
@@ -123,12 +126,12 @@ def handler(event_record):
             file_record.is_validated = "True"
 
         # Update item at the record
-        dyndb.write_record(DYNAMODB_STAGING_TABLE_NAME, file_record)
+        dynamodb.write_record(DYNAMODB_STAGING_TABLE_NAME, file_record)
 
-        db_record_archive = dyndb.create_archive_record_from_db_record(
+        db_record_archive = dynamodb.create_archive_record_from_db_record(
             file_record, "CREATE or UPDATE")
 
-        dyndb.write_record(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
+        dynamodb.write_record(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
 
         # # Construct command and job name
         # tasks_list = shared.get_tasks_list(record)

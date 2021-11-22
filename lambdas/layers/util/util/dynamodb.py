@@ -3,6 +3,8 @@ import logging
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 
+from lambdas.functions.file_processor.shared import SubmissionData
+
 from .s3 import S3EventRecord
 from .agha import get_flagship_from_key, get_file_type
 
@@ -79,6 +81,53 @@ class BucketFileRecord:
     def __str__(self):
         return f"s3://{self.s3_key}"
 
+
+    @classmethod
+    def from_manifest_record(cls, filename, data: SubmissionData):
+
+        # Check for some required data, and get record from manifest data
+        assert not data.manifest_data.empty
+        manifest_info = data.manifest_data.loc[data.manifest_data['filename']==filename].iloc[0]
+        
+        s3_metadata = find_s3_metadata_from_s3_metadata_list_by_filename(filename, data.file_metadata)
+
+        # Create class instance
+        record = cls(
+            s3_key= s3_metadata['Key'],
+            size_in_bytes=s3_metadata['Size'],
+            etag=s3_metadata["ETag"],
+            date_modified=s3_metadata["LastModified"],
+            provided_checksum =manifest_info["checksum"],
+            agha_study_id=manifest_info["agha_study_id"],
+            is_in_manifest = "True",
+            is_validated= "True"
+        )
+
+        return record
+
+def find_s3_metadata_from_s3_metadata_list_by_filename(filename, array):
+    """
+    Expected Output:
+    {
+        'Key': 'string',
+        'LastModified': datetime(2015, 1, 1),
+        'ETag': 'string',
+        'Size': 123,
+        'StorageClass': 'STANDARD'|'REDUCED_REDUNDANCY'|'GLACIER'|'STANDARD_IA'|'ONEZONE_IA'|'INTELLIGENT_TIERING'|'DEEP_ARCHIVE'|'OUTPOSTS',
+        'Owner': {
+            'DisplayName': 'string',
+            'ID': 'string'
+        }
+    }
+    """
+    for each_array in array:
+
+        key = each_array.get('Key')
+        key_basename = os.path.basename(key)
+
+        if key_basename == filename:
+            return each_array
+    raise ValueError('No metadata data found at S3')
 
 class ArchiveBucketFileRecord(BucketFileRecord):
     """
