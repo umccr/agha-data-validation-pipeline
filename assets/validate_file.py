@@ -122,15 +122,8 @@ def main():
         indexing_result = run_indexing(fp_local, file_record, filetype)
         batch_job_result_list.append(indexing_result.__dict__)
 
-    # Set whether the file was validated (unpack for clarity)
-    checksum_fail = RESULTS_DATA['valid_checksum'] not in {'not run', 'yes', 'na'}
-    filetype_fail = RESULTS_DATA['valid_filetype'] not in {'not run', 'yes'}
-    index_fail = RESULTS_DATA['index_result'] not in {'not run', 'succeeded'}
-    vresult = checksum_fail or filetype_fail or index_fail
-    RESULTS_DATA['tasks_completed'] = 'no' if vresult else 'yes'
-
     # Write completed result to log and S3
-    write_results_s3(file_info)
+    write_results_s3(batch_job_result_list, staging_s3_key)
 
 
 def get_record(partition_key):

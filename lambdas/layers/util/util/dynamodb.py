@@ -199,6 +199,12 @@ def write_record(table_name, record) -> dict:
     return resp
 
 
+def batch_write_records(table_name: str, records: list()):
+    tbl = get_resource().Table(table_name)
+    with tbl.batch_writer() as batch:
+        for record in records:
+            batch.put_item(Item=record.__dict__)
+
 def db_response_to_file_record(db_dict: dict) -> BucketFileRecord:
     retval = BucketFileRecord(
         s3_key = db_dict[FileRecordAttribute.S3_KEY.value],

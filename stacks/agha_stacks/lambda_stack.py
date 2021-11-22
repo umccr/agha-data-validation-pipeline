@@ -249,6 +249,7 @@ class LambdaStack(core.NestedStack):
             role=s3_event_recorder_lambda_role,
             layers=[
                 util_layer,
+                runtime_layer                
             ]
         )
 
@@ -293,4 +294,41 @@ class LambdaStack(core.NestedStack):
                 'S3_RECORDER_LAMBDA_ARN': self.s3_event_recorder_lambda.function_arn
             },
             role=s3_event_router_lambda_role
+        )
+
+        ################################################################################
+        # Update DynamoDB Result Bucket
+
+        dynamodb_result_bucket_lambda_role = iam.Role(
+            self,
+            'DynamodbResultBucketLambdaRole',
+            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonDynamoDBFullAccess')
+            ]
+        )
+
+        self.dynamodb_result_bucket_lambda = lambda_.Function(
+            self,
+            'DynamodbResultBucketLambda',
+            function_name=f"{namespace}_s3_event_recorder_lambda",
+            handler='s3_event_recorder.handler',
+            runtime=lambda_.Runtime.PYTHON_3_8,
+            timeout=core.Duration.seconds(10),
+            code=lambda_.Code.from_asset(
+                'lambdas/functions/s3_event_recorder'),
+            environment={
+                # Bucket
+                'STAGING_BUCKET': bucket_name["staging_bucket"],
+                'RESULT_BUCKET': bucket_name["results_bucket"],
+                # Table
+                'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
+                'DYNAMODB_ARCHIVE_RESULT_TABLE_NAME': dynamodb_table["result-bucket-archive"]
+            },
+            role=dynamodb_result_bucket_lambda_role,
+            layers=[
+                util_layer,
+                runtime_layer
+            ]
         )
