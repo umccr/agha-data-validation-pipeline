@@ -19,6 +19,9 @@ class BatchStack(core.NestedStack):
         # Batch properties
         batch_environment = self.node.try_get_context("batch_environment")
 
+        # TODO: Put VPC and security group as part of the stack
+
+
         ################################################################################
         # Batch
 

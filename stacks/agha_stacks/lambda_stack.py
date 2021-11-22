@@ -312,12 +312,12 @@ class LambdaStack(core.NestedStack):
         self.dynamodb_result_bucket_lambda = lambda_.Function(
             self,
             'DynamodbResultBucketLambda',
-            function_name=f"{namespace}_s3_event_recorder_lambda",
-            handler='s3_event_recorder.handler',
+            function_name=f"{namespace}_dynamodb_result_bucket_lambda",
+            handler='dynamodb_result_bucket.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
             code=lambda_.Code.from_asset(
-                'lambdas/functions/s3_event_recorder'),
+                'lambdas/functions/dynamodb_result_bucket'),
             environment={
                 # Bucket
                 'STAGING_BUCKET': bucket_name["staging_bucket"],

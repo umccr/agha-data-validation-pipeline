@@ -60,11 +60,11 @@ class DynamoDBStack(core.NestedStack):
             'DynamoDBTableResultBucket',
             table_name=dynamodb_table['result-bucket'],
             partition_key=dynamodb.Attribute(
-                name='s3_key',
+                name='partition_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='validation_type',
+                name='sort_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,
@@ -83,11 +83,11 @@ class DynamoDBStack(core.NestedStack):
             'DynamoDBTableResultBucketArchive',
             table_name=dynamodb_table['result-bucket-archive'],
             partition_key=dynamodb.Attribute(
-                name='s3_key',
+                name='partition_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='date_modified',
+                name='sort_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,

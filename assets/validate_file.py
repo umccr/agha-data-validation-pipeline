@@ -90,10 +90,10 @@ def main():
     staging_s3_key = args.partition_key
     filename = util.get_s3_filename(staging_s3_key)
 
-    # Grab metadata filename
+    # Grab dynamodb staging record
     file_record = get_record(staging_s3_key)
 
-    # Grab dynamodb staging record
+    # Grab list result
     batch_job_result_list = []
 
     # Stage file from S3 and then validate
