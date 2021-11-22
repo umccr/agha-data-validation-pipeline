@@ -15,9 +15,9 @@ aws_env = {
 stack_props = {
     'namespace': 'agha-gdr-batch-dynamodb',
     'bucket_name': {
-        'staging_bucket': 'agha-gdr-staging-onboard',
-        'results_bucket': 'agha-gdr-results-onboard',
-        'store_bucket': 'agha-gdr-store-onboard'
+        'staging_bucket': 'agha-gdr-staging-dev',
+        'results_bucket': 'agha-gdr-results-dev',
+        'store_bucket': 'agha-gdr-store-dev'
     },
     'dynamodb_table': {
         "staging-bucket": 'agha-gdr-staging-bucket',
@@ -46,7 +46,7 @@ stack_props = {
     }
 
 }
-### TODO IMPORTANT:  sec_group, vpc, cont_image is based on dev account NOT agha ccount
+### TODO IMPORTANT:  bucket_name, sec_group, vpc, cont_image is based on dev account NOT agha ccount
 
 
 # Initialise stack

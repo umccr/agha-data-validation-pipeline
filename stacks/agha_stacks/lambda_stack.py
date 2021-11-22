@@ -198,13 +198,16 @@ class LambdaStack(core.NestedStack):
                 # Table
                 'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
                 'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
+                'DYNAMODB_RESULT_TABLE_NAME' : dynamodb_table["result-bucket"],
                 # Batch
                 'BATCH_QUEUE_NAME':batch_environment['batch_queue_name'],
                 'JOB_DEFINITION_ARN': batch.batch_job_definition.job_definition_arn,
-                'RESULTS_BUCKET':bucket_name['results_bucket']
+                # Buckets
+                'RESULTS_BUCKET':bucket_name['results_bucket'],
+                'STAGING_BUCKET':bucket_name['staging_bucket']
 
             },
-            role=file_processor_lambda_role,
+            role=validation_manager_lambda_role,
             layers=[
                 util_layer,
                 runtime_layer

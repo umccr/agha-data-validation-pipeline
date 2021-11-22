@@ -11,10 +11,15 @@ JOB_NAME_RE = re.compile(r'[.\\/]')
 
 TASKS_AVAILABLE = ['checksum', 'validate_filetype', 'create_index']
 FINISH_STATUS = ['SUCCESS', 'FAILURE']
+
 BATCH_QUEUE_NAME = os.environ.get('BATCH_QUEUE_NAME')
 JOB_DEFINITION_ARN = os.environ.get('JOB_DEFINITION_ARN')
-DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 
+# Dynamodb table name
+DYNAMODB_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_RESULT_TABLE_NAME')
+
+# Bucket names
+STAGING_BUCKET =  os.environ.get('STAGING_BUCKET')
 RESULTS_BUCKET = os.environ.get('RESULTS_BUCKET')
 
 def get_tasks_list():
@@ -64,7 +69,8 @@ def submit_batch_job(job_data):
     command = ['bash', '-o', 'pipefail', '-c', job_data['command']]
     environment = [
         {'name': 'RESULTS_BUCKET', 'value': RESULTS_BUCKET},
-        {'name': 'DYNAMODB_TABLE', 'value': DYNAMODB_TABLE},
+        {'name': 'STAGING_BUCKET', 'value': STAGING_BUCKET},
+        {'name': 'DYNAMODB_RESULT_TABLE_NAME', 'value': DYNAMODB_RESULT_TABLE_NAME},
         {'name': 'RESULTS_KEY_PREFIX', 'value': job_data['output_prefix']},
     ]
     client_batch.submit_job(

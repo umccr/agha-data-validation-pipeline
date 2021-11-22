@@ -21,35 +21,27 @@ LOG_FILE_NAME = 'log.txt'
 LOG_FILE_HANDLER = util.FileHandlerNewLine(LOG_FILE_NAME)
 LOGGER.addHandler(LOG_FILE_HANDLER)
 
-# Results store with defaults
-RESULTS_DATA = {
-    'ts_validation_job': 'na',
-    'provided_checksum': 'not retrieved',
-    'calculated_checksum': 'not run',
-    'valid_checksum': 'not run',
-    'inferred_filetype': 'not run',
-    'valid_filetype': 'not run',
-    'index_result': 'not run',
-    'index_filename': 'na',
-    'index_s3_bucket': 'na',
-    'index_s3_key': 'na',
-    'results_s3_bucket': 'na',
-    'results_data_s3_key': 'na',
-    'results_log_s3_key': 'na',
-    'tasks_completed': 'no'
-}
-
 # Get environment variables
-DYNAMODB_TABLE = util.get_environment_variable('DYNAMODB_TABLE')
+DYNAMODB_RESULT_TABLE_NAME = util.get_environment_variable('DYNAMODB_RESULT_TABLE_NAME')
 RESULTS_BUCKET = util.get_environment_variable('RESULTS_BUCKET')
+STAGING_BUCKET = util.get_environment_variable('STAGING_BUCKET')
 RESULTS_KEY_PREFIX = util.get_environment_variable('RESULTS_KEY_PREFIX')
+
 # Emitted to log for record purposes
 BATCH_JOBID = util.get_environment_variable('AWS_BATCH_JOB_ID')
 
 # Get AWS clients
-RESOURCE_DYNAMODB = util.get_dynamodb_table_resource(DYNAMODB_TABLE, region_name='ap-southeast-2')
+RESOURCE_DYNAMODB = util.get_dynamodb_table_resource(DYNAMODB_RESULT_TABLE_NAME, region_name='ap-southeast-2')
 CLIENT_S3 = util.get_client('s3')
 
+class BatchJobResult:
+
+    def __init__(self, staging_s3_key='', type='', value='', status='', filename=[]):
+        self.staging_s3_key=staging_s3_key
+        self.type = type
+        self.value = value
+        self.status = status
+        self.filename = filename
 
 class Tasks(enum.Enum):
 
@@ -78,13 +70,10 @@ INDEXABLE_FILES =  {
     FileTypes.VCF,
 }
 
-
 def get_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--partition_key', required=True, type=str,
-            help='DynamoDB partition key used to identify file')
-    parser.add_argument('--sort_key', required=True, type=int,
-            help='DynamoDB sort key used to identify file')
+            help='DynamoDB partition key used to identify file (s3_key expected)')
     parser.add_argument('--tasks', required=True, choices=[m.value for m in Tasks], nargs='+',
             help='Tasks to perform')
     return parser.parse_args()
@@ -96,36 +85,42 @@ def main():
 
     # Log Batch job id and set job datetime stamp
     LOGGER.info(f'starting job: {BATCH_JOBID}')
-    RESULTS_DATA['ts_validation_job'] = util.get_datetimestamp()
 
-    # Get file info and load into results store
-    file_info = get_record(args.partition_key, args.sort_key)
-    RESULTS_DATA['provided_checksum'] = file_info['provided_checksum']
-    RESULTS_DATA['index_s3_bucket'] = file_info['index_s3_bucket']
-    RESULTS_DATA['index_s3_key'] = file_info['index_s3_key']
-    # Set upload target for job output files
-    RESULTS_DATA['results_s3_bucket'] = RESULTS_BUCKET
-    RESULTS_DATA['results_data_s3_key'] = get_results_data_s3_key(file_info)
-    RESULTS_DATA['results_log_s3_key'] = get_log_s3_key(file_info)
-    # Print file info to log
-    msg_list = [f'{k}: {file_info[k]}' for k in sorted(file_info)]
-    msg = '\r\t'.join(msg_list)
-    LOGGER.info(f'got record:\r\t{msg}')
+    # Parsing values
+    staging_s3_key = args.partition_key
+    filename = util.get_s3_filename(staging_s3_key)
+
+    # Grab metadata filename
+    file_record = get_record(staging_s3_key)
+
+    # Grab dynamodb staging record
+    batch_job_result_list = []
 
     # Stage file from S3 and then validate
     fp_local = stage_file(
-        file_info['s3_bucket'],
-        file_info['s3_key'],
-        file_info['filename']
+        staging_bucket=STAGING_BUCKET,
+        s3_key=staging_s3_key,
+        filename=filename
     )
+
     tasks = {Tasks(task_str) for task_str in args.tasks}
+
+    # Checksum tasks
     if Tasks.CHECKSUM in tasks:
-        run_checksum(fp_local, file_info)
+        checksum_result = run_checksum(fp_local, file_record)
+        batch_job_result_list.append(checksum_result.__dict__)
+
+    # File Validation task
     if Tasks.FILE_VALIDATE in tasks:
-        filetype = run_filetype_validation(fp_local, file_info)
+        file_validation_result = run_filetype_validation(fp_local, file_record)
+        batch_job_result_list.append(file_validation_result.__dict__)
+
+        filetype=file_validation_result.value
+
     # Simplify index requirement check
     if Tasks.INDEX in tasks and filetype in INDEXABLE_FILES:
-        run_indexing(fp_local, file_info, filetype)
+        indexing_result = run_indexing(fp_local, file_record, filetype)
+        batch_job_result_list.append(indexing_result.__dict__)
 
     # Set whether the file was validated (unpack for clarity)
     checksum_fail = RESULTS_DATA['valid_checksum'] not in {'not run', 'yes', 'na'}
@@ -138,12 +133,12 @@ def main():
     write_results_s3(file_info)
 
 
-def get_record(partition_key, sort_key):
+def get_record(partition_key):
     response = RESOURCE_DYNAMODB.get_item(
-        Key={'partition_key': partition_key, 'sort_key': sort_key}
+        Key={'partition_key': partition_key}
     )
     if 'Item' not in response:
-        msg_key_text = f'partition key {partition_key} and sort key {sort_key}'
+        msg_key_text = f'partition key {partition_key}.'
         LOGGER.critical(f'could not retrieve DynamoDB entry with {msg_key_text}')
         sys.exit(1)
     record_raw = response.get('Item')
@@ -157,44 +152,71 @@ def replace_record_decimal_object(record):
     return record
 
 
-def stage_file(s3_bucket, s3_key, filename):
-    LOGGER.info(f'staging file from S3: s3://{s3_bucket}/{s3_key}')
+def stage_file(staging_bucket, s3_key, filename):
+    LOGGER.info(f'staging file from S3: s3://{staging_bucket}/{s3_key}')
     output_fp = pathlib.Path(filename)
     with output_fp.open('wb') as fh:
-        CLIENT_S3.download_fileobj(s3_bucket, s3_key, fh)
+        CLIENT_S3.download_fileobj(staging_bucket, s3_key, fh)
     return output_fp
 
 
-def run_checksum(fp, file_info):
+def run_checksum(fp, file_record):
+    """
+    Expected result: A record class of BatchJobResult
+    """
+
     LOGGER.info('running checksum')
-    # Execute
+
+    # Some environment
+    check_type = "checksum"
+    staging_s3_key = file_record["s3_key"]
+    provided_checksum = file_record["provided_checksum"]
+
+    # Execute checksum
     command = f"md5sum {fp} | cut -f1 -d' '"
     result = util.execute_command(command)
+
+    caluclated_checksum = result.stdout.rstrip()
+
+    # Create result class
+    batch_job_result = BatchJobResult(s3_key_staging=staging_s3_key, type=check_type, value=caluclated_checksum)
+
     if result.returncode != 0:
         stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr: {result.stderr}'
         LOGGER.critical(f'failed to run checksum ({command}): {stdstrm_msg}')
-        RESULTS_DATA['calculated_checksum'] = 'failed'
-        RESULTS_DATA['valid_checksum'] = 'no'
-        write_results_s3(file_info)
+
+        batch_job_result.status='FAIL'
+
+        write_results_s3(batch_job_result.__dict__, staging_s3_key)
         sys.exit(1)
-    # Determine results and store
-    RESULTS_DATA['calculated_checksum'] = result.stdout.rstrip()
-    if RESULTS_DATA['provided_checksum'] == 'not provided':
-        RESULTS_DATA['valid_checksum'] = 'na'
-    elif RESULTS_DATA['provided_checksum'] == RESULTS_DATA['calculated_checksum']:
-        RESULTS_DATA['valid_checksum'] = 'yes'
+    
+    # Update status result
+    if caluclated_checksum == provided_checksum:
+        batch_job_result.status = "PASS"
     else:
-        RESULTS_DATA['valid_checksum'] = 'no'
+        batch_job_result.status = "FAIL"
+    
     # Log results
-    provided_str = f'provided:   {RESULTS_DATA["provided_checksum"]}'
-    calculated_str  = f'calculated: {RESULTS_DATA["calculated_checksum"]}'
-    validated_str = f'validated:  {RESULTS_DATA["valid_checksum"]}'
+    provided_str = f'provided:   {provided_checksum}'
+    calculated_str  = f'calculated: {caluclated_checksum}'
+    validated_str = f'validated:  {batch_job_result.status}'
     checksum_str = f'{provided_str}\r\t{calculated_str}\r\t{validated_str}'
     LOGGER.info(f'checksum results:\r\t{checksum_str}')
 
+    # Return value
+    return batch_job_result
 
-def run_filetype_validation(fp, file_info):
+
+def run_filetype_validation(fp, file_record) -> BatchJobResult:
     LOGGER.info('running file type validation')
+
+    # Some environment
+    check_type = "filetype"
+    staging_s3_key = file_record["s3_key"]
+
+    # Create result class
+    batch_job_result = BatchJobResult(s3_key_staging=staging_s3_key, type=check_type)
+
     # Get file type
     if any(fp.name.endswith(fext) for fext in util.FEXT_BAM):
         filetype = FileTypes.BAM
@@ -207,30 +229,48 @@ def run_filetype_validation(fp, file_info):
         command = f'bcftools query -l {fp}'
     else:
         LOGGER.critical(f'could not infer file type from extension for {fp}')
-        RESULTS_DATA['inferred_filetype'] = 'failed'
-        RESULTS_DATA['valid_filetype'] = 'no'
-        write_results_s3(file_info)
+        batch_job_result.status='FAIL'
+        write_results_s3(batch_job_result.__dict__, staging_s3_key)
         sys.exit(1)
+    
     # Validate filetype
-    RESULTS_DATA['inferred_filetype'] = filetype.value
+    batch_job_result.value = filetype.value
+    
     result = util.execute_command(command)
     if result.returncode != 0:
+
         stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr: {result.stderr}'
         LOGGER.info(f'file validation failed (invalid filetype or other failure): {stdstrm_msg}')
-        RESULTS_DATA['valid_filetype'] = 'no'
-        write_results_s3(file_info)
+
+        # Update status
+        batch_job_result.status = 'FAIL'
+
+        # Write log and exit
+        write_results_s3(batch_job_result.__dict__, staging_s3_key)
         sys.exit(1)
+
     else:
-        RESULTS_DATA['valid_filetype'] = 'yes'
+        # Update status
+        batch_job_result.status = 'PASS'
+
     # Log results
-    inferred_str  = f'inferred:  {RESULTS_DATA["inferred_filetype"]}'
-    validated_str = f'validated:  {RESULTS_DATA["valid_filetype"]}'
+    inferred_str  = f'inferred:  {batch_job_result.value}'
+    validated_str = f'validated:  {batch_job_result.status}'
     filetype_str = f'{inferred_str}\r\t{validated_str}'
     LOGGER.info(f'file type validation results:\r\t{filetype_str}')
-    return filetype
+
+    return batch_job_result
 
 
-def run_indexing(fp, file_info, filetype):
+def run_indexing(fp, file_record, filetype) -> BatchJobResult:
+
+    # Some environment
+    check_type = "index"
+    staging_s3_key = file_record["s3_key"]
+
+    # Create result class
+    batch_job_result = BatchJobResult(s3_key_staging=staging_s3_key, type=check_type)
+
     # Run appropriate indexing command
     LOGGER.info('running indexing')
     if filetype == FileTypes.BAM:
@@ -242,24 +282,28 @@ def run_indexing(fp, file_info, filetype):
     else:
         # You should never have come here
         assert False
+
     result = util.execute_command(command)
+
     if result.returncode != 0:
         stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr: {result.stderr}'
         LOGGER.critical(f'failed to run indexing ({command}): {stdstrm_msg}')
-        RESULTS_DATA['index_result'] = 'failed'
-        write_results_s3(file_info)
+
+        batch_job_result.status = 'FAIL'
+        write_results_s3(batch_job_result.__dict__, staging_s3_key)
         sys.exit(1)
+
     # Upload index and set results
-    index_s3_key = upload_index(file_info, index_fp)
-    RESULTS_DATA['index_result'] = 'succeeded'
-    RESULTS_DATA['index_filename'] = index_fp
-    RESULTS_DATA['index_s3_bucket'] = RESULTS_BUCKET
-    RESULTS_DATA['index_s3_key'] = index_s3_key
+    index_s3_key = upload_index(index_fp)
+
+    batch_job_result.status = 'PASS'
+    batch_job_result.value = index_s3_key
+
     # Log results
-    result_str = f'result:    {RESULTS_DATA["index_result"]}'
-    filename_str = f'filename:  {RESULTS_DATA["index_filename"]}'
-    bucket_str = f'S3 bucket: {RESULTS_DATA["index_s3_bucket"]}'
-    key_str = f'S3 key:    {RESULTS_DATA["index_s3_key"]}'
+    result_str = f'result:    {batch_job_result.status}'
+    filename_str = f'filename:  {os.path.basename(index_s3_key)}'
+    bucket_str = f'S3 bucket: {RESULTS_BUCKET}'
+    key_str = f'S3 key:    {index_s3_key}'
     filetype_str = f'{result_str}\r\t{filename_str}\r\t{bucket_str}\r\t{key_str}'
     LOGGER.info(f'file indexing results:\r\t{filetype_str}')
 
@@ -274,30 +318,27 @@ def get_log_s3_key(file_info):
     return os.path.join(RESULTS_KEY_PREFIX, s3_key_fn)
 
 
-def upload_index(file_info, index_fp):
+def upload_index(index_fp):
     s3_key = os.path.join(RESULTS_KEY_PREFIX, index_fp)
     LOGGER.info(f'writing index to s3://{RESULTS_BUCKET}/{s3_key}')
     CLIENT_S3.upload_file(index_fp, RESULTS_BUCKET, s3_key)
     return s3_key
 
 
-def write_results_s3(file_info):
+def write_results_s3(batch_result, staging_s3_key):
     # Create results json
-    data = {
-        'existing_record': file_info,
-        'validation_results': RESULTS_DATA
-    }
-    s3_object_body = f'{json.dumps(data, indent=4)}\n'
+    s3_object_body = f'{json.dumps(batch_result, indent=4)}\n'
+
     # Upload results and log to S3
-    s3_key = get_results_data_s3_key(file_info)
+    s3_key = get_results_data_s3_key(staging_s3_key)
     s3_object_body_log = s3_object_body.replace('\n', '\r')
+
     LOGGER.info(f'writing results to s3://{RESULTS_BUCKET}/{s3_key}:\r{s3_object_body_log}')
     CLIENT_S3.put_object(Body=s3_object_body, Bucket=RESULTS_BUCKET, Key=s3_key)
-    upload_log(file_info)
+    upload_log(staging_s3_key)
 
-
-def upload_log(file_info):
-    s3_key = get_log_s3_key(file_info)
+def upload_log(staging_s3_key):
+    s3_key = get_log_s3_key(staging_s3_key)
     LOGGER.info(f'writing log file to s3://{RESULTS_BUCKET}/{s3_key}')
     LOG_FILE_HANDLER.flush()
     CLIENT_S3.upload_file(LOG_FILE_NAME, RESULTS_BUCKET, s3_key)

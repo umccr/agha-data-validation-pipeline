@@ -38,7 +38,6 @@ class BucketFileRecord:
     """
     The DynamoDB table is configured with a mandatory composite key composed of two elements:
     - s3_key: The key of s3 bucket that is part of the partition key
-    - flagship: the object key within that bucket (RANGE) as unique object identifier
     All other attributes are optional (although some can automatically be derived from the object key)
     """
 
