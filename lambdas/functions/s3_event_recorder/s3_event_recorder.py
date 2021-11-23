@@ -3,8 +3,11 @@ from typing import List
 import logging
 import json
 import os
+
 from util.s3 import S3EventType, S3EventRecord, parse_s3_event
-import util.dynamodb as dyndb
+import util.dynamodb as dynamodb
+
+from lambdas.layers.util.util import dynamodb
 
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 STORE_BUCKET = os.environ.get('STORE_BUCKET')
@@ -13,6 +16,9 @@ DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 DYNAMODB_ARCHIVE_STAGING_TABLE_NAME = os.environ.get(
     'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME')
 
+DYNAMODB_STORE_TABLE_NAME = os.environ.get('DYNAMODB_STORE_TABLE_NAME')
+DYNAMODB_ARCHIVE_STORE_TABLE_NAME = os.environ.get(
+    'DYNAMODB_ARCHIVE_STORE_TABLE_NAME')
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -62,7 +68,7 @@ def handler(event, context):
     for s3_record in s3_event_records:
 
         # Create DynamoDb record
-        db_record = dyndb.convert_s3_record_to_db_record(s3_record)
+        db_record = dynamodb.convert_s3_record_to_db_record(s3_record)
         logger.info(f"DynamoDb record has been created from s3 event:")
         logger.info(json.dumps(db_record.__dict__))
 
@@ -71,29 +77,29 @@ def handler(event, context):
 
             # Append record to the list accordingly
             if s3_record.event_type == S3EventType.EVENT_OBJECT_CREATED:
-                db_record_archive = dyndb.create_archive_record_from_db_record(
+                db_record_archive = dynamodb.create_archive_record_from_db_record(
                     db_record, S3EventType.EVENT_OBJECT_CREATED.value)
 
                 # Write to database
                 logger.info(
                     f'Updating records at {DYNAMODB_STAGING_TABLE_NAME}')
-                dyndb.write_record(DYNAMODB_STAGING_TABLE_NAME, db_record)
+                dynamodb.write_record(DYNAMODB_STAGING_TABLE_NAME, db_record)
                 logger.info(
                     f'Updating records at {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME}')
-                dyndb.write_record(
+                dynamodb.write_record(
                     DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
 
             elif s3_record.event_type == S3EventType.EVENT_OBJECT_REMOVED:
-                db_record_archive = dyndb.create_archive_record_from_db_record(
+                db_record_archive = dynamodb.create_archive_record_from_db_record(
                     db_record, S3EventType.EVENT_OBJECT_REMOVED.value)
 
                 # Write to database
                 logger.info(
                     f'Updating records at {DYNAMODB_STAGING_TABLE_NAME}')
-                dyndb.delete_record(DYNAMODB_STAGING_TABLE_NAME, db_record)
+                dynamodb.delete_record(DYNAMODB_STAGING_TABLE_NAME, db_record)
                 logger.info(
                     f'Updating records at {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME}')
-                dyndb.write_record(
+                dynamodb.write_record(
                     DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
 
             else:
@@ -101,16 +107,49 @@ def handler(event, context):
                     f"Unsupported S3 event type {s3_record.event_type} for {s3_record}")
 
         elif s3_record.bucket_name == STORE_BUCKET:
-            print("Under Development")
-            # # Append record to list accordingly
-            # if s3_record.event_type == S3EventType.EVENT_OBJECT_CREATED:
-            #     store_db_records_create.append(db_record)
 
-            # elif s3_record.event_type == S3EventType.EVENT_OBJECT_REMOVED:
-            #     store_db_records_create.append(db_record)
+            # Append record to list accordingly
+            if s3_record.event_type == S3EventType.EVENT_OBJECT_CREATED:
+                s3_key = db_record.s3_key
 
-            # else:
-            #     logger.warning(f"Unsupported S3 event type {s3_record.event_type} for {s3_record}")
+                # Grab existing filled record froms staging
+                staging_record = dynamodb.get_record_from_s3_key(s3_key)
+
+                # Update data from staging record to store record
+                db_record.is_in_manifest = staging_record.is_in_manifest
+                db_record.provided_checksum = staging_record.provided_checksum
+                db_record.agha_study_id = staging_record.agha_study_id
+                db_record.is_validated = staging_record.is_validated
+
+                db_record_archive = dynamodb.create_archive_record_from_db_record(
+                    db_record, S3EventType.EVENT_OBJECT_CREATED.value)
+
+                # Write to database
+                logger.info(
+                    f'Updating records at {DYNAMODB_STORE_TABLE_NAME}')
+                dynamodb.write_record(DYNAMODB_STORE_TABLE_NAME, db_record)
+                logger.info(
+                    f'Updating records at {DYNAMODB_ARCHIVE_STORE_TABLE_NAME}')
+                dynamodb.write_record(
+                    DYNAMODB_ARCHIVE_STORE_TABLE_NAME, db_record_archive)
+
+            elif s3_record.event_type == S3EventType.EVENT_OBJECT_REMOVED:
+                
+                db_record_archive = dynamodb.create_archive_record_from_db_record(
+                    db_record, S3EventType.EVENT_OBJECT_REMOVED.value)
+
+                # Write to database
+                logger.info(
+                    f'Updating records at {DYNAMODB_STORE_TABLE_NAME}')
+                dynamodb.delete_record(DYNAMODB_STORE_TABLE_NAME, db_record)
+                logger.info(
+                    f'Updating records at {DYNAMODB_ARCHIVE_STORE_TABLE_NAME}')
+                dynamodb.write_record(
+                    DYNAMODB_ARCHIVE_STORE_TABLE_NAME, db_record_archive)
+
+            else:
+                logger.warning(
+                    f"Unsupported S3 event type {s3_record.event_type} for {s3_record}")
 
         else:
             logger.warning(f"Unsupported AGHA bucket: {s3_record.bucket_name}")

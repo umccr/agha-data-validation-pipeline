@@ -3,11 +3,10 @@ import logging
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 
-from lambdas.functions.file_processor.shared import SubmissionData
-
 from .s3 import S3EventRecord
 from .agha import get_flagship_from_key, get_file_type
-
+from util import submission_data
+from util import get_datetimestamp
 
 from typing import List
 from enum import Enum
@@ -50,9 +49,10 @@ class BucketFileRecord:
                  agha_study_id: str = "",
                  is_in_manifest: str = "False",
                  is_validated: str = "False"):
-        self.s3_key = s3_key
+        self.s3_key = s3_key    
         self.flagship = get_flagship_from_key(s3_key)
         self.etag = etag
+        self.submission = os.path.dirname(s3_key)
         self.filename = os.path.basename(s3_key)
         self.filetype = get_file_type(s3_key).value
         self.date_modified = date_modified
@@ -82,7 +82,7 @@ class BucketFileRecord:
 
 
     @classmethod
-    def from_manifest_record(cls, filename, data: SubmissionData):
+    def from_manifest_record(cls, filename, data: submission_data.SubmissionData):
 
         # Check for some required data, and get record from manifest data
         assert not data.manifest_data.empty
@@ -139,7 +139,7 @@ class ArchiveBucketFileRecord(BucketFileRecord):
             s3_key=bucket_record_json["s3_key"],
             size_in_bytes=bucket_record_json['size_in_bytes'],
             etag= bucket_record_json["etag"],
-            date_modified= bucket_record_json["date_modified"],
+            date_modified= get_datetimestamp(),
             provided_checksum= bucket_record_json["provided_checksum"],
             agha_study_id= bucket_record_json["agha_study_id"],
             is_in_manifest=bucket_record_json["is_in_manifest"],
@@ -231,7 +231,7 @@ def db_response_to_file_record(db_dict: dict) -> BucketFileRecord:
         retval.size_in_bytes = db_dict[FileRecordAttribute.SIZE_IN_BYTES.value]
     
     return retval
-
+   
 
 def get_record_from_s3_key(table_name, s3_key: str) -> BucketFileRecord:
     ddb = get_resource()

@@ -26,7 +26,7 @@ def main():
     logger.info(json.dumps(args))
 
     # s3 client
-    s3_client = util.get_resource('s3')
+    s3_client = util.get_client('s3')
 
     task = args.task
     source_bucket_name = args.source_bucket_name

@@ -10,8 +10,7 @@ import pandas as pd
 
 import util
 import notification
-from util import get_resource, botocore
-from util.s3 import get_s3_filename
+import s3
 
 MANIFEST_REQUIRED_COLUMNS = {'filename', 'checksum', 'agha_study_id'}
 # Manifest field validation related
@@ -53,7 +52,7 @@ class SubmissionData:
 
 def retrieve_manifest_data(bucket_name:str, manifest_key: str):
 
-    client_s3 = get_resource('s3')
+    client_s3 = util.get_client('s3')
 
     logger.info(
         f'Getting manifest from: {bucket_name}/{manifest_key}')

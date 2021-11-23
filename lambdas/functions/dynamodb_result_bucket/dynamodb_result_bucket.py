@@ -184,7 +184,7 @@ def get_results_data(s3_key_result, bucket_name):
     ]
     """
 
-    client_s3 = util.get_resource('s3')
+    client_s3 = util.get_client('s3')
 
     get_object_response = client_s3.get_object(
         Bucket=bucket_name,

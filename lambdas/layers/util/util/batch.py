@@ -3,7 +3,6 @@ import uuid
 import os
 import re
 import textwrap
-from lambdas.functions.file_processor.shared import DYNAMODB_TABLE
 
 import util
 

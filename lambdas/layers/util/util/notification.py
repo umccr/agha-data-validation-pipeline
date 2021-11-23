@@ -2,8 +2,6 @@ import json
 import os
 import logging
 
-from lambdas.layers.util import util
-
 import util
 
 # Logging
@@ -25,10 +23,12 @@ EMAIL_SUBJECT = '[AGHA service] Submission received'
 MESSAGE_STORE = list()
 SUBMITTER_INFO = SubmitterInfo()
 
+def append_message(message):
+    MESSAGE_STORE.append(message)
 
 def send_notifications():
 
-    client_lambda = util.get_resource('lambda')
+    client_lambda = util.get_client('lambda')
 
     notification_payload = {
         "messages": MESSAGE_STORE,

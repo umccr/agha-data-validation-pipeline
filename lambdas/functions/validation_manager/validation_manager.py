@@ -8,7 +8,6 @@ import util
 import util.dynamodb as dynamodb
 import util.submission_data as submission_data
 import util.notification as notification
-import util.agha as agha
 import util.s3 as s3
 import util.batch as batch
 
@@ -89,7 +88,6 @@ def handler(event, context):
 
     for filename in data.filename_accepted:
         
-        dynamodb_status = "UPDATE"
 
         # Get partition key and existing records
         partition_key = f'{data.submission_prefix}/{filename}'
@@ -97,49 +95,27 @@ def handler(event, context):
         # Search for existing record
         try:
             file_record = dynamodb.get_record_from_s3_key(DYNAMODB_STAGING_TABLE_NAME, partition_key)
-            dynamodb_status = "UPDATE"
 
         except ValueError as e:
+            message = f'No S3 record of \'{partition_key}\' is found. Aborting!'
 
-            logger.warn(e)
-            logger.info(f'Create a new record for {partition_key}')
-            file_record = dynamodb.BucketFileRecord.from_manifest_record(data)
-            dynamodb_status = "CREATE"
+            logger.error(e)
+            logger.error(message)
 
-        finally:
+            notification.append_message(message)
+            notification.notify_and_exit()
+
+        # Check to dynamodb if staging record has been validated
+        if file_record.is_validated.lower() != "True".lower():
+            message = f'No S3 record of \'{partition_key}\' is found. Aborting!'
+            logger.error(message)
+            
+            notification.append_message(message)
+            notification.notify_and_exit()
         
-            agha_study_id = submission_data.find_study_id_from_manifest_df_and_filename(data.manifest_data, filename)
-            provided_checksum = submission_data.find_checksum_from_manifest_df_and_filename(data.manifest_data, filename)
-
-            # Get partition key and existing records, and set sort key
-            message_base = f'found existing records for {filename} with key {partition_key}'
-            logger.info(f'{message_base}: {json.dumps(file_record)}')
-
-            logger.info(f'Updating record with manifest data')
-            file_record.date_modified = util.get_datetimestamp()
-            file_record.agha_study_id = agha_study_id
-            file_record.provided_checksum = provided_checksum
-            file_record.is_in_manifest = "True"
-            file_record.is_validated = "True"
-
-        # Update item at the record
-        dynamodb.write_record(DYNAMODB_STAGING_TABLE_NAME, file_record)
-
-        # Archive DB
-        db_record_archive = dynamodb.create_archive_record_from_db_record(
-            file_record, dynamodb_status)
-        dynamodb.write_record(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
-
-        # Grab result dynamodb for status data
-        # ...
-        # For time being append all test to it
-
 
         # Replace tasks with those specified by user if available
-        if 'tasks' in data.record:
-            tasks_list = data.record['tasks']
-        else:
-            tasks_list = batch.get_tasks_list()
+        tasks_list = batch.get_tasks_list()
 
         # Create job data
         job_data = batch.create_job_data(partition_key, tasks_list, file_record)
