@@ -332,3 +332,50 @@ class LambdaStack(core.NestedStack):
                 runtime_layer
             ]
         )
+
+        ################################################################################
+        # s3 Migration
+
+        ################################################################################
+        # File Validation Lambda (Trigger Batch)
+
+        data_transfer_manager_lambda_role = iam.Role(
+            self,
+            'DataTransferManagerLambdaRole',
+            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'service-role/AWSLambdaBasicExecutionRole'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonSSMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonS3ReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'IAMReadOnlyAccess')
+            ]
+        )
+
+        self.data_transfer_manager_lambda = lambda_.Function(
+            self,
+            'DataTransferManagerLambda',
+            function_name=f"{namespace}_data_transfer_manager_lambda",
+            handler='data_transfer_manager.handler',
+            runtime=lambda_.Runtime.PYTHON_3_8,
+            timeout=core.Duration.seconds(10),
+            code=lambda_.Code.from_asset('lambdas/functions/data_transfer_manager'),
+            environment={
+                # Batch
+                'BATCH_QUEUE_NAME':batch_environment['batch_queue_name'],
+                'S3_JOB_DEFINITION_ARN': batch.batch_s3_job_definition.job_definition_arn,
+                # Buckets
+                'STORE_BUCKET':bucket_name['store_bucket'],
+                'RESULTS_BUCKET':bucket_name['results_bucket'],
+                'STAGING_BUCKET':bucket_name['staging_bucket']
+
+            },
+            role=data_transfer_manager_lambda_role,
+            layers=[
+                util_layer,
+                runtime_layer
+            ]
+        )

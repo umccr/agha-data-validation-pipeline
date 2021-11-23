@@ -159,3 +159,19 @@ class BatchStack(core.NestedStack):
                 vcpus=1,
             ),
         )
+
+
+        ################################################################################
+        # Batch for move_s3_object
+
+        self.batch_s3_job_definition = batch.JobDefinition(
+            self,
+            'S3BatchJobDefinition',
+            job_definition_name=batch_environment['s3_job_definition_name'],
+            container=batch.JobDefinitionContainer(
+                image=ecs.ContainerImage.from_registry(name=batch_environment['s3_container_image']),
+                command=['true'],
+                memory_limit_mib=1000,
+                vcpus=1,
+            ),
+        )

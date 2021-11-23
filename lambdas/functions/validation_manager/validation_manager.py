@@ -142,8 +142,6 @@ def handler(event, context):
             tasks_list = batch.get_tasks_list()
 
         # Create job data
-        #TODO: Create sort_key
-        sort_key = ''
         job_data = batch.create_job_data(partition_key, tasks_list, file_record)
         batch_job_data.append(job_data)
 

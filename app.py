@@ -42,7 +42,9 @@ stack_props = {
         'batch_queue_name': 'agha-gdr-job-queue',
         'vpc_id':'vpc-6ceacc0b',
         'security_group_id' : 'sg-087b969ecd89cf993',
-        'container_image': '843407916570.dkr.ecr.ap-southeast-2.amazonaws.com/agha-gdr-file-validation-dev'
+        'container_image': '843407916570.dkr.ecr.ap-southeast-2.amazonaws.com/agha-gdr-file-validation-dev',
+        's3_job_definition_name':'agha-gdr-s3-manipulation',
+        's3_container_image' : '843407916570.dkr.ecr.ap-southeast-2.amazonaws.com/agha-gdr-s3-manipulation-dev'
     }
 }
 ### TODO IMPORTANT:  bucket_name, sec_group, vpc, cont_image is based on dev account NOT agha ccount
