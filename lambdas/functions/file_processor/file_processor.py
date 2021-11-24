@@ -7,6 +7,7 @@ import re
 
 import pandas as pd
 
+from lambdas.layers.util.util import notification
 # From layers
 import util
 import util.dynamodb as dynamodb
@@ -129,6 +130,23 @@ def handler(event_record):
             file_record.is_in_manifest = "True"
             file_record.is_validated = "True"
 
+                
+        # Check if etag has exist
+        etag_response = dynamodb.grab_etag_record(file_record.etag)
+
+        if etag_response['Count']>0:
+
+            for each_etag_appearance in etag_response['Items']:
+                s3_key = each_etag_appearance['s3_key']['S']
+                bucket_name = each_etag_appearance['bucket_name']['S']
+
+
+                message = f"File with the same ETag exist at the bucket.\n \
+                    File location - bucket_name: {bucket_name}, s3_key: {s3_key}"
+
+                notification.MESSAGE_STORE.append(message)
+                logger.warning(message)
+
         # Update item at the record
         dynamodb.write_record(DYNAMODB_STAGING_TABLE_NAME, file_record)
 
@@ -167,11 +185,11 @@ def validate_event_data(event_record):
 def get_name_email_from_principalid(principal_id):
     if USER_RE.fullmatch(principal_id):
         user_id = re.search(USER_RE, principal_id).group(1)
-        user_list = shared.IAM_CLIENT.list_users()
+        user_list = notification.CLIENT_IAM.list_users()
         for user in user_list['Users']:
             if user['UserId'] == user_id:
                 username = user['UserName']
-        user_details = shared.IAM_CLIENT.get_user(UserName=username)
+        user_details = notification.CLIENT_IAM.get_user(UserName=username)
         tags = user_details['User']['Tags']
         for tag in tags:
             if tag['Key'] == 'email':

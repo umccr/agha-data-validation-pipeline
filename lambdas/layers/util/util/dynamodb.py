@@ -7,6 +7,7 @@ from .s3 import S3EventRecord
 from .agha import get_flagship_from_key, get_file_type
 from util import submission_data
 from util import get_datetimestamp
+import util
 
 from typing import List
 from enum import Enum
@@ -32,6 +33,27 @@ class FileRecordAttribute(Enum):
 
     def __str__(self):
         return self.value
+
+   
+
+class ETagFileRecord:
+    """
+    The DynamoDb table will store ETag records to check if multiple record had been stored.
+    - etag: Will store all etag across database
+    - sort_key: Will Store a combination of bucket_name and s3_key
+    - s3_key: Location of s3 in the bucket
+    - bucket_name: Name of the bucket stored
+    """
+
+    def __init__(self, etag='', s3_key='', bucket_name=''):
+
+        self.etag = etag
+        self.sort_key = construct_etag_table_sort_key(bucket_name, s3_key)
+        self.s3_key = s3_key
+        self.bucket_name = bucket_name
+
+def construct_etag_table_sort_key(bucket_name, s3_key):
+    return f'BUCKET:{bucket_name}:S3_KEY:{s3_key}'
 
 class BucketFileRecord:
     """
@@ -76,10 +98,6 @@ class BucketFileRecord:
             FileRecordAttribute.SIZE_IN_BYTES.value: self.size_in_bytes,
             FileRecordAttribute.IS_IN_MANIFEST.value: self.is_validated
         }
-
-    def __str__(self):
-        return f"s3://{self.s3_key}"
-
 
     @classmethod
     def from_manifest_record(cls, filename, data: submission_data.SubmissionData):
@@ -186,7 +204,7 @@ def delete_record(table_name, records: BucketFileRecord) -> dict:
     tbl = ddb.Table(table_name)
 
     return tbl.delete_item(
-        Key=records.to_dict,
+        Key=records.__dict__,
         ReturnValues='ALL_OLD'
     )
 
@@ -245,6 +263,22 @@ def get_record_from_s3_key(table_name, s3_key: str) -> BucketFileRecord:
 
     return db_response_to_file_record(resp['Item'])
 
+
+def grab_etag_record(table_name, etag):
+
+    client = util.get_client('dynamodb')
+
+    response = client.query(
+        ExpressionAttributeValues={
+            ':v1': {
+                'S': f'{etag}',
+            },
+        },
+        KeyConditionExpression='etag = :v1',
+        TableName=table_name,
+    )
+
+    return response
 
 # def get_by_prefix(bucket: str, prefix: str):
 #     ddb = get_resource()

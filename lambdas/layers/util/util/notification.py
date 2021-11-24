@@ -23,6 +23,8 @@ EMAIL_SUBJECT = '[AGHA service] Submission received'
 MESSAGE_STORE = list()
 SUBMITTER_INFO = SubmitterInfo()
 
+CLIENT_IAM = util.get_client('iam')
+
 def append_message(message):
     MESSAGE_STORE.append(message)
 

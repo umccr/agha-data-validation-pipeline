@@ -20,6 +20,8 @@ DYNAMODB_STORE_TABLE_NAME = os.environ.get('DYNAMODB_STORE_TABLE_NAME')
 DYNAMODB_ARCHIVE_STORE_TABLE_NAME = os.environ.get(
     'DYNAMODB_ARCHIVE_STORE_TABLE_NAME')
 
+DYNAMODB_ETAG_TABLE_NAME = os.environ.get('DYNAMODB_ETAG_TABLE_NAME')
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -72,6 +74,12 @@ def handler(event, context):
         logger.info(f"DynamoDb record has been created from s3 event:")
         logger.info(json.dumps(db_record.__dict__))
 
+        # Construct ETag record
+        etag_record = dynamodb.ETagFileRecord(
+            etag=db_record.etag, 
+            s3_key=db_record.s3_key,
+            bucket_name=STAGING_BUCKET)
+
         # Distinguish between different buckets
         if s3_record.bucket_name == STAGING_BUCKET:
 
@@ -89,6 +97,13 @@ def handler(event, context):
                 dynamodb.write_record(
                     DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
 
+                # Updating ETag record
+                logger.info(f'Updating ETag file to the ETag record')
+                dynamodb.write_record(
+                    DYNAMODB_ETAG_TABLE_NAME,
+                    etag_record
+                )
+
             elif s3_record.event_type == S3EventType.EVENT_OBJECT_REMOVED:
                 db_record_archive = dynamodb.create_archive_record_from_db_record(
                     db_record, S3EventType.EVENT_OBJECT_REMOVED.value)
@@ -101,6 +116,11 @@ def handler(event, context):
                     f'Updating records at {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME}')
                 dynamodb.write_record(
                     DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
+
+                # delete from etag table
+                logger.info(
+                    f'Updating records at {DYNAMODB_ETAG_TABLE_NAME}')
+                dynamodb.delete_record(DYNAMODB_ETAG_TABLE_NAME, etag_record)
 
             else:
                 logger.warning(
@@ -133,12 +153,19 @@ def handler(event, context):
                 dynamodb.write_record(
                     DYNAMODB_ARCHIVE_STORE_TABLE_NAME, db_record_archive)
 
+                # Updating ETag record
+                logger.info(f'Updating ETag file to the ETag record')
+                dynamodb.write_record(
+                    DYNAMODB_ETAG_TABLE_NAME,
+                    etag_record
+                )
+
             elif s3_record.event_type == S3EventType.EVENT_OBJECT_REMOVED:
-                
+
                 db_record_archive = dynamodb.create_archive_record_from_db_record(
                     db_record, S3EventType.EVENT_OBJECT_REMOVED.value)
 
-                # Write to database
+                # Update to database
                 logger.info(
                     f'Updating records at {DYNAMODB_STORE_TABLE_NAME}')
                 dynamodb.delete_record(DYNAMODB_STORE_TABLE_NAME, db_record)
@@ -146,6 +173,11 @@ def handler(event, context):
                     f'Updating records at {DYNAMODB_ARCHIVE_STORE_TABLE_NAME}')
                 dynamodb.write_record(
                     DYNAMODB_ARCHIVE_STORE_TABLE_NAME, db_record_archive)
+
+                # delete from etag table
+                logger.info(
+                    f'Removing records at {DYNAMODB_ETAG_TABLE_NAME}')
+                dynamodb.delete_record(DYNAMODB_ETAG_TABLE_NAME, etag_record)
 
             else:
                 logger.warning(
