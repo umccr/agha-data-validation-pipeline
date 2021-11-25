@@ -4,7 +4,7 @@ import json
 import boto3
 
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
-FILE_PROCESSOR_LAMBDA_ARN = os.environ.get('FILE_PROCESSOR_LAMBDA_ARN')
+MANIFEST_PROCESSOR_LAMBDA_ARN = os.environ.get('MANIFEST_PROCESSOR_LAMBDA_ARN')
 FOLDER_LOCK_LAMBDA_ARN = os.environ.get('FOLDER_LOCK_LAMBDA_ARN')
 S3_RECORDER_LAMBDA_ARN = os.environ.get('S3_RECORDER_LAMBDA_ARN')
 
@@ -116,7 +116,7 @@ def handler(event, context):
         logger.info(f"Folder Lock Lambda call response: {folder_lock_response}")
 
         # Call validation lambda
-        validation_response = call_lambda(FILE_PROCESSOR_LAMBDA_ARN, {"Records": manifest_records})
+        validation_response = call_lambda(MANIFEST_PROCESSOR_LAMBDA_ARN, {"Records": manifest_records})
         logger.info(f"Validation Lambda call response: {validation_response}")
         
     if len(non_manifest_records) > 0:

@@ -1,6 +1,15 @@
-import json
+"""
+TO run the testcase
+
+Change directory the the s3_event_router
+cmd from root directory: cd lambdas/functions/s3_event_router
+
+Run python test command:
+cmd: python -m unittest tests.test_s3_event_router.S3EventRouterUnitTestCase
+
+"""
+
 import os
-import sys
 import unittest
 from unittest import mock
 
@@ -58,10 +67,10 @@ class S3EventRouterUnitTestCase(unittest.TestCase):
             "S3 recoder lambda is expected"
 
     @mock.patch('s3_event_router.call_lambda', new=get_lambda_called)
-    def test_s3_file_processor_lambda(self):
+    def test_s3_manifest_processor_lambda(self):
 
         # Eye ball check if lambda is called
-        print("\nFOLDER_LOCK and FILE_PROCESSOR lambda is expected here:")
+        print("\nFOLDER_LOCK and MANIFEST_PROCESSOR lambda is expected here:")
 
         event_payload = create_event_payload(event_name="ObjectCreated", bucket_name=os.environ.get("STAGING_BUCKET"),
                                              s3_key='manifest.txt')

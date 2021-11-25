@@ -40,7 +40,7 @@ USER_RE = re.compile(f'AWS:({AWS_ID_RE})')
 SSO_RE = re.compile(f'AWS:({AWS_ID_RE}):({EMAIL_RE})')
 
 
-def handler(event_record):
+def handler(event_record, context):
     """
     The lambda is todo a quick validation upon manifest file upload event and record to the database.
 

@@ -126,7 +126,7 @@ class LambdaStack(core.NestedStack):
         ################################################################################
         # File Processor Lambda
 
-        file_processor_lambda_role = iam.Role(
+        manifest_processor_lambda_role = iam.Role(
             self,
             'FileProcessorLambdaRole',
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
@@ -142,14 +142,14 @@ class LambdaStack(core.NestedStack):
             ]
         )
 
-        self.file_processor_lambda = lambda_.Function(
+        self.manifest_processor_lambda = lambda_.Function(
             self,
             'FileProcessorLambda',
-            function_name=f"{namespace}_file_processor_lambda",
-            handler='file_processor.handler',
+            function_name=f"{namespace}_manifest_processor_lambda",
+            handler='manifest_processor.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
-            code=lambda_.Code.from_asset('lambdas/functions/file_processor'),
+            code=lambda_.Code.from_asset('lambdas/functions/manifest_processor'),
             environment={
                 # Lambda ARN
                 'FOLDER_LOCK_LAMBDA_ARN': self.folder_lock_lambda.function_arn,
@@ -158,7 +158,7 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
                 'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"]
             },
-            role=file_processor_lambda_role,
+            role=manifest_processor_lambda_role,
             layers=[
                 util_layer,
                 runtime_layer
@@ -273,7 +273,7 @@ class LambdaStack(core.NestedStack):
                 ],
                 resources=[
                     self.folder_lock_lambda.function_arn,
-                    self.file_processor_lambda.function_arn,
+                    self.manifest_processor_lambda.function_arn,
                     self.s3_event_recorder_lambda.function_arn
                 ]
             )
@@ -289,7 +289,7 @@ class LambdaStack(core.NestedStack):
             code=lambda_.Code.from_asset('lambdas/functions/s3_event_router'),
             environment={
                 'STAGING_BUCKET': bucket_name["staging_bucket"],
-                'FILE_PROCESSOR_LAMBDA_ARN': self.file_processor_lambda.function_arn,
+                'MANIFEST_PROCESSOR_LAMBDA_ARN': self.manifest_processor_lambda.function_arn,
                 'FOLDER_LOCK_LAMBDA_ARN': self.folder_lock_lambda.function_arn,
                 'S3_RECORDER_LAMBDA_ARN': self.s3_event_recorder_lambda.function_arn
             },
