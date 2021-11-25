@@ -5,8 +5,6 @@ from boto3.dynamodb.conditions import Key, Attr
 
 from .s3 import S3EventRecord
 from .agha import get_flagship_from_key, get_file_type
-from util import submission_data
-from util import get_datetimestamp
 import util
 
 from typing import List
@@ -16,25 +14,9 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 DYNAMODB_RESOURCE = ''
-DATE_EXCEPTIONS = ["2020-02-30"]
 
-class FileRecordAttribute(Enum):
-    S3_KEY = "s3_key"
-    ETAG = "etag"
-    FILENAME = "filename"
-    FILETYPE = "filetype"
-    DATE_MODIFIED = "date_modified"
-    FLAGSHIP = "flagship"
-    PROVIDED_CHECKSUM = "provided_checksum"
-    IS_IN_MANIFEST = "is_in_manifest"
-    AGHA_STUDY_ID = "agha_study_id"
-    IS_VALIDATED = "is_validated"
-    SIZE_IN_BYTES = "size_in_bytes"
-
-    def __str__(self):
-        return self.value
-
-   
+########################################################################################################################
+# Tabel: agha-gdr-e-tag
 
 class ETagFileRecord:
     """
@@ -48,80 +30,296 @@ class ETagFileRecord:
     def __init__(self, etag='', s3_key='', bucket_name=''):
 
         self.etag = etag
-        self.sort_key = construct_etag_table_sort_key(bucket_name, s3_key)
+        self.sort_key = self.construct_etag_table_sort_key(bucket_name, s3_key)
         self.s3_key = s3_key
         self.bucket_name = bucket_name
 
-def construct_etag_table_sort_key(bucket_name, s3_key):
-    return f'BUCKET:{bucket_name}:S3_KEY:{s3_key}'
+    @staticmethod
+    def construct_etag_table_sort_key(bucket_name, s3_key):
+        return f'BUCKET:{bucket_name}:S3_KEY:{s3_key}'
 
-class BucketFileRecord:
+########################################################################################################################
+# Tabel: agha-gdr-staging-bucket, agha-gdr-staging-bucket-archive, agha-gdr-store-bucket, agha-gdr-store-bucket-archive
+
+# Field Attribute
+class FileRecordAttribute(Enum):
+    PARTITION_KEY = "partition_key"
+    SORT_KEY = "sort_key"
+    S3_KEY = "s3_key"
+    ETAG = "etag"
+    FILENAME = "filename"
+    FILETYPE = "filetype"
+    DATE_MODIFIED = "date_modified"
+    SIZE_IN_BYTES = "size_in_bytes"
+    ARCHIVE_LOG = "archive_log"
+
+    def __str__(self):
+        return self.value
+
+class ManifestRecordAttribute(Enum):
+    PARTITION_KEY = "partition_key"
+    SORT_KEY = "sort_key"
+    S3_KEY = "s3_key"
+    FLAGSHIP = "flagship"
+    FILENAME = "filename"
+    FILETYPE = "filetype"
+    SUBMISSION = "submission"
+    DATE_MODIFIED = "date_modified"
+    PROVIDED_CHECKSUM = "provided_checksum"
+    AGHA_STUDY_ID = "agha_study_id"
+    VALIDATION_STATUS = "validation_status"
+    ARCHIVE_LOG = "archive_log"
+
+    def __str__(self):
+        return self.value
+
+
+# Record Attribute for STAGING and STORE bucket
+class FileRecord:
     """
     The DynamoDB table is configured with a mandatory composite key composed of two elements:
-    - s3_key: The key of s3 bucket that is part of the partition key
-    - flagship: The flagship that did the submission 
-    All other attributes are optional (although some can automatically be derived from the object key)
+    - partition_key: Most Probably the s3_key
+    - sort_key: The type of file indicate it stores the file properties.
+    All other attributes are self explanatory (although some can automatically be derived from the object key)
     """
 
     def __init__(self,
-                 s3_key: str,
-                 size_in_bytes: int,
-                 etag: str = "",
-                 date_modified: str = "",
-                 provided_checksum: str = "",
-                 agha_study_id: str = "",
-                 is_in_manifest: str = "False",
-                 is_validated: str = "False"):
-        self.s3_key = s3_key    
-        self.flagship = get_flagship_from_key(s3_key)
+                 partition_key = "",
+                 sort_key = "",
+                 s3_key = "",
+                 etag = "",
+                 filename = "",
+                 filetype = "",
+                 date_modified = "",
+                 size_in_bytes = 0):
+        self.partition_key = partition_key
+        self.sort_key = sort_key
+        self.s3_key = s3_key
         self.etag = etag
-        self.submission = os.path.dirname(s3_key)
-        self.filename = os.path.basename(s3_key)
-        self.filetype = get_file_type(s3_key).value
+        self.filename = filename
+        self.filetype = filetype
         self.date_modified = date_modified
         self.size_in_bytes = size_in_bytes
-        self.provided_checksum = provided_checksum
-        self.agha_study_id = agha_study_id
-        self.is_in_manifest = is_in_manifest
-        self.is_validated = is_validated
-
-    def to_dict(self):
-        return {
-            FileRecordAttribute.S3_KEY.value: self.s3_key,
-            FileRecordAttribute.ETAG.value: self.etag,
-            FileRecordAttribute.FILENAME.value: self.filename,
-            FileRecordAttribute.FILETYPE.value: self.filetype,
-            FileRecordAttribute.DATE_MODIFIED.value: self.date_modified,
-            FileRecordAttribute.FLAGSHIP.value: self.flagship,
-            FileRecordAttribute.PROVIDED_CHECKSUM.value: self.provided_checksum,
-            FileRecordAttribute.AGHA_STUDY_ID.value: self.agha_study_id,
-            FileRecordAttribute.IS_VALIDATED.value: self.is_validated,
-            FileRecordAttribute.SIZE_IN_BYTES.value: self.size_in_bytes,
-            FileRecordAttribute.IS_IN_MANIFEST.value: self.is_validated
-        }
 
     @classmethod
-    def from_manifest_record(cls, filename, data: submission_data.SubmissionData):
+    def create_file_record_from_s3_event(cls, s3_event):
 
-        # Check for some required data, and get record from manifest data
-        assert not data.manifest_data.empty
-        manifest_info = data.manifest_data.loc[data.manifest_data['filename']==filename].iloc[0]
-        
-        s3_metadata = find_s3_metadata_from_s3_metadata_list_by_filename(filename, data.file_metadata)
+        # S3 event parsing
+        s3_key = s3_event['s3']['object']['key']
+        e_tag = s3_event['s3']['object']['eTag']
+        date_modified = util.get_datetimestamp()
+        size_in_bytes = s3_event['s3']['object']['size']
+        filename = os.path.basename(s3_key)
+        filetype = get_file_type(s3_key)
 
-        # Create class instance
-        record = cls(
-            s3_key= s3_metadata['Key'],
-            size_in_bytes=s3_metadata['Size'],
-            etag=s3_metadata["ETag"],
-            date_modified=s3_metadata["LastModified"],
-            provided_checksum =manifest_info["checksum"],
-            agha_study_id=manifest_info["agha_study_id"],
-            is_in_manifest = "True",
-            is_validated= "True"
+        # Additional Field
+        partition_key = s3_key
+        sort_key = "TYPE:FILE"
+
+        return cls(
+            partition_key=partition_key,
+            sort_key=sort_key,
+            s3_key=s3_key,
+            etag=e_tag,
+            filename=filename,
+            filetype=filetype,
+            date_modified=date_modified,
+            size_in_bytes=size_in_bytes
         )
 
-        return record
+
+# Record for archive FileRecord
+class ArchiveFileRecord(FileRecord):
+    """
+    This is an archived class based on the DynamoDb FileRecord storage.
+    There is an archived action to log the status being updated
+    """
+
+    def __init__(self,
+                 partition_key = "",
+                 sort_key = "",
+                 s3_key = "",
+                 etag = "",
+                 filename = "",
+                 filetype = "",
+                 date_modified = "",
+                 size_in_bytes = 0,
+                 archive_log = ""):
+        super().__init__(
+            partition_key=partition_key,
+            sort_key=sort_key,
+            s3_key=s3_key,
+            etag= etag,
+            filename= filename,
+            filetype= filetype,
+            date_modified= date_modified,
+            size_in_bytes= size_in_bytes
+        )
+        self.archive_log = archive_log
+
+    @staticmethod
+    def create_archive_file_record_from_file_record(cls, file_record:FileRecord, archive_log):
+        return cls(
+            partition_key=file_record.partition_key,
+            sort_key=file_record.sort_key,
+            s3_key=file_record.s3_key,
+            etag=file_record.etag,
+            filename=file_record.filename,
+            filetype=file_record.filetype,
+            date_modified=file_record.date_modified,
+            size_in_bytes=file_record.size_in_bytes,
+            archive_log=archive_log
+        )
+
+# Manifest Record
+class ManifestFileRecord:
+    """
+    The DynamoDB table is configured with a mandatory composite key composed of two elements:
+    - partition_key: Most Probably the s3_key
+    - sort_key: The type of file indicate it stores the file properties.
+    All other attributes are self explanatory (although some can automatically be derived from the object key)
+    """
+
+    def __init__(self,
+                partition_key = "",
+                sort_key = "",
+                s3_key = "",
+                flagship = "",
+                filename = "",
+                filetype = "",
+                submission = "",
+                date_modified = "",
+                provided_checksum = "",
+                agha_study_id = "",
+                validation_status = ""):
+        self.partition_key = partition_key
+        self.sort_key = sort_key
+        self.s3_key = s3_key
+        self.flagship = flagship
+        self.filename = filename
+        self.filetype = filetype
+        self.submission = submission
+        self.date_modified = date_modified
+        self.provided_checksum = provided_checksum
+        self.agha_study_id = agha_study_id
+        self.validation_status = validation_status
+
+    @classmethod
+    def create_manifest_record_from_manifest_file(cls):
+        print("under development")
+
+# Archive File Record
+class ArchiveManifestFileRecord(ManifestFileRecord):
+    """
+    This is an archived class based on the DynamoDb ManifestRecord storage.
+    There is an archived action to log the status being updated
+    """
+    def __init__(self,
+                partition_key = "",
+                sort_key = "",
+                s3_key = "",
+                flagship = "",
+                filename = "",
+                filetype = "",
+                submission = "",
+                date_modified = "",
+                provided_checksum = "",
+                agha_study_id = "",
+                validation_status = "",
+                archive_log = ""
+                 ):
+        super().__init__(
+            partition_key = partition_key,
+            sort_key = sort_key,
+            s3_key = s3_key,
+            flagship = flagship,
+            filename = filename,
+            filetype = filetype,
+            submission = submission,
+            date_modified = date_modified,
+            provided_checksum = provided_checksum,
+            agha_study_id = agha_study_id,
+            validation_status = validation_status
+        )
+        self.archive_log = archive_log
+
+    @classmethod
+    def create_archive_manifest_record_from_manifest_record(cls, manifest_record: ManifestFileRecord, archive_log):
+        return cls(
+            partition_key = manifest_record.partition_key,
+            sort_key = manifest_record.sort_key,
+            s3_key = manifest_record.s3_key,
+            flagship = manifest_record.flagship,
+            filename = manifest_record.filename,
+            filetype = manifest_record.filetype,
+            submission = manifest_record.submission,
+            date_modified = manifest_record.date_modified,
+            provided_checksum = manifest_record.provided_checksum,
+            agha_study_id = manifest_record.agha_study_id,
+            validation_status = manifest_record.validation_status,
+            archive_log=archive_log
+        )
+
+
+########################################################################################################################
+# Tabel: agha-gdr-result-bucket, agha-gdr-result-bucket-archive
+
+# agha-gdr-result-bucket, agha-gdr-result-bucket-archive may contain 3 type of different class
+# 1. FileRecord class (defined above) that also be used as staging/store bucket file record
+# 2. ResultRecord class (defined below) to hold the data output of the test. ResultRecord class may contain 2 types. \
+#       Explanation defined at the docstring class
+
+class ResultRecord:
+    """
+    partition_key: Most probably the s3 of the original file
+    sort_key:
+        Can be defined 2 types:
+            1. Prefix will be 'DATA' followed by check_type seperated by colon
+                (e.g. Result of checksum check would be stored as 'DATA:CHECKSUM')
+            2. Prefix will be 'STATUS' followed by check_type seperated by colon
+                (e.g. Result of checksum check would be stored as 'STATUS:CHECKSUM')
+    value:
+        Can be defined 2 types depending on the sort_key type:
+            1. If 'DATA', it will contain the output result (e.g for CHECKSUM might be '120EA8A25E5D487BF68B5F7096440')
+            2. If 'STATUS', it will contain the status result (e.g 'SUCCESS', 'FAILURE')
+
+    """
+
+    def __init__(self, partition_key='', date_modified="", sort_key='', value=''):
+        self.partition_key = partition_key
+        self.sort_key = sort_key
+        self.date_modified = date_modified
+        self.value = value
+
+class ArchiveResultRecord:
+    def __init__(self,
+                partition_key = "",
+                sort_key = "",
+                date_modified = "",
+                value = "",
+                archive_log = ""
+                ):
+        super().__init__(
+            partition_key = partition_key,
+            sort_key = sort_key,
+            date_modified = date_modified,
+            value = value
+        )
+        self.archive_log = archive_log
+
+    @classmethod
+    def create_archive_result_record_from_result_record(cls, result_record: ResultRecord, archive_log):
+        return cls(
+            partition_key = result_record.partition_key,
+            sort_key = result_record.sort_key,
+            date_modified = result_record.date_modified,
+            value = result_record.value,
+            archive_log = archive_log
+        )
+
+
+########################################################################################################################
+# The following will contain function related to boto3 DynamoDB API
 
 def find_s3_metadata_from_s3_metadata_list_by_filename(filename, array):
     """
@@ -147,43 +345,6 @@ def find_s3_metadata_from_s3_metadata_list_by_filename(filename, array):
             return each_array
     raise ValueError('No metadata data found at S3')
 
-class ArchiveBucketFileRecord(BucketFileRecord):
-    """
-    This is an arvhiced class based on the DynamoDb bucket storage record.
-    There is an arvived action to log the status being updated
-    """
-
-    def __init__(self, bucket_record_json, archive_action):
-        super().__init__(
-            s3_key=bucket_record_json["s3_key"],
-            size_in_bytes=bucket_record_json['size_in_bytes'],
-            etag= bucket_record_json["etag"],
-            date_modified= get_datetimestamp(),
-            provided_checksum= bucket_record_json["provided_checksum"],
-            agha_study_id= bucket_record_json["agha_study_id"],
-            is_in_manifest=bucket_record_json["is_in_manifest"],
-            is_validated=bucket_record_json["is_validated"]
-        )
-        self.archive_action = archive_action
-
-    def __str__(self):
-        return f"s3://{self.s3_key}"
-
-def convert_s3_record_to_db_record(s3_record: S3EventRecord) -> BucketFileRecord:
-    return BucketFileRecord(
-        s3_key=s3_record.object_key,
-        etag=s3_record.etag,
-        date_modified=s3_record.event_time,
-        size_in_bytes=s3_record.size_in_bytes)
-
-
-def create_archive_record_from_db_record(bucket_record: BucketFileRecord, archive_action: str) -> ArchiveBucketFileRecord:
-    bucket_record_json = bucket_record.__dict__
-    
-    return ArchiveBucketFileRecord(
-        bucket_record_json=bucket_record_json,
-        archive_action=archive_action
-    )
 
 def get_resource():
     global DYNAMODB_RESOURCE
@@ -200,7 +361,7 @@ def get_resource():
         return DYNAMODB_RESOURCE
 
 
-def delete_record(table_name, records: BucketFileRecord) -> dict:
+def delete_record(table_name, records) -> dict:
     ddb = get_resource()
     tbl = ddb.Table(table_name)
 
@@ -224,51 +385,10 @@ def batch_write_records(table_name: str, records: list()):
         for record in records:
             batch.put_item(Item=record.__dict__)
 
-def db_response_to_file_record(db_dict: dict) -> BucketFileRecord:
-    retval = BucketFileRecord(
-        s3_key = db_dict[FileRecordAttribute.S3_KEY.value],
-        flagship = db_dict[FileRecordAttribute.FLAGSHIP.value]
-    )
-
-    if FileRecordAttribute.ETAG.value in db_dict:
-        retval.etag = db_dict[FileRecordAttribute.ETAG.value]
-    if FileRecordAttribute.PROVIDED_CHECKSUM.value in db_dict:
-        retval.provided_checksum = db_dict[FileRecordAttribute.PROVIDED_CHECKSUM.value]
-    if FileRecordAttribute.IS_IN_MANIFEST.value in db_dict:
-        retval.is_in_manifest = db_dict[FileRecordAttribute.IS_IN_MANIFEST.value]
-    if FileRecordAttribute.AGHA_STUDY_ID.value in db_dict:
-        retval.agha_study_id = db_dict[FileRecordAttribute.AGHA_STUDY_ID.value]
-    if FileRecordAttribute.IS_VALIDATED.value in db_dict:
-        retval.is_validated = db_dict[FileRecordAttribute.IS_VALIDATED.value]
-    if FileRecordAttribute.FILENAME.value in db_dict:
-        retval.filename = db_dict[FileRecordAttribute.FILENAME.value]
-    if FileRecordAttribute.FILETYPE.value in db_dict:
-        retval.filetype = db_dict[FileRecordAttribute.FILETYPE.value]
-    if FileRecordAttribute.DATE_MODIFIED.value in db_dict:
-        retval.date_modified = db_dict[FileRecordAttribute.DATE_MODIFIED.value]
-    if FileRecordAttribute.SIZE_IN_BYTES.value in db_dict:
-        retval.size_in_bytes = db_dict[FileRecordAttribute.SIZE_IN_BYTES.value]
-    
-    return retval
-   
-
-def get_record_from_s3_key(table_name, s3_key: str) -> BucketFileRecord:
-    ddb = get_resource()
-    tbl = ddb.Table(table_name)
-
-    expr = Key(FileRecordAttribute.S3_KEY.value).eq(s3_key)
-
-    resp = tbl.get_item(expr)
-    if not 'Item' in resp:
-        raise ValueError(f"No record found for \'{s3_key}\' at \'{table_name}\' table.")
-
-    return db_response_to_file_record(resp['Item'])
-
 
 def grab_etag_record(table_name, etag):
 
     client = util.get_client('dynamodb')
-
     response = client.query(
         ExpressionAttributeValues={
             ':v1': {
@@ -280,6 +400,72 @@ def grab_etag_record(table_name, etag):
     )
 
     return response
+
+# def get_record_from_s3_key(table_name, s3_key: str) :
+#     ddb = get_resource()
+#     tbl = ddb.Table(table_name)
+#
+#     expr = Key(FileRecordAttribute.S3_KEY.value).eq(s3_key)
+#
+#     resp = tbl.get_item(expr)
+#     if not 'Item' in resp:
+#         raise ValueError(f"No record found for \'{s3_key}\' at \'{table_name}\' table.")
+#
+#     return db_response_to_file_record(resp['Item'])
+
+# def db_response_to_file_record(db_dict: dict) -> BucketFileRecord:
+#     retval = BucketFileRecord(
+#         s3_key=db_dict[FileRecordAttribute.S3_KEY.value],
+#         flagship=db_dict[FileRecordAttribute.FLAGSHIP.value]
+#     )
+#
+#     if FileRecordAttribute.ETAG.value in db_dict:
+#         retval.etag = db_dict[FileRecordAttribute.ETAG.value]
+#     if FileRecordAttribute.PROVIDED_CHECKSUM.value in db_dict:
+#         retval.provided_checksum = db_dict[FileRecordAttribute.PROVIDED_CHECKSUM.value]
+#     if FileRecordAttribute.IS_IN_MANIFEST.value in db_dict:
+#         retval.is_in_manifest = db_dict[FileRecordAttribute.IS_IN_MANIFEST.value]
+#     if FileRecordAttribute.AGHA_STUDY_ID.value in db_dict:
+#         retval.agha_study_id = db_dict[FileRecordAttribute.AGHA_STUDY_ID.value]
+#     if FileRecordAttribute.IS_VALIDATED.value in db_dict:
+#         retval.is_validated = db_dict[FileRecordAttribute.IS_VALIDATED.value]
+#     if FileRecordAttribute.FILENAME.value in db_dict:
+#         retval.filename = db_dict[FileRecordAttribute.FILENAME.value]
+#     if FileRecordAttribute.FILETYPE.value in db_dict:
+#         retval.filetype = db_dict[FileRecordAttribute.FILETYPE.value]
+#     if FileRecordAttribute.DATE_MODIFIED.value in db_dict:
+#         retval.date_modified = db_dict[FileRecordAttribute.DATE_MODIFIED.value]
+#     if FileRecordAttribute.SIZE_IN_BYTES.value in db_dict:
+#         retval.size_in_bytes = db_dict[FileRecordAttribute.SIZE_IN_BYTES.value]
+#
+#     return retval
+
+# def db_response_to_file_record(db_dict: dict) -> BucketFileRecord:
+#     retval = BucketFileRecord(
+#         s3_key=db_dict[FileRecordAttribute.S3_KEY.value],
+#         flagship=db_dict[FileRecordAttribute.FLAGSHIP.value]
+#     )
+#
+#     if FileRecordAttribute.ETAG.value in db_dict:
+#         retval.etag = db_dict[FileRecordAttribute.ETAG.value]
+#     if FileRecordAttribute.PROVIDED_CHECKSUM.value in db_dict:
+#         retval.provided_checksum = db_dict[FileRecordAttribute.PROVIDED_CHECKSUM.value]
+#     if FileRecordAttribute.IS_IN_MANIFEST.value in db_dict:
+#         retval.is_in_manifest = db_dict[FileRecordAttribute.IS_IN_MANIFEST.value]
+#     if FileRecordAttribute.AGHA_STUDY_ID.value in db_dict:
+#         retval.agha_study_id = db_dict[FileRecordAttribute.AGHA_STUDY_ID.value]
+#     if FileRecordAttribute.IS_VALIDATED.value in db_dict:
+#         retval.is_validated = db_dict[FileRecordAttribute.IS_VALIDATED.value]
+#     if FileRecordAttribute.FILENAME.value in db_dict:
+#         retval.filename = db_dict[FileRecordAttribute.FILENAME.value]
+#     if FileRecordAttribute.FILETYPE.value in db_dict:
+#         retval.filetype = db_dict[FileRecordAttribute.FILETYPE.value]
+#     if FileRecordAttribute.DATE_MODIFIED.value in db_dict:
+#         retval.date_modified = db_dict[FileRecordAttribute.DATE_MODIFIED.value]
+#     if FileRecordAttribute.SIZE_IN_BYTES.value in db_dict:
+#         retval.size_in_bytes = db_dict[FileRecordAttribute.SIZE_IN_BYTES.value]
+#
+#     return retval
 
 # def get_by_prefix(bucket: str, prefix: str):
 #     ddb = get_resource()

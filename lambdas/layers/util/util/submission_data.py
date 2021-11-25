@@ -21,18 +21,21 @@ MD5_RE = re.compile('^[0-9a-f]{32}$')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+########################################################################################################################
+# Data placeholder for submitted data
+
 class SubmissionData:
 
     def __init__(
             self, 
             bucket_name='',
-            manifest_key='',
+            manifest_s3_key='',
             submission_prefix=''
         ):
 
         # Event data
         self.bucket_name = bucket_name
-        self.manifest_key = manifest_key
+        self.manifest_s3_key = manifest_s3_key
         self.submission_prefix = submission_prefix
 
         # Data from current S3 bucket
@@ -46,9 +49,20 @@ class SubmissionData:
         self.files_rejected = list()
         self.files_extra = list()
         self.output_prefix = str()
-    
+
+    @classmethod
+    def create_submission_data_object_from_s3_event(cls, s3_record):
 
 
+        s3_key: str = s3_record['s3']['object']['key']
+        bucket: str = s3_record['s3']['bucket']['name']
+        prefix: str = os.path.dirname(s3_key)
+
+        return cls(
+            bucket_name=bucket,
+            manifest_s3_key=s3_key,
+            submission_prefix=prefix
+        )
 
 def retrieve_manifest_data(bucket_name:str, manifest_key: str):
 

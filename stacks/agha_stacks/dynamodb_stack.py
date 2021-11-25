@@ -20,11 +20,11 @@ class DynamoDBStack(core.NestedStack):
             'DynamoDBTableStagingBucket',
             table_name=dynamodb_table['staging-bucket'],
             partition_key=dynamodb.Attribute(
-                name='s3_key',
+                name='partition_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='flagship',
+                name='sort_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,
@@ -41,7 +41,7 @@ class DynamoDBStack(core.NestedStack):
             'DynamoDBTableStagingBucketArchive',
             table_name=dynamodb_table['staging-bucket-archive'],
             partition_key=dynamodb.Attribute(
-                name='s3_key',
+                name='partition_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
@@ -107,11 +107,11 @@ class DynamoDBStack(core.NestedStack):
             'DynamoDBTableStoreBucket',
             table_name=dynamodb_table['store-bucket'],
             partition_key=dynamodb.Attribute(
-                name='s3_key',
+                name='partition_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='flagship',
+                name='sort_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,
@@ -128,7 +128,7 @@ class DynamoDBStack(core.NestedStack):
             'DynamoDBTableStoreBucketArchive',
             table_name=dynamodb_table['store-bucket-archive'],
             partition_key=dynamodb.Attribute(
-                name='s3_key',
+                name='partition_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(

@@ -1,6 +1,7 @@
 import json
 import os
 import logging
+import re
 
 import util
 
@@ -76,3 +77,43 @@ def notify_and_exit():
             SUBMITTER_INFO,
         )
     raise Exception
+
+
+########################################################################################################################
+# User account information
+# Email/name regular expressions
+AWS_ID_RE = '[0-9A-Z]{21}'
+EMAIL_RE = '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+USER_RE = re.compile(f'AWS:({AWS_ID_RE})')
+SSO_RE = re.compile(f'AWS:({AWS_ID_RE}):({EMAIL_RE})')
+
+
+def get_name_email_from_principalid(principal_id):
+    if USER_RE.fullmatch(principal_id):
+        user_id = re.search(USER_RE, principal_id).group(1)
+        user_list = CLIENT_IAM.list_users()
+        for user in user_list['Users']:
+            if user['UserId'] == user_id:
+                username = user['UserName']
+        user_details = CLIENT_IAM.get_user(UserName=username)
+        tags = user_details['User']['Tags']
+        for tag in tags:
+            if tag['Key'] == 'email':
+                email = tag['Value']
+        return username, email
+    elif SSO_RE.fullmatch(principal_id):
+        email = re.search(SSO_RE, principal_id).group(2)
+        username = email.split('@')[0]
+        return username, email
+    else:
+        logger.warning(f'Could not extract name and email: unsupported principalId format')
+        return None, None
+
+def set_submitter_information_from_s3_event(event_record):
+
+    if 'userIdentity' in event_record and 'principalId' in event_record['userIdentity']:
+        principal_id = event_record['userIdentity']['principalId']
+        SUBMITTER_INFO.name, SUBMITTER_INFO.email = get_name_email_from_principalid(principal_id)
+        logger.info(f'Extracted name and email from record: {SUBMITTER_INFO.name} <{SUBMITTER_INFO.email}>')
+    else:
+        logger.warning(f'Could not extract name and email: unsuitable event type/data')

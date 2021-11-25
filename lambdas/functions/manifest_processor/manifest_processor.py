@@ -3,7 +3,6 @@
 import json
 import logging
 import os
-import re
 
 import pandas as pd
 
@@ -33,16 +32,12 @@ STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Email/name regular expressions
-AWS_ID_RE = '[0-9A-Z]{21}'
-EMAIL_RE = '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
-USER_RE = re.compile(f'AWS:({AWS_ID_RE})')
-SSO_RE = re.compile(f'AWS:({AWS_ID_RE}):({EMAIL_RE})')
 
 
-def handler(event_record, context):
+
+def handler(event, context):
     """
-    The lambda is todo a quick validation upon manifest file upload event and record to the database.
+    The lambda is to do a quick validation upon manifest file upload event and record to the database.
 
     What this lambda do:
     - check validity of the manifest
@@ -52,21 +47,25 @@ def handler(event_record, context):
 
     Entry point for S3 event processing. An S3 event is essentially a dict with a list of S3 Records:
     {
-        "eventSource": "aws:s3",
-        "eventTime": "2021-06-07T00:33:42.818Z",
-        "eventName": "ObjectCreated:Put",
-        ...
-        "s3": {
-            "bucket": {
-                "name": "bucket-name",
+        "Records": [
+            {
+                "eventSource": "aws:s3",
+                "eventTime": "2021-06-07T00:33:42.818Z",
+                "eventName": "ObjectCreated:Put",
                 ...
-            },
-            "object": {
-                "key": "UMCCR-COUMN/SBJ00805/WGS/2021-06-03/umccrised/work/SBJ00805__SBJ00805_MDX210095_L2100459/oncoviruses/work/detect_viral_reference/host_unmapped_or_mate_unmapped_to_gdc.bam.bai",
-                "eTag": "d41d8cd98f00b204e9800998ecf8427e",
-                ...
+                "s3": {
+                    "bucket": {
+                        "name": "bucket-name",
+                        ...
+                    },
+                    "object": {
+                        "key": "UMCCR-COUMN/SBJ00805/WGS/2021-06-03/umccrised/work/SBJ00805__SBJ00805_MDX210095_L2100459/oncoviruses/work/detect_viral_reference/host_unmapped_or_mate_unmapped_to_gdc.bam.bai",
+                        "eTag": "d41d8cd98f00b204e9800998ecf8427e",
+                        ...
+                    }
+                }
             }
-        }
+        ]
     }
 
     :param event: S3 event
@@ -74,87 +73,87 @@ def handler(event_record, context):
     """
 
     logger.info(f"Start processing S3 event:")
-    logger.info(json.dumps(event_record))
+    logger.info(json.dumps(event))
+
+    s3_records = event.get('Records')
+    if not s3_records:
+        logger.warning("Unexpected S3 event format, no Records! Aborting.")
+        return
+
+    for event_record in s3_records:
+
+        # Validate the event structure
+        validate_event_data(event_record)
+
+        # Store submission data into a class
+        logger.info("Parsing s3 event record to class")
+        data = submission_data.SubmissionData.create_submission_data_object_from_s3_event(event_record)
+
+        # Set submitter information
+        notification.set_submitter_information_from_s3_event(s3_records)
+
+        # Pull file metadata from S3
+        data.file_metadata = s3.get_s3_object_metadata(data.bucket_name, data.submission_prefix)
+
+        # Collect manifest data and then validate
+        data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_key)
+        file_list, data.files_extra = submission_data.validate_manifest(data)
+
+        for filename in file_list:
+
+            partition_key = f'{data.submission_prefix}/{filename}'
+
+            # Variables from manifest data
+            agha_study_id = submission_data.find_study_id_from_manifest_df_and_filename(data.manifest_data, filename)
+            provided_checksum = submission_data.find_checksum_from_manifest_df_and_filename(data.manifest_data, filename)
+
+            # Search for existing record
+            try:
+                file_record = dynamodb.get_record_from_s3_key(DYNAMODB_STAGING_TABLE_NAME, partition_key)
+            except ValueError as e:
+
+                logger.warning(e)
+                logger.info(f'Create a new record for {partition_key}')
+                file_record = dynamodb.BucketFileRecord.from_manifest_record(filename,data)
+
+            finally:
+
+                # Get partition key and existing records, and set sort key
+                message_base = f'found existing records for {filename} with key {partition_key}'
+                logger.info(f'{message_base}: {json.dumps(file_record)}')
+
+                logger.info(f'Updating record with manifest data')
+                file_record.date_modified = util.get_datetimestamp()
+                file_record.agha_study_id = agha_study_id
+                file_record.provided_checksum = provided_checksum
+                file_record.is_in_manifest = "True"
+                file_record.is_validated = "True"
 
 
-    # Validate the event structure
-    validate_event_data(event_record)
+            # Check if etag has exist
+            # IGNORE on the staging bucket
+            etag_response = dynamodb.grab_etag_record(file_record.etag)
 
-    # Store submission data into a class
-    data = submission_data.SubmissionData(event_record)
-  
-    # Prepare submitter info
-    submitter_info = notification.SubmitterInfo()
-    if 'userIdentity' in event_record and 'principalId' in event_record['userIdentity']:
-        principal_id = event_record['userIdentity']['principalId']
-        submitter_info.name, submitter_info.email = get_name_email_from_principalid(principal_id)
-        logger.info(f'Extracted name and email from record: {submitter_info.name} <{submitter_info.email}>')
-    else:
-        logger.warning(f'Could not extract name and email: unsuitable event type/data')
-    
+            if etag_response['Count']>0:
 
-    # Pull file metadata from S3
-    data.file_metadata = s3.get_s3_object_metadata(data.bucket_name, data.submission_prefix)
-
-    # Collect manifest data and then validate
-    data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_key)
-    file_list, data.files_extra = submission_data.validate_manifest(data)
-  
-    for filename in file_list:
-
-        partition_key = f'{data.submission_prefix}/{filename}'
-
-        # Variables from manifest data
-        agha_study_id = submission_data.find_study_id_from_manifest_df_and_filename(data.manifest_data, filename)
-        provided_checksum = submission_data.find_checksum_from_manifest_df_and_filename(data.manifest_data, filename)
-
-        # Search for existing record
-        try:
-            file_record = dynamodb.get_record_from_s3_key(DYNAMODB_STAGING_TABLE_NAME, partition_key)
-        except ValueError as e:
-
-            logger.warn(e)
-            logger.info(f'Create a new record for {partition_key}')
-            file_record = dynamodb.BucketFileRecord.from_manifest_record(filename,data)
-
-        finally:
-        
-            # Get partition key and existing records, and set sort key
-            message_base = f'found existing records for {filename} with key {partition_key}'
-            logger.info(f'{message_base}: {json.dumps(file_record)}')
-
-            logger.info(f'Updating record with manifest data')
-            file_record.date_modified = util.get_datetimestamp()
-            file_record.agha_study_id = agha_study_id
-            file_record.provided_checksum = provided_checksum
-            file_record.is_in_manifest = "True"
-            file_record.is_validated = "True"
-
-                
-        # Check if etag has exist
-        # IGNORE on the staging bucket
-        etag_response = dynamodb.grab_etag_record(file_record.etag)
-
-        if etag_response['Count']>0:
-
-            for each_etag_appearance in etag_response['Items']:
-                s3_key = each_etag_appearance['s3_key']['S']
-                bucket_name = each_etag_appearance['bucket_name']['S']
+                for each_etag_appearance in etag_response['Items']:
+                    s3_key = each_etag_appearance['s3_key']['S']
+                    bucket_name = each_etag_appearance['bucket_name']['S']
 
 
-                message = f"File with the same ETag exist at the bucket.\n \
-                    File location - bucket_name: {bucket_name}, s3_key: {s3_key}"
+                    message = f"File with the same ETag exist at the bucket.\n \
+                        File location - bucket_name: {bucket_name}, s3_key: {s3_key}"
 
-                notification.MESSAGE_STORE.append(message)
-                logger.warning(message)
+                    notification.MESSAGE_STORE.append(message)
+                    logger.warning(message)
 
-        # Update item at the record
-        dynamodb.write_record(DYNAMODB_STAGING_TABLE_NAME, file_record)
+            # Update item at the record
+            dynamodb.write_record(DYNAMODB_STAGING_TABLE_NAME, file_record)
 
-        db_record_archive = dynamodb.create_archive_record_from_db_record(
-            file_record, "CREATE or UPDATE")
+            db_record_archive = dynamodb.create_archive_record_from_db_record(
+                file_record, "CREATE or UPDATE")
 
-        dynamodb.write_record(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
+            dynamodb.write_record(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
 
 
 
@@ -183,23 +182,3 @@ def validate_event_data(event_record):
         raise ValueError
 
 
-def get_name_email_from_principalid(principal_id):
-    if USER_RE.fullmatch(principal_id):
-        user_id = re.search(USER_RE, principal_id).group(1)
-        user_list = notification.CLIENT_IAM.list_users()
-        for user in user_list['Users']:
-            if user['UserId'] == user_id:
-                username = user['UserName']
-        user_details = notification.CLIENT_IAM.get_user(UserName=username)
-        tags = user_details['User']['Tags']
-        for tag in tags:
-            if tag['Key'] == 'email':
-                email = tag['Value']
-        return username, email
-    elif SSO_RE.fullmatch(principal_id):
-        email = re.search(SSO_RE, principal_id).group(2)
-        username = email.split('@')[0]
-        return username, email
-    else:
-        logger.warning(f'Could not extract name and email: unsupported principalId format')
-        return None, None
