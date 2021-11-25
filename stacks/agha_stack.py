@@ -1,13 +1,5 @@
 from aws_cdk import (
-    aws_batch as batch,
-    aws_dynamodb as dynamodb,
-    aws_ec2 as ec2,
-    aws_ecs as ecs,
-    aws_iam as iam,
-    aws_lambda as lmbda,
-    aws_s3 as s3,
-    core,
-    aws_ssm as ssm
+    core
 )
 
 from .agha_stacks.dynamodb_stack import DynamoDBStack

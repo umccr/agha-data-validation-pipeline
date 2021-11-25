@@ -96,7 +96,7 @@ def handler(event, context):
         bucket: str = s3_record['s3']['bucket']['name']
 
         if bucket != STAGING_BUCKET:
-            logger.warn(f"Non staging bucket event received. Recived event from '{bucket}' bucket. Skipping... ")
+            logger.warning(f"Non staging bucket event received. Received event from '{bucket}' bucket. Skipping... ")
             continue
 
 

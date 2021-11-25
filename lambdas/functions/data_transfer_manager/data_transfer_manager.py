@@ -16,15 +16,6 @@ import util.batch as batch
 
 JOB_NAME_RE = re.compile(r'[.\\/]')
 
-#TODO: Remove the following block (for dev purpose only)
-from lambdas.layers.util.util import dynamodb, submission_data
-from lambdas.layers.util.util import notification
-from lambdas.layers.util.util import agha
-from lambdas.layers.util.util import s3
-from lambdas.layers.util.util import batch
-from lambdas.layers.util import util
-
-
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 RESULTS_BUCKET = os.environ.get('RESULTS_BUCKET')
 STORE_BUCKET = os.environ.get('STORE_BUCKET')

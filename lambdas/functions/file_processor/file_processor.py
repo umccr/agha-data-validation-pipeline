@@ -132,6 +132,7 @@ def handler(event_record):
 
                 
         # Check if etag has exist
+        # IGNORE on the staging bucket
         etag_response = dynamodb.grab_etag_record(file_record.etag)
 
         if etag_response['Count']>0:

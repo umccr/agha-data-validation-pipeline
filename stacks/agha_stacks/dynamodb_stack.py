@@ -23,6 +23,10 @@ class DynamoDBStack(core.NestedStack):
                 name='s3_key',
                 type=dynamodb.AttributeType.STRING,
             ),
+            sort_key=dynamodb.Attribute(
+                name='flagship',
+                type=dynamodb.AttributeType.STRING,
+            ),
             removal_policy=core.RemovalPolicy.RETAIN,
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
@@ -106,6 +110,10 @@ class DynamoDBStack(core.NestedStack):
                 name='s3_key',
                 type=dynamodb.AttributeType.STRING,
             ),
+            sort_key=dynamodb.Attribute(
+                name='flagship',
+                type=dynamodb.AttributeType.STRING,
+            ),
             removal_policy=core.RemovalPolicy.RETAIN,
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
@@ -133,8 +141,9 @@ class DynamoDBStack(core.NestedStack):
 
         ################################################################################
         # eTag Table for staging bucket dynamodb table
-        # Partition Key: eTag
-        # Sort Key: s3_key
+        # Partition Key: etag
+        # Sort Key: Will Store a combination of bucket_name and s3_key (see example below)
+        #       (e.g. "BUCKET:{bucket_name}:S3_KEY:{s3_key}")
 
         self.dynamodb_e_tag = dynamodb.Table(
             self,
@@ -145,7 +154,7 @@ class DynamoDBStack(core.NestedStack):
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='s3_key',
+                name='sort_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,

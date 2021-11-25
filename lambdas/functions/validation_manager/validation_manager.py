@@ -16,15 +16,6 @@ DYNAMODB_ARCHIVE_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_STAGING_T
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 RESULTS_BUCKET = os.environ.get('RESULTS_BUCKET')
 
-
-#TODO: Remove the following block (for dev purpose only)
-from lambdas.layers.util.util import dynamodb, submission_data
-from lambdas.layers.util.util import notification
-from lambdas.layers.util.util import agha
-from lambdas.layers.util.util import s3
-from lambdas.layers.util.util import batch
-import lambdas.layers.util.util
-
 # Logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -104,6 +95,7 @@ def handler(event, context):
 
             notification.append_message(message)
             notification.notify_and_exit()
+            return
 
         # Check to dynamodb if staging record has been validated
         if file_record.is_validated.lower() != "True".lower():
