@@ -107,6 +107,10 @@ def handler(event, context):
 
     logger.info(f"Processing {len(manifest_records)}/{len(non_manifest_records)} manifest/non-manifest events.")
 
+    # Call S3 recorder lambda for every file uplaoded
+    ser_res = call_lambda(S3_RECORDER_LAMBDA_ARN, {"Records": non_manifest_records})
+    logger.info(f"S3 Event Recorder Lambda call response: {ser_res}")
+
     # call corresponding lambda functions
     # for manifest related events and others
     if len(manifest_records) > 0:
@@ -118,9 +122,4 @@ def handler(event, context):
         # Call validation lambda
         validation_response = call_lambda(MANIFEST_PROCESSOR_LAMBDA_ARN, {"Records": manifest_records})
         logger.info(f"Validation Lambda call response: {validation_response}")
-        
-    if len(non_manifest_records) > 0:
 
-        # Call S3 recorder lambda
-        ser_res = call_lambda(S3_RECORDER_LAMBDA_ARN, {"Records": non_manifest_records})
-        logger.info(f"S3 Event Recorder Lambda call response: {ser_res}")
