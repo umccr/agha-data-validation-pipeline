@@ -6,11 +6,13 @@ import re
 import io
 
 import boto3
+import botocore
 import pandas as pd
 
 import util
 import notification
 import s3
+
 
 MANIFEST_REQUIRED_COLUMNS = {'filename', 'checksum', 'agha_study_id'}
 # Manifest field validation related
@@ -52,7 +54,6 @@ class SubmissionData:
 
     @classmethod
     def create_submission_data_object_from_s3_event(cls, s3_record):
-
 
         s3_key: str = s3_record['s3']['object']['key']
         bucket: str = s3_record['s3']['bucket']['name']
@@ -109,7 +110,7 @@ def validate_manifest(data:SubmissionData, strict_mode:bool=True, notify:bool=Tr
     
     # Files present on S3
     message_text = f'Entries on S3 (including manifest)'
-    files_s3 = {get_s3_filename(md) for md in data.file_metadata}
+    files_s3 = {s3.get_s3_filename(md) for md in data.file_metadata}
     notification.log_and_store_file_message(message_text, files_s3)
     
     # Files missing from S3

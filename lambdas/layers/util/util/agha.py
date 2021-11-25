@@ -1,15 +1,50 @@
 import re
 from enum import Enum
+from typing import List
 
-# TODO: fix module load issues and redirect dynamodb methods back here
 
 AGHA_ID_PATTERN = re.compile("A\d{7,8}(?:_mat|_pat|_R1|_R2|_R3)?|unknown")
 MD5_PATTERN = re.compile("[0-9a-f]{32}")
 
-FLAGSHIPS = ["ACG", "BM", "CARDIAC", "CHW", "EE", "GI", "HIDDEN", "ICCON", "ID", "KidGen", "LD", "MCD", "MITO", "NMD"]
-STAGING_BUCKET = 'agha-gdr-staging'
-STORE_BUCKET = 'agha-gdr-store'
+class FlagShip(Enum):
+    """
+    Official AGHA flagship projects.
+    Tuple values are (in order):
+    - preferred flagship code
+    - official flagship name
+    - aliases
+    """
+    ACUTE_CARE_GENOMICS = ('AC', 'Acute Care Genomics', 'ACG', 'acute', 'acutecare', 'acute_care_genomics')
+    MITOCHONDRIAL_DISORDERS = ('Mito', 'Mitochondrial Disorders', 'mito', 'MITO', 'mito-batch-7', 'mitochondrial_disease')
+    EPILEPTIC_ENCEPHALOPATHY = ('EE', 'Epileptic Encephalopathy')
+    GENETIC_IMMUNOLOGY = ('GI', 'Genetic Immunology')
+    LEUKODYSTROPHIES = ('Leuko', 'Leukodystrophies', 'LD', 'leukodystrophies')
+    BRAIN_MALFORMATIONS = ('BM', 'Brain Malformations', 'brain_malformations', 'MCD')
+    CHILDRANZ = ('chILDRANZ', 'Interstitial and Diffuse Lung Disease in Children', 'CHW')
+    RENAL_GENETICS = ('KidGen', 'Renal Genetics', 'RENAL', 'renal')
+    NEUROMUSCULAR_DISORDERS = ('NMD', 'Neuromuscular Disorders')
+    HEREDITARY_CANCERS = ('ICCon', 'Hereditary Cancers', 'ICCON')
+    INTELLECTUAL_DISABILITY = ('ID', 'Intellectual Disability', 'id')
+    CARDIOVASCULAR_GENETIC_DISORDERS = ('Cardiac', 'Cardiovascular Genetic Disorders', 'CARDIAC', 'cardiac')
+    HIDDEN_RENAL_GENETICS = ('HIDDEN', 'HIDDEN Renal Genetics', 'hidden')
+    TEST = ('TEST', 'Test submissions')
+    UNKNOWN = ('UNKNOWN', 'Unknown flagship')
 
+    def preferred_code(self) -> str:
+        return self.value[0]
+
+    def official_name(self) -> str:
+        return self.value[1]
+
+    def aliases(self) -> List[str]:
+        return self.value[2:]
+
+    @staticmethod
+    def from_name(name: str) -> 'FlagShip':
+        for fs in FlagShip:
+            if name in fs.value:
+                return fs
+        return FlagShip.UNKNOWN
 
 class FileType(Enum):
     BAM = "BAM"
@@ -26,52 +61,35 @@ class FileType(Enum):
     def __str__(self):
         return self.value
 
-
-def get_file_type(file: str) -> FileType:
-    if file.lower().endswith(".bam"):
-        return FileType.BAM
-    elif file.lower().endswith(".bai"):
-        return FileType.BAM_INDEX
-    elif file.lower().endswith(".cram"):
-        return FileType.CRAM
-    elif file.lower().endswith(".crai"):
-        return FileType.CRAM_INDEX
-    elif file.lower().endswith(".fastq"):
-        return FileType.FASTQ
-    elif file.lower().endswith(".fastq.gz"):
-        return FileType.FASTQ
-    elif file.lower().endswith(".fq"):
-        return FileType.FASTQ
-    elif file.lower().endswith(".fq.gz"):
-        return FileType.FASTQ
-    elif file.lower().endswith(".vcf"):
-        return FileType.VCF
-    elif file.lower().endswith("vcf.gz"):
-        return FileType.VCF
-    elif file.lower().endswith(".gvcf"):
-        return FileType.VCF
-    elif file.lower().endswith("gvcf.gz"):
-        return FileType.VCF
-    elif file.lower().endswith(".tbi"):
-        return FileType.VCF_INDEX
-    elif file.lower().endswith(".md5"):
-        return FileType.MD5
-    elif file.lower().endswith("md5.txt"):
-        return FileType.MD5
-    elif file.lower().endswith("manifest.txt"):
-        return FileType.MANIFEST
-    else:
-        return FileType.OTHER
+FEXT_FASTQ = ['.fq', '.fq.gz', '.fastq', '.fastq.gz']
+FEXT_BAM = ['.bam']
+FEXT_BAM_INDEX = ['.bai']
+FEXT_VCF = ['vcf.gz', 'vcf']
+FEXT_VCF_INDEX = ['.tbi']
+FEXT_MANIFEST = ['manifest.txt', '.manifest']
 
 
-def get_flagship_from_key(s3key: str, strict_mode: bool = True) -> str:
-    # the S3 key has to start with the flagship abbreviation
-    fs = s3key.split("/")[0]
+class FileType(Enum):
+    UNSUPPORTED = ('UNSUPPORTED', [])
+    FASTQ = ('FASTQ', FEXT_FASTQ)
+    VCF = ('VCF', FEXT_VCF)
+    VCF_INDEX = ('VCF_INDEX', FEXT_VCF_INDEX)
+    BAM = ('BAM', FEXT_BAM)
+    BAM_INDEX = ('BAM_INDEX', FEXT_BAM_INDEX)
+    MANIFEST = ('MANIFEST', FEXT_MANIFEST)
 
-    if not strict_mode:
-        fs = fs.upper()
+    def get_name(self) -> str:
+        return self.value[0]
 
-    if fs not in FLAGSHIPS:
-        raise ValueError(f"Unsupported flagship {fs} in S3 key {s3key}!")
+    def get_extensions(self) -> List[str]:
+        return self.value[1]
 
-    return fs
+    def is_type(self, name: str) -> bool:
+        return any(name.endswith(ext) for ext in self.get_extensions())
+
+    @staticmethod
+    def from_name(name: str) -> 'FileType':
+        for t in FileType:
+            if t.is_type(name):
+                return t
+        return FileType.UNSUPPORTED

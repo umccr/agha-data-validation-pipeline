@@ -156,7 +156,8 @@ class LambdaStack(core.NestedStack):
                 'NOTIFICATION_LAMBDA_ARN': self.notification_lambda.function_arn,
                 # Table
                 'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
-                'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"]
+                'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
+                'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["agha-gdr-e-tag"]
             },
             role=manifest_processor_lambda_role,
             layers=[

@@ -4,20 +4,19 @@ import json
 import logging
 import os
 
-import pandas as pd
-
-from lambdas.layers.util.util import notification
 # From layers
 import util
 import util.dynamodb as dynamodb
 import util.submission_data as submission_data
 import util.notification as notification
 import util.s3 as s3
+import util.agha as agha
 
 DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
-DYNAMODB_ARCHIVE_STAGING_TABLE_NAME = os.environ.get(
-    'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME')
+DYNAMODB_ARCHIVE_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_STAGING_TABLE_NAME')
+DYNAMODB_ETAG_TABLE_NAME = os.environ.get('DYNAMODB_ETAG_TABLE_NAME')
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
+
 
 # NOTE(SW): it seems reasonable to require some structuring of uploads in the format of
 # <FLAGSHIP>/<DATE_TS>/<FILES ...>. Outcomes on upload wrt directory structure:
@@ -31,8 +30,6 @@ STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 # Logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-
-
 
 
 def handler(event, context):
@@ -107,53 +104,60 @@ def handler(event, context):
             agha_study_id = submission_data.find_study_id_from_manifest_df_and_filename(data.manifest_data, filename)
             provided_checksum = submission_data.find_checksum_from_manifest_df_and_filename(data.manifest_data, filename)
 
-            # Search for existing record
-            try:
-                file_record = dynamodb.get_record_from_s3_key(DYNAMODB_STAGING_TABLE_NAME, partition_key)
-            except ValueError as e:
+            # Search if file exist at s3
+            file_record_response = dynamodb.get_item_from_pk_and_sk(DYNAMODB_STAGING_TABLE_NAME, partition_key,
+                                                                           dynamodb.FileRecordSortKey.FILE_RECORD.value)
 
-                logger.warning(e)
-                logger.info(f'Create a new record for {partition_key}')
-                file_record = dynamodb.BucketFileRecord.from_manifest_record(filename,data)
+            # If no File record found database. Warn and exit the application
+            if file_record_response['Count'] == 0:
 
-            finally:
+                notification.log_and_store_message(f"No such file found at bucket:{DYNAMODB_STAGING_TABLE_NAME}\
+                 s3_key:{partition_key}", 'warning')
+                notification.notify_and_exit()
 
-                # Get partition key and existing records, and set sort key
-                message_base = f'found existing records for {filename} with key {partition_key}'
-                logger.info(f'{message_base}: {json.dumps(file_record)}')
+            file_record_json = file_record_response['Items'][0]
 
-                logger.info(f'Updating record with manifest data')
-                file_record.date_modified = util.get_datetimestamp()
-                file_record.agha_study_id = agha_study_id
-                file_record.provided_checksum = provided_checksum
-                file_record.is_in_manifest = "True"
-                file_record.is_validated = "True"
+            # Check if the file eTag has appear else than this staging bucket and warn if so.
+            etag_response = dynamodb.get_item_from_pk(DYNAMODB_ETAG_TABLE_NAME, file_record_json["etag"])
+            if etag_response['Count']>1:
 
-
-            # Check if etag has exist
-            # IGNORE on the staging bucket
-            etag_response = dynamodb.grab_etag_record(file_record.etag)
-
-            if etag_response['Count']>0:
+                notification.log_and_store_message("File with the same eTag appear at multiple location", 'warning')
 
                 for each_etag_appearance in etag_response['Items']:
-                    s3_key = each_etag_appearance['s3_key']['S']
-                    bucket_name = each_etag_appearance['bucket_name']['S']
+                    s3_key = each_etag_appearance['s3_key']
+                    bucket_name = each_etag_appearance['bucket_name']
 
+                    notification.log_and_store_message(f"bucket_name: {bucket_name}, s3_key: {s3_key}", 'warning')
 
-                    message = f"File with the same ETag exist at the bucket.\n \
-                        File location - bucket_name: {bucket_name}, s3_key: {s3_key}"
-
-                    notification.MESSAGE_STORE.append(message)
-                    logger.warning(message)
+            # Create Manifest type record
+            manifest_sort_key = ''
+            manifest_record = dynamodb.ManifestFileRecord(
+                partition_key=partition_key,
+                sort_key=dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value,
+                flagship=agha.FlagShip.from_name(partition_key.split("/")[0]),
+                filename=filename,
+                filetype=agha.FileType.from_name(filename),
+                submission=data.submission_prefix,
+                date_modified=util.get_datetimestamp(),
+                provided_checksum=provided_checksum,
+                agha_study_id=agha_study_id,
+                is_in_manifest="True",
+                validation_status="PASS"
+            )
 
             # Update item at the record
-            dynamodb.write_record(DYNAMODB_STAGING_TABLE_NAME, file_record)
+            logger.info(f'Updating {DYNAMODB_STAGING_TABLE_NAME} DynamoDB table')
+            write_res = dynamodb.write_record_from_class(DYNAMODB_STAGING_TABLE_NAME, manifest_record)
+            logger.info(f'Updating {DYNAMODB_STAGING_TABLE_NAME} table response:')
+            logger.info(json.dumps(write_res))
 
-            db_record_archive = dynamodb.create_archive_record_from_db_record(
-                file_record, "CREATE or UPDATE")
-
-            dynamodb.write_record(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
+            # Updating archive record
+            logger.inffo(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} DynamoDB table')
+            archive_manifest_record = dynamodb.ArchiveManifestFileRecord.\
+                create_archive_manifest_record_from_manifest_record(manifest_record, 'CREATE')
+            write_res = dynamodb.write_record(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, archive_manifest_record)
+            logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} table response:')
+            logger.info(json.dumps(write_res))
 
 
 
@@ -180,5 +184,4 @@ def validate_event_data(event_record):
     if record_s3['bucket']['name'] != STAGING_BUCKET:
         logger.critical(f'expected {STAGING_BUCKET} bucket but got {record_s3["bucket"]["name"]}')
         raise ValueError
-
 

@@ -56,7 +56,7 @@ class FileRecordAttribute(Enum):
     def __str__(self):
         return self.value
 
-class ManifestRecordAttribute(Enum):
+class ManifestFileRecordAttribute(Enum):
     PARTITION_KEY = "partition_key"
     SORT_KEY = "sort_key"
     S3_KEY = "s3_key"
@@ -73,6 +73,13 @@ class ManifestRecordAttribute(Enum):
     def __str__(self):
         return self.value
 
+class FileRecordSortKey(Enum):
+
+    FILE_RECORD = 'TYPE:FILE'
+    MANIFEST_FILE_RECORD = 'TYPE:MANIFEST'
+
+    def __str__(self):
+        return self.value
 
 # Record Attribute for STAGING and STORE bucket
 class FileRecord:
@@ -371,7 +378,7 @@ def delete_record(table_name, records) -> dict:
     )
 
 
-def write_record(table_name, record) -> dict:
+def write_record_from_class(table_name, record) -> dict:
     dynamodb_resource = get_resource()
     dynamodb_table = dynamodb_resource.Table(table_name)
 
@@ -386,32 +393,30 @@ def batch_write_records(table_name: str, records: list()):
             batch.put_item(Item=record.__dict__)
 
 
-def grab_etag_record(table_name, etag):
+def get_item_from_pk(table_name: str, partition_key: str):
+    ddb = get_resource()
+    tbl = ddb.Table(table_name)
 
-    client = util.get_client('dynamodb')
-    response = client.query(
-        ExpressionAttributeValues={
-            ':v1': {
-                'S': f'{etag}',
-            },
-        },
-        KeyConditionExpression='etag = :v1',
-        TableName=table_name,
+    expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key)
+
+    response = tbl.query(
+        KeyConditionExpression=expr
     )
 
     return response
 
-# def get_record_from_s3_key(table_name, s3_key: str) :
-#     ddb = get_resource()
-#     tbl = ddb.Table(table_name)
-#
-#     expr = Key(FileRecordAttribute.S3_KEY.value).eq(s3_key)
-#
-#     resp = tbl.get_item(expr)
-#     if not 'Item' in resp:
-#         raise ValueError(f"No record found for \'{s3_key}\' at \'{table_name}\' table.")
-#
-#     return db_response_to_file_record(resp['Item'])
+def get_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix: str):
+    ddb = get_resource()
+    tbl = ddb.Table(table_name)
+
+    expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key) & \
+           Key(FileRecordAttribute.SORT_KEY.value).begins_with(sort_key_prefix)
+
+    response = tbl.query(
+        KeyConditionExpression=expr
+    )
+
+    return response
 
 # def db_response_to_file_record(db_dict: dict) -> BucketFileRecord:
 #     retval = BucketFileRecord(
