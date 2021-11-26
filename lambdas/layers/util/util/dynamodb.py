@@ -16,7 +16,7 @@ logger.setLevel(logging.INFO)
 DYNAMODB_RESOURCE = ''
 
 ########################################################################################################################
-# Tabel: agha-gdr-e-tag
+# Table: agha-gdr-e-tag
 
 class ETagFileRecord:
     """
@@ -39,7 +39,7 @@ class ETagFileRecord:
         return f'BUCKET:{bucket_name}:S3_KEY:{s3_key}'
 
 ########################################################################################################################
-# Tabel: agha-gdr-staging-bucket, agha-gdr-staging-bucket-archive, agha-gdr-store-bucket, agha-gdr-store-bucket-archive
+# Table: agha-gdr-staging-bucket, agha-gdr-staging-bucket-archive, agha-gdr-store-bucket, agha-gdr-store-bucket-archive
 
 # Field Attribute
 class FileRecordAttribute(Enum):
@@ -129,7 +129,7 @@ class FileRecord:
             s3_key=s3_key,
             etag=e_tag,
             filename=filename,
-            filetype=filetype,
+            filetype=filetype.get_name(),
             date_modified=date_modified,
             size_in_bytes=size_in_bytes
         )
@@ -165,7 +165,7 @@ class ArchiveFileRecord(FileRecord):
         )
         self.archive_log = archive_log
 
-    @staticmethod
+    @classmethod
     def create_archive_file_record_from_file_record(cls, file_record:FileRecord, archive_log):
         return cls(
             partition_key=file_record.partition_key,
@@ -191,7 +191,6 @@ class ManifestFileRecord:
     def __init__(self,
                 partition_key = "",
                 sort_key = "",
-                s3_key = "",
                 flagship = "",
                 filename = "",
                 filetype = "",
@@ -199,10 +198,10 @@ class ManifestFileRecord:
                 date_modified = "",
                 provided_checksum = "",
                 agha_study_id = "",
+                is_in_manifest = "",
                 validation_status = ""):
         self.partition_key = partition_key
         self.sort_key = sort_key
-        self.s3_key = s3_key
         self.flagship = flagship
         self.filename = filename
         self.filetype = filetype
@@ -210,6 +209,7 @@ class ManifestFileRecord:
         self.date_modified = date_modified
         self.provided_checksum = provided_checksum
         self.agha_study_id = agha_study_id
+        self.is_in_manifest = is_in_manifest
         self.validation_status = validation_status
 
     @classmethod
@@ -225,7 +225,6 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
     def __init__(self,
                 partition_key = "",
                 sort_key = "",
-                s3_key = "",
                 flagship = "",
                 filename = "",
                 filetype = "",
@@ -234,12 +233,12 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
                 provided_checksum = "",
                 agha_study_id = "",
                 validation_status = "",
+                is_in_manifest = "",
                 archive_log = ""
                  ):
         super().__init__(
             partition_key = partition_key,
             sort_key = sort_key,
-            s3_key = s3_key,
             flagship = flagship,
             filename = filename,
             filetype = filetype,
@@ -247,6 +246,7 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
             date_modified = date_modified,
             provided_checksum = provided_checksum,
             agha_study_id = agha_study_id,
+            is_in_manifest = is_in_manifest,
             validation_status = validation_status
         )
         self.archive_log = archive_log
@@ -256,7 +256,6 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
         return cls(
             partition_key = manifest_record.partition_key,
             sort_key = manifest_record.sort_key,
-            s3_key = manifest_record.s3_key,
             flagship = manifest_record.flagship,
             filename = manifest_record.filename,
             filetype = manifest_record.filetype,
@@ -265,6 +264,7 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
             provided_checksum = manifest_record.provided_checksum,
             agha_study_id = manifest_record.agha_study_id,
             validation_status = manifest_record.validation_status,
+            is_in_manifest = manifest_record.is_in_manifest,
             archive_log=archive_log
         )
 
@@ -276,6 +276,15 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
 # 1. FileRecord class (defined above) that also be used as staging/store bucket file record
 # 2. ResultRecord class (defined below) to hold the data output of the test. ResultRecord class may contain 2 types. \
 #       Explanation defined at the docstring class
+
+class ResultSortKeyPrefix(Enum):
+
+    FILE = "FILE"
+    STATUS = "STATUS"
+    DATA = "DATA"
+
+    def __str__(self):
+        return self.value
 
 class ResultRecord:
     """

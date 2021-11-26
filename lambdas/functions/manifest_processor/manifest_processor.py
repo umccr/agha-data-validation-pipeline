@@ -130,13 +130,12 @@ def handler(event, context):
                     notification.log_and_store_message(f"bucket_name: {bucket_name}, s3_key: {s3_key}", 'warning')
 
             # Create Manifest type record
-            manifest_sort_key = ''
             manifest_record = dynamodb.ManifestFileRecord(
                 partition_key=partition_key,
                 sort_key=dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value,
                 flagship=agha.FlagShip.from_name(partition_key.split("/")[0]),
                 filename=filename,
-                filetype=agha.FileType.from_name(filename),
+                filetype=agha.FileType.from_name(filename).get_name(),
                 submission=data.submission_prefix,
                 date_modified=util.get_datetimestamp(),
                 provided_checksum=provided_checksum,
@@ -152,10 +151,10 @@ def handler(event, context):
             logger.info(json.dumps(write_res))
 
             # Updating archive record
-            logger.inffo(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} DynamoDB table')
+            logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} DynamoDB table')
             archive_manifest_record = dynamodb.ArchiveManifestFileRecord.\
                 create_archive_manifest_record_from_manifest_record(manifest_record, 'CREATE')
-            write_res = dynamodb.write_record(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, archive_manifest_record)
+            write_res = dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, archive_manifest_record)
             logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} table response:')
             logger.info(json.dumps(write_res))
 

@@ -56,21 +56,26 @@ def handler(event, context):
     # Parse event data and get record
     validate_event_data(event)
     data = submission_data.SubmissionData(
-        bucket_name=STAGING_BUCKET,
+        bucket_name=STAGING_BUCKET
     )
 
     # Prepare submitter info
-    submitter_info = notification.SubmitterInfo()
-    submitter_info.name = event.get('name', str())
-    submitter_info.email = event.get('email_address', str())
+    notification.initialized_submitter_information(
+        name=event.get('name', str()),
+        email=event.get('email_address', str()),
+    )
 
     # Get file lists and other data. Returning and assigning to be explicit.
     # NOTE(SW): FileRecords are used so that we have single interface for record creation and job
     # submission later, and are available through data.files_accepted.
     if 'manifest_fp' in event:
+
+        notification.SUBMITTER_INFO.submission_prefix = os.path.dirname(event['manifest_fp'])
         data = handle_input_manifest(data, event, event['strict_mode'])
     elif 'filepaths' in event:
-        data = handle_input_filepaths(data)
+
+        notification.SUBMITTER_INFO.submission_prefix = os.path.dirname(event['filepaths'][0])
+        data = handle_input_filepaths(data, event)
     else:
         assert False
 
@@ -78,31 +83,25 @@ def handler(event, context):
     batch_job_data = list()
 
     for filename in data.filename_accepted:
-        
 
         # Get partition key and existing records
         partition_key = f'{data.submission_prefix}/{filename}'
 
         # Search for existing record
-        try:
-            file_record = dynamodb.get_record_from_s3_key(DYNAMODB_STAGING_TABLE_NAME, partition_key)
+        manifest_record = dynamodb.get_item_from_pk_and_sk(DYNAMODB_STAGING_TABLE_NAME, partition_key,
+                                                           dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
 
-        except ValueError as e:
-            message = f'No S3 record of \'{partition_key}\' is found. Aborting!'
+        if manifest_record['Count'] != 1:
+            message = f'No or more than one S3_key record of \'{partition_key}\' found. Aborting!'
 
-            logger.error(e)
-            logger.error(message)
-
-            notification.append_message(message)
+            notification.log_and_store_message(message, 'error')
             notification.notify_and_exit()
             return
 
         # Check to dynamodb if staging record has been validated
-        if file_record.is_validated.lower() != "True".lower():
-            message = f'No S3 record of \'{partition_key}\' is found. Aborting!'
-            logger.error(message)
-            
-            notification.append_message(message)
+        if manifest_record.validation_status.upper() != "PASS".upper():
+            message = f"Data at '{partition_key}' has not pass manifest check. Aborting!"
+            notification.log_and_store_message(message, 'error')
             notification.notify_and_exit()
         
 
@@ -110,7 +109,7 @@ def handler(event, context):
         tasks_list = batch.get_tasks_list()
 
         # Create job data
-        job_data = batch.create_job_data(partition_key, tasks_list, file_record)
+        job_data = batch.create_job_data(partition_key, tasks_list, manifest_record["submission"], data)
         batch_job_data.append(job_data)
 
     # Submit Batch jobs
@@ -177,7 +176,7 @@ def validate_event_data(event_record):
     tasks_unknown = [task for task in tasks_list if task not in batch.TASKS_AVAILABLE]
     if tasks_unknown:
         tasks_str = '\r\t'.join(tasks_unknown)
-        tasks_allow_str = '\', \''.join(batch.DEFAULT_TASKS_LIST)
+        tasks_allow_str = '\', \''.join(batch.TASKS_AVAILABLE)
         logger.critical(f'expected tasks to be one of \'{tasks_allow_str}\' but got:\t\r{tasks_str}')
         raise ValueError
 
@@ -216,7 +215,8 @@ def handle_input_manifest(data: submission_data.SubmissionData, event, strict_mo
     data.manifest_key = event['manifest_fp']
     data.submission_prefix = os.path.dirname(data.manifest_key)
     data.file_metadata = s3.get_s3_object_metadata(data.bucket_name, data.submission_prefix)
-    data.manifest_data = submission_data.retrieve_manifest_data(data)
+    data.manifest_data = submission_data.retrieve_manifest_data(bucket_name=data.bucket_name,
+                                                                manifest_key=data.manifest_key)
 
     file_list, data.files_extra = submission_data.validate_manifest(
         data,
@@ -243,6 +243,7 @@ def handle_input_filepaths(data:submission_data.SubmissionData, event):
 
     # Populate submission data from event
     data.submission_prefix = os.path.dirname(event['filepaths'][0])
+    data.output_prefix = data.submission_prefix
 
     missing_files = list()
 

@@ -1,5 +1,4 @@
 import datetime
-import http.client
 import json
 import logging
 import os
@@ -8,7 +7,7 @@ import sys
 
 
 import boto3
-import botocore.exceptions
+
 
 
 LOGGER = logging.getLogger(__name__)
@@ -137,70 +136,6 @@ def get_timestamp():
 
 def get_datestamp():
     return '{:%Y%m%d}'.format(datetime.datetime.now())
-
-
-def send_email(recipients, sender, subject_text, body_html, ses_client):
-    try:
-        response = ses_client.send_email(
-            Destination={
-                'ToAddresses': recipients,
-            },
-            Message={
-                'Subject': {
-                    'Charset': 'utf8',
-                    'Data': subject_text,
-                },
-                'Body': {
-                    'Html': {
-                        'Charset': 'utf8',
-                        'Data': body_html,
-                    }
-                }
-            },
-            Source=sender,
-        )
-    except botocore.exceptions.ClientError as e:
-        LOGGER.error(f'email failed to send: {response}')
-    else:
-        LOGGER.info(f'email sent, message ID: {response["MessageId"]}')
-
-
-def call_slack_webhook(topic, title, message, slack_host, slack_channel, slack_webhook_endpoint):
-    connection = http.client.HTTPSConnection(slack_host)
-    post_data = {
-        'channel': slack_channel,
-        'username': 'Notice from AWS',
-        'text': '*' + topic + '*',
-        'icon_emoji': ':aws_logo:',
-        'attachments': [{
-            'title': title,
-            'text': message
-        }]
-    }
-    header = {'Content-Type': 'application/json'}
-    connection.request('POST', slack_webhook_endpoint, json.dumps(post_data), header)
-    response = connection.getresponse()
-    connection.close()
-    return response.status
-
-
-def make_email_body_html(submission, submitter, messages):
-    body_html = f'''
-    <html>
-        <head></head>
-        <body>
-            <h1>{submission}</h1>
-            <p>New AGHA submission rceived from {submitter}</p>
-            <p>This is a generated message, please do not reply</p>
-            <h2>Quick validation</h2>
-            PLACEHOLDER
-        </body>
-    </html>'''
-    insert = ''
-    for msg in messages:
-        insert += f'{msg}<br>\n'
-    body_html = body_html.replace('PLACEHOLDER', insert)
-    return body_html
 
 
 def execute_command(command):

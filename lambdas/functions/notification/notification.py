@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import logging
-import re
+import http.client
 import json
+
+import botocore.exceptions
 
 import util
 
@@ -64,6 +66,9 @@ def handler(event, context):
             email_body,
             CLIENT_SES,
         )
+
+        logger.info('Email respone:')
+        logger.info(json.dumps(email_response))
     if SLACK_NOTIFY == 'yes':
         logger.info(f'Sending notification to {SLACK_CHANNEL}')
         slack_response = util.call_slack_webhook(
@@ -75,3 +80,69 @@ def handler(event, context):
             SLACK_WEBHOOK_ENDPOINT
         )
         logger.info(f'Slack call response: {slack_response}')
+
+
+
+
+def send_email(recipients, sender, subject_text, body_html, ses_client):
+    try:
+        response = ses_client.send_email(
+            Destination={
+                'ToAddresses': recipients,
+            },
+            Message={
+                'Subject': {
+                    'Charset': 'utf8',
+                    'Data': subject_text,
+                },
+                'Body': {
+                    'Html': {
+                        'Charset': 'utf8',
+                        'Data': body_html,
+                    }
+                }
+            },
+            Source=sender,
+        )
+    except botocore.exceptions.ClientError as e:
+        logger.error(f'email failed to send: {e}')
+    else:
+        logger.info(f'email sent, message ID: {response["MessageId"]}')
+
+
+def call_slack_webhook(topic, title, message, slack_host, slack_channel, slack_webhook_endpoint):
+    connection = http.client.HTTPSConnection(slack_host)
+    post_data = {
+        'channel': slack_channel,
+        'username': 'Notice from AWS',
+        'text': '*' + topic + '*',
+        'icon_emoji': ':aws_logo:',
+        'attachments': [{
+            'title': title,
+            'text': message
+        }]
+    }
+    header = {'Content-Type': 'application/json'}
+    connection.request('POST', slack_webhook_endpoint, json.dumps(post_data), header)
+    response = connection.getresponse()
+    connection.close()
+    return response.status
+
+
+def make_email_body_html(submission, submitter, messages):
+    body_html = f'''
+    <html>
+        <head></head>
+        <body>
+            <h1>{submission}</h1>
+            <p>New AGHA submission rceived from {submitter}</p>
+            <p>This is a generated message, please do not reply</p>
+            <h2>Quick validation</h2>
+            PLACEHOLDER
+        </body>
+    </html>'''
+    insert = ''
+    for msg in messages:
+        insert += f'{msg}<br>\n'
+    body_html = body_html.replace('PLACEHOLDER', insert)
+    return body_html

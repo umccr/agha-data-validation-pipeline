@@ -46,7 +46,7 @@ def send_notifications():
         Payload=json.dumps(notification_payload)
     )
 
-def initialized_submitter_information(name, email, submission_prefiex):
+def initialized_submitter_information(name="", email="", submission_prefiex=""):
     SUBMITTER_INFO.name = name
     SUBMITTER_INFO.email = email
     SUBMITTER_INFO.submission_prefix = submission_prefiex

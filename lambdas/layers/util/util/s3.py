@@ -124,6 +124,18 @@ def get_s3_object_metadata(bucket_name: str, directory_prefix: str):
 
     return results
 
+def get_object_from_bucket_name_and_s3_key(bucket_name, s3_key):
+
+    client_s3 = util.get_client('s3')
+
+    get_object_response = client_s3.get_object(
+        Bucket=bucket_name,
+        Key=s3_key,
+    )
+
+    data = get_object_response['Body'].read()
+
+    return json.loads(data)
 
 def get_s3_filename(metadata_record):
     filepath = metadata_record.get('Key')
