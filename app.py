@@ -15,9 +15,9 @@ aws_env = {
 stack_props = {
     'namespace': 'agha-gdr-batch-dynamodb',
     'bucket_name': {
-        'staging_bucket': 'agha-gdr-staging-dev',
-        'results_bucket': 'agha-gdr-results-dev',
-        'store_bucket': 'agha-gdr-store-dev'
+        'staging_bucket': 'agha-staging-dev',
+        'results_bucket': 'agha-results-dev',
+        'store_bucket': 'agha-store-dev'
     },
     'dynamodb_table': {
         "staging-bucket": 'agha-gdr-staging-bucket',
@@ -44,10 +44,11 @@ stack_props = {
         'security_group_id' : 'sg-087b969ecd89cf993',
         'container_image': '843407916570.dkr.ecr.ap-southeast-2.amazonaws.com/agha-gdr-file-validation-dev',
         's3_job_definition_name':'agha-gdr-s3-manipulation',
-        's3_container_image' : '843407916570.dkr.ecr.ap-southeast-2.amazonaws.com/agha-gdr-s3-manipulation-dev'
     }
 }
-### TODO IMPORTANT:  bucket_name, sec_group, vpc, cont_image is based on dev account NOT agha ccount
+
+
+### TODO: VERY IMPORTANT:  bucket_name, security_group, vpc, container_image is based on dev account NOT agha account
 
 
 # Initialise stack

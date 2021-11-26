@@ -169,7 +169,7 @@ class BatchStack(core.NestedStack):
             'S3BatchJobDefinition',
             job_definition_name=batch_environment['s3_job_definition_name'],
             container=batch.JobDefinitionContainer(
-                image=ecs.ContainerImage.from_registry(name=batch_environment['s3_container_image']),
+                image=ecs.ContainerImage.from_registry('public.ecr.aws/amazonlinux/amazonlinux:latest'),
                 command=['true'],
                 memory_limit_mib=1000,
                 vcpus=1,
