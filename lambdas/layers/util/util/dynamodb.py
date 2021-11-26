@@ -4,7 +4,7 @@ import boto3
 from boto3.dynamodb.conditions import Key, Attr
 
 from .s3 import S3EventRecord
-from .agha import get_flagship_from_key, get_file_type
+from .agha import FileType
 import util
 
 from typing import List
@@ -109,19 +109,19 @@ class FileRecord:
         self.size_in_bytes = size_in_bytes
 
     @classmethod
-    def create_file_record_from_s3_event(cls, s3_event):
+    def create_file_record_from_s3_record(cls, s3_record):
 
         # S3 event parsing
-        s3_key = s3_event['s3']['object']['key']
-        e_tag = s3_event['s3']['object']['eTag']
+        s3_key = s3_record.object_key
+        e_tag =s3_record.etag
         date_modified = util.get_datetimestamp()
-        size_in_bytes = s3_event['s3']['object']['size']
+        size_in_bytes = s3_record.size_in_bytes
         filename = os.path.basename(s3_key)
-        filetype = get_file_type(s3_key)
+        filetype = FileType.from_name(filename)
 
         # Additional Field
         partition_key = s3_key
-        sort_key = "TYPE:FILE"
+        sort_key = FileRecordSortKey.FILE_RECORD.value
 
         return cls(
             partition_key=partition_key,
@@ -133,6 +133,7 @@ class FileRecord:
             date_modified=date_modified,
             size_in_bytes=size_in_bytes
         )
+
 
 
 # Record for archive FileRecord
@@ -173,7 +174,7 @@ class ArchiveFileRecord(FileRecord):
             etag=file_record.etag,
             filename=file_record.filename,
             filetype=file_record.filetype,
-            date_modified=file_record.date_modified,
+            date_modified=util.get_datetimestamp(),
             size_in_bytes=file_record.size_in_bytes,
             archive_log=archive_log
         )
@@ -260,7 +261,7 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
             filename = manifest_record.filename,
             filetype = manifest_record.filetype,
             submission = manifest_record.submission,
-            date_modified = manifest_record.date_modified,
+            date_modified = util.get_datetimestamp(),
             provided_checksum = manifest_record.provided_checksum,
             agha_study_id = manifest_record.agha_study_id,
             validation_status = manifest_record.validation_status,
@@ -319,7 +320,7 @@ class ArchiveResultRecord:
         return cls(
             partition_key = result_record.partition_key,
             sort_key = result_record.sort_key,
-            date_modified = result_record.date_modified,
+            date_modified = util.get_datetimestamp(),
             value = result_record.value,
             archive_log = archive_log
         )
@@ -368,14 +369,31 @@ def get_resource():
         return DYNAMODB_RESOURCE
 
 
-def delete_record(table_name, records) -> dict:
+def delete_record_from_record_class(table_name:str, record):
+    """
+    This will delete record from dynamodb with given table_name and record class.
+    Record class MUST have 'partition_key' and 'sort_key' as their property as deletetion are based on those
+    :param table_name: DynamoDb table name
+    :param record: A class that contain 'partition_key' and 'sort_key' which will be deleted based on.
+    :return:
+    """
+
     ddb = get_resource()
     tbl = ddb.Table(table_name)
 
-    return tbl.delete_item(
-        Key=records.__dict__,
+    delete_res =  tbl.delete_item(
+        Key={
+            'partition_key':record.partition_key,
+            'sort_key':record.sort_key
+        },
         ReturnValues='ALL_OLD'
     )
+
+    if 'Attributes' in delete_res:
+        return delete_res['Attributes']
+    else:
+        return ValueError(f"partition_key: {record.partition_key}, sort_key: {record.sort_key}\
+         has not been successfully deleted from table '{table_name}'")
 
 
 def write_record_from_class(table_name, record) -> dict:

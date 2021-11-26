@@ -152,12 +152,13 @@ class LambdaStack(core.NestedStack):
             code=lambda_.Code.from_asset('lambdas/functions/manifest_processor'),
             environment={
                 # Lambda ARN
-                'FOLDER_LOCK_LAMBDA_ARN': self.folder_lock_lambda.function_arn,
                 'NOTIFICATION_LAMBDA_ARN': self.notification_lambda.function_arn,
                 # Table
                 'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
                 'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
-                'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["agha-gdr-e-tag"]
+                'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["e-tag"],
+                # Bucket
+                'STAGING_BUCKET': bucket_name['staging_bucket']
             },
             role=manifest_processor_lambda_role,
             layers=[
@@ -245,7 +246,10 @@ class LambdaStack(core.NestedStack):
                 'STORE_BUCKET': bucket_name["store_bucket"],
                 # Table
                 'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
-                'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"]
+                'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
+                'DYNAMODB_STORE_TABLE_NAME':dynamodb_table["store-bucket"],
+                'DYNAMODB_ARCHIVE_STORE_TABLE_NAME':dynamodb_table["store-bucket-archive"],
+                'DYNAMODB_ETAG_TABLE_NAME':dynamodb_table["e-tag"]
             },
             role=s3_event_recorder_lambda_role,
             layers=[
