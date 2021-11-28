@@ -148,7 +148,7 @@ def handler(event, context):
             logger.info(f'Updating {DYNAMODB_STAGING_TABLE_NAME} DynamoDB table')
             write_res = dynamodb.write_record_from_class(DYNAMODB_STAGING_TABLE_NAME, manifest_record)
             logger.info(f'Updating {DYNAMODB_STAGING_TABLE_NAME} table response:')
-            logger.info(json.dumps(write_res))
+            logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
 
             # Updating archive record
             logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} DynamoDB table')
@@ -156,7 +156,7 @@ def handler(event, context):
                 create_archive_manifest_record_from_manifest_record(manifest_record, 'CREATE')
             write_res = dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, archive_manifest_record)
             logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} table response:')
-            logger.info(json.dumps(write_res))
+            logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
 
 
 

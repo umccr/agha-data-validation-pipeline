@@ -28,9 +28,9 @@ class ETagFileRecord:
     """
 
     def __init__(self, etag='', s3_key='', bucket_name=''):
-
-        self.etag = etag
+        self.partition_key = s3_key
         self.sort_key = self.construct_etag_table_sort_key(bucket_name, s3_key)
+        self.etag = etag
         self.s3_key = s3_key
         self.bucket_name = bucket_name
 

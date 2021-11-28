@@ -71,7 +71,7 @@ def handler(event, context):
         # Create DynamoDb record
         db_record = dynamodb.FileRecord.create_file_record_from_s3_record(s3_record)
         logger.info(f"DynamoDb record has been created from s3 event:")
-        logger.info(json.dumps(db_record.__dict__))
+        logger.info(json.dumps(db_record.__dict__, cls=util.DecimalEncoder))
 
         # Construct ETag record
         etag_record = dynamodb.ETagFileRecord(
@@ -110,7 +110,7 @@ def handler(event, context):
                 # Delete from record
                 delete_item = dynamodb.delete_record_from_record_class(DYNAMODB_STAGING_TABLE_NAME, manifest_record)
                 logger.info(f'Delete the following record from {DYNAMODB_STAGING_TABLE_NAME} table')
-                logger.info(json.dumps(delete_item))
+                logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))
 
                 # Archive database
                 db_record_archive = dynamodb.ArchiveManifestFileRecord.\
@@ -120,7 +120,7 @@ def handler(event, context):
                 write_res = dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
                 dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
                 logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} table response:')
-                logger.info(json.dumps(write_res))
+                logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
 
 
 
@@ -159,7 +159,7 @@ def handler(event, context):
                 # Delete from main record
                 delete_item = dynamodb.delete_record_from_record_class(DYNAMODB_STORE_TABLE_NAME, manifest_record)
                 logger.info(f'Delete the following record from {DYNAMODB_STORE_TABLE_NAME} table')
-                logger.info(json.dumps(delete_item))
+                logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))
 
                 # Archive database
                 db_record_archive = dynamodb.ArchiveManifestFileRecord.\
@@ -169,7 +169,7 @@ def handler(event, context):
                 write_res = dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STORE_TABLE_NAME, db_record_archive)
                 dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STORE_TABLE_NAME, db_record_archive)
                 logger.info(f'Updating {DYNAMODB_ARCHIVE_STORE_TABLE_NAME} table response:')
-                logger.info(json.dumps(write_res))
+                logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
 
             else:
                 logger.warning(
@@ -242,7 +242,7 @@ def write_standard_file_record(file_record_table_name:str, archive_file_record_t
     logger.info(f'Updating records at {file_record_table_name}')
     write_res = dynamodb.write_record_from_class(file_record_table_name, file_record)
     logger.info(f'Updating {file_record_table_name} table response:')
-    logger.info(json.dumps(write_res))
+    logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
 
     # Write Archive record
     db_record_archive = dynamodb.ArchiveFileRecord.create_archive_file_record_from_file_record(
@@ -250,13 +250,13 @@ def write_standard_file_record(file_record_table_name:str, archive_file_record_t
     logger.info(f'Updating records at {archive_file_record_table_name}')
     write_res = dynamodb.write_record_from_class(archive_file_record_table_name, db_record_archive)
     logger.info(f'Updating {archive_file_record_table_name} table response:')
-    logger.info(json.dumps(write_res))
+    logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
 
     # Updating ETag record
     logger.info(f'Updating ETag file to the ETag record')
     write_res = dynamodb.write_record_from_class(etag_table_name,etag_record)
     logger.info(f'Updating {etag_table_name} table response:')
-    logger.info(json.dumps(write_res))
+    logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
 
 def delete_standard_file_record(file_record_table_name:str, archive_file_record_table_name:str,
                                etag_table_name:str, file_record:dynamodb.FileRecord,
@@ -276,7 +276,7 @@ def delete_standard_file_record(file_record_table_name:str, archive_file_record_
     logger.info(f'Updating records at {file_record_table_name}')
     delete_item = dynamodb.delete_record_from_record_class(file_record_table_name, file_record)
     logger.info(f'Delete the following record from {file_record_table_name} table')
-    logger.info(json.dumps(delete_item))
+    logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))
 
     # Archive database
     db_record_archive = dynamodb.ArchiveFileRecord.create_archive_file_record_from_file_record(
@@ -285,10 +285,10 @@ def delete_standard_file_record(file_record_table_name:str, archive_file_record_
     write_res = dynamodb.write_record_from_class(archive_file_record_table_name, db_record_archive)
     dynamodb.write_record_from_class(archive_file_record_table_name, db_record_archive)
     logger.info(f'Updating {archive_file_record_table_name} table response:')
-    logger.info(json.dumps(write_res))
+    logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
 
     # delete from etag table
     logger.info(f'Updating records at {etag_table_name}')
     delete_item = dynamodb.delete_record_from_record_class(etag_table_name, etag_record)
     logger.info(f'Delete the following record from {etag_table_name} table')
-    logger.info(json.dumps(delete_item))
+    logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))

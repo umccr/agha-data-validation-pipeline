@@ -4,7 +4,7 @@ import logging
 import os
 import subprocess
 import sys
-
+import decimal
 
 import boto3
 
@@ -147,3 +147,10 @@ def execute_command(command):
         encoding='utf-8'
     )
     return process_result
+
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return str(o)
+        return super(DecimalEncoder, self).default(o)

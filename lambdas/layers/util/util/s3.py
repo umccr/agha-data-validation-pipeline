@@ -6,7 +6,6 @@ import os
 import uuid
 
 import util
-from util import get_client
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -49,7 +48,7 @@ def parse_s3_event(s3_event: dict) -> List[S3EventRecord]:
 
     if 'Records' not in s3_event.keys():
         logger.warning("No Records in message body!")
-        logger.warning(json.dumps(s3_event))
+        logger.warning(json.dumps(s3_event, cls=util.DecimalEncoder))
         return
 
     records = s3_event['Records']
@@ -100,7 +99,7 @@ def get_s3_object_metadata(bucket_name: str, directory_prefix: str):
         ...,
     ]
     """
-    client_s3 = get_client('s3')
+    client_s3 = util.get_client('s3')
 
     results = list()
     response = client_s3.list_objects_v2(
