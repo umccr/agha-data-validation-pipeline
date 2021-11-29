@@ -3,7 +3,7 @@ import os
 import sys
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 SOURCE_PATH = os.path.join(
-    DIR_PATH, "..", "..", "..", "layers", "utils"
+    DIR_PATH, "..", "..", "..", "layers", "util"
 )
 sys.path.append(SOURCE_PATH)
 

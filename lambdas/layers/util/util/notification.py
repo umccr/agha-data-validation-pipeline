@@ -4,7 +4,6 @@ import logging
 import re
 
 import util
-
 # Logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -36,7 +35,7 @@ def send_notifications():
     notification_payload = {
         "messages": MESSAGE_STORE,
         "subject": EMAIL_SUBJECT,
-        "submitter_info": SUBMITTER_INFO.__init__
+        "submitter_info": SUBMITTER_INFO.__dict__
     }
 
     # Handle notification to another lambda
@@ -71,11 +70,7 @@ def log_and_store_message(message, level='info'):
 
 def notify_and_exit():
     if SUBMITTER_INFO:
-        send_notifications(
-            MESSAGE_STORE,
-            EMAIL_SUBJECT,
-            SUBMITTER_INFO,
-        )
+        send_notifications()
     raise Exception
 
 

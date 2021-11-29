@@ -10,8 +10,8 @@ import botocore
 import pandas as pd
 
 import util
-import notification
-import s3
+from util import notification, s3
+
 
 
 MANIFEST_REQUIRED_COLUMNS = {'filename', 'checksum', 'agha_study_id'}
@@ -76,14 +76,18 @@ def retrieve_manifest_data(bucket_name:str, manifest_key: str):
         manifest_obj = client_s3.get_object(
             Bucket=bucket_name, Key=manifest_key)
     except botocore.exceptions.ClientError as e:
-        raise ValueError(f'could not retrieve manifest data from S3:\r{e}')
+        message = f'could not retrieve manifest data from S3:\r{e}'
+        logger.error(message)
+        raise ValueError(message)
 
     try:
         manifest_str = io.BytesIO(manifest_obj['Body'].read())
         manifest_data = pd.read_csv(manifest_str, sep='\t', encoding='utf8')
         manifest_data.fillna(value='not provided', inplace=True)
     except Exception as e:
-        raise ValueError(f'could not convert manifest into DataFrame:\r{e}')
+        message = f'could not convert manifest into DataFrame:\r{e}'
+        logger.error(message)
+        raise ValueError(message)
 
     return manifest_data
 

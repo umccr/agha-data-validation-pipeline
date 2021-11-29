@@ -6,11 +6,7 @@ import os
 
 # From layers
 import util
-import util.dynamodb as dynamodb
-import util.submission_data as submission_data
-import util.notification as notification
-import util.s3 as s3
-import util.agha as agha
+from util import dynamodb, submission_data, notification, s3, agha
 
 DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 DYNAMODB_ARCHIVE_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_STAGING_TABLE_NAME')
@@ -93,7 +89,7 @@ def handler(event, context):
         data.file_metadata = s3.get_s3_object_metadata(data.bucket_name, data.submission_prefix)
 
         # Collect manifest data and then validate
-        data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_key)
+        data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_s3_key)
         file_list, data.files_extra = submission_data.validate_manifest(data)
 
         for filename in file_list:
