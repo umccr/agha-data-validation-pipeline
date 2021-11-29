@@ -113,10 +113,10 @@ def get_s3_object_metadata(bucket_name: str, directory_prefix: str):
         Prefix=directory_prefix
     )
 
-    if not (object_mdata := response.get('Contents')):
+    if not (object_metadata := response.get('Contents')):
         return False
     else:
-        results.extend(object_mdata)
+        results.extend(object_metadata)
 
     while response['IsTruncated']:
         token = response['NextContinuationToken']
@@ -125,7 +125,7 @@ def get_s3_object_metadata(bucket_name: str, directory_prefix: str):
             Prefix=directory_prefix,
             ContinuationToken=token
         )
-        results.extend(object_mdata)
+        results.extend(object_metadata)
 
     return results
 

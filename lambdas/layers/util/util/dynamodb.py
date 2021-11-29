@@ -283,7 +283,7 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
 
 
 ########################################################################################################################
-# Tabel: agha-gdr-result-bucket, agha-gdr-result-bucket-archive
+# Table: agha-gdr-result-bucket, agha-gdr-result-bucket-archive
 
 # agha-gdr-result-bucket, agha-gdr-result-bucket-archive may contain 3 type of different class
 # 1. FileRecord class (defined above) that also be used as staging/store bucket file record

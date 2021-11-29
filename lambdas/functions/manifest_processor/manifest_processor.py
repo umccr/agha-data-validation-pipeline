@@ -86,11 +86,17 @@ def handler(event, context):
         notification.set_submitter_information_from_s3_event(s3_records)
 
         # Pull file metadata from S3
+        logger.info('Grab s3 object metadata')
         data.file_metadata = s3.get_s3_object_metadata(data.bucket_name, data.submission_prefix)
+        logger.info('File metadata content:')
+        print(data.file_metadata)
 
         # Collect manifest data and then validate
+        logger.info('Retrieve manifest metadata')
         data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_s3_key)
         file_list, data.files_extra = submission_data.validate_manifest(data)
+        logger.info(f'Processing {len(file_list)} number of file_lisst, and {len(data.files_extra)} \
+                    number of files_extra')
 
         for filename in file_list:
 
@@ -99,10 +105,15 @@ def handler(event, context):
             # Variables from manifest data
             agha_study_id = submission_data.find_study_id_from_manifest_df_and_filename(data.manifest_data, filename)
             provided_checksum = submission_data.find_checksum_from_manifest_df_and_filename(data.manifest_data, filename)
+            logger.info(f"Variables extracted from manifest file for '{filename}'.")
+            logger.info(f"AGHA_STUDY_ID:{agha_study_id}, PROVIDED_CHECKSUM:{provided_checksum}")
 
             # Search if file exist at s3
+            logger.info('Getting dynamodb item from file_record partition and sort key')
             file_record_response = dynamodb.get_item_from_pk_and_sk(DYNAMODB_STAGING_TABLE_NAME, partition_key,
                                                                            dynamodb.FileRecordSortKey.FILE_RECORD.value)
+            logger.info('file_record_response')
+            logger.info(json.dumps(file_record_response, cls=util.DecimalEncoder))
 
             # If no File record found database. Warn and exit the application
             if file_record_response['Count'] == 0:
@@ -114,12 +125,15 @@ def handler(event, context):
             file_record_json = file_record_response['Items'][0]
 
             # Check if the file eTag has appear else than this staging bucket and warn if so.
+            logger.info('Check if the same Etag has exist in the database')
             etag_response = dynamodb.get_item_from_pk(DYNAMODB_ETAG_TABLE_NAME, file_record_json["etag"])
+            logger.info('eTag query response:')
+            logger.info(json.dumps(etag_response, cls=util.DecimalEncoder))
+
             if etag_response['Count']>1:
-
                 notification.log_and_store_message("File with the same eTag appear at multiple location", 'warning')
-
                 for each_etag_appearance in etag_response['Items']:
+                    # Parsing...
                     s3_key = each_etag_appearance['s3_key']
                     bucket_name = each_etag_appearance['bucket_name']
 
@@ -129,7 +143,7 @@ def handler(event, context):
             manifest_record = dynamodb.ManifestFileRecord(
                 partition_key=partition_key,
                 sort_key=dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value,
-                flagship=agha.FlagShip.from_name(partition_key.split("/")[0]),
+                flagship=agha.FlagShip.from_name(partition_key.split("/")[0]).preferred_code(),
                 filename=filename,
                 filetype=agha.FileType.from_name(filename).get_name(),
                 submission=data.submission_prefix,

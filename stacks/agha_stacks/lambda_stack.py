@@ -124,7 +124,7 @@ class LambdaStack(core.NestedStack):
         )
 
         ################################################################################
-        # File Processor Lambda
+        # Manifest Processor Lambda
 
         manifest_processor_lambda_role = iam.Role(
             self,
@@ -138,8 +138,21 @@ class LambdaStack(core.NestedStack):
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     'AmazonS3ReadOnlyAccess'),
                 iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'IAMReadOnlyAccess')
+                    'IAMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonDynamoDBFullAccess')
             ]
+        )
+
+        manifest_processor_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    'lambda:InvokeFunction'
+                ],
+                resources=[
+                    self.notification_lambda.function_arn
+                ]
+            )
         )
 
         self.manifest_processor_lambda = lambda_.Function(

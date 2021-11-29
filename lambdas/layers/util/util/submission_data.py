@@ -187,7 +187,7 @@ def validate_manifest(data:SubmissionData, strict_mode:bool=True, notify:bool=Tr
     if notify:
         notification.send_notifications()
     # NOTE(SW): returning files that are on S3 and (1) in manifest, and (2) not in manifest. This
-    # will allow flexbility in the future for any refactor if we decide to modify handling of
+    # will allow flexibility in the future for any refactor if we decide to modify handling of
     # missing files
     return files_matched_accepted, list(files_missing_from_manifest)
 

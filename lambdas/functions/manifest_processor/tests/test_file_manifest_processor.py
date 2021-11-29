@@ -60,7 +60,7 @@ def create_manifest_record_payload():
 class ManifestProcessorUnitTestCase(unittest.TestCase):
 
 
-
+    @mock.patch()
     def test_manifest_processor(self):
         event_payload = create_manifest_record_payload()
 

@@ -39,16 +39,20 @@ def send_notifications():
     }
 
     # Handle notification to another lambda
-    client_lambda.invoke(
-        FunctionName=NOTIFICATION_LAMBDA_ARN,
-        InvocationType='Event',
-        Payload=json.dumps(notification_payload)
-    )
+    try:
+        client_lambda.invoke(
+            FunctionName=NOTIFICATION_LAMBDA_ARN,
+            InvocationType='Event',
+            Payload=json.dumps(notification_payload)
+        )
+    except Exception as e:
+        logger.error(f'Something went wrong when calling notification Lambda.\n Error: {e}')
 
-def initialized_submitter_information(name="", email="", submission_prefiex=""):
+
+def initialized_submitter_information(name="", email="", submission_prefix=""):
     SUBMITTER_INFO.name = name
     SUBMITTER_INFO.email = email
-    SUBMITTER_INFO.submission_prefix = submission_prefiex
+    SUBMITTER_INFO.submission_prefix = submission_prefix
 
 def log_and_store_file_message(message_text, files):
     # Notification only gets summary message; Lambda log gets both summary and full
