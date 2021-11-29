@@ -94,6 +94,7 @@ class FileRecord:
                  partition_key = "",
                  sort_key = "",
                  s3_key = "",
+                 bucket_name="",
                  etag = "",
                  filename = "",
                  filetype = "",
@@ -102,6 +103,7 @@ class FileRecord:
         self.partition_key = partition_key
         self.sort_key = sort_key
         self.s3_key = s3_key
+        self.bucket_name = bucket_name
         self.etag = etag
         self.filename = filename
         self.filetype = filetype
@@ -112,6 +114,7 @@ class FileRecord:
     def create_file_record_from_s3_record(cls, s3_record):
 
         # S3 event parsing
+        bucket_name = s3_record.bucket_name
         s3_key = s3_record.object_key
         e_tag =s3_record.etag
         date_modified = util.get_datetimestamp()
@@ -126,6 +129,7 @@ class FileRecord:
         return cls(
             partition_key=partition_key,
             sort_key=sort_key,
+            bucket_name=bucket_name,
             s3_key=s3_key,
             etag=e_tag,
             filename=filename,
@@ -146,6 +150,7 @@ class ArchiveFileRecord(FileRecord):
     def __init__(self,
                  partition_key = "",
                  sort_key = "",
+                 bucket_name = "",
                  s3_key = "",
                  etag = "",
                  filename = "",
@@ -156,6 +161,7 @@ class ArchiveFileRecord(FileRecord):
         super().__init__(
             partition_key=partition_key,
             sort_key=sort_key,
+            bucket_name=bucket_name,
             s3_key=s3_key,
             etag= etag,
             filename= filename,
@@ -170,6 +176,7 @@ class ArchiveFileRecord(FileRecord):
         return cls(
             partition_key=file_record.partition_key,
             sort_key=file_record.sort_key,
+            bucket_name=file_record.bucket_name,
             s3_key=file_record.s3_key,
             etag=file_record.etag,
             filename=file_record.filename,
@@ -177,6 +184,12 @@ class ArchiveFileRecord(FileRecord):
             date_modified=util.get_datetimestamp(),
             size_in_bytes=file_record.size_in_bytes,
             archive_log=archive_log
+        )
+
+    @classmethod
+    def create_archive_file_record_from_json(cls, file_record_json, archive_log):
+        return cls(
+            **file_record_json, archive_log=archive_log
         )
 
 # Manifest Record

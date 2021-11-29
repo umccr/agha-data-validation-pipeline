@@ -59,8 +59,14 @@ def parse_s3_event(s3_event: dict) -> List[S3EventRecord]:
         s3 = record['s3']
         s3_bucket_name = s3['bucket']['name']
         s3_object_key = s3['object']['key']
-        s3_object_etag = s3['object']['eTag']
-        s3_object_size = s3['object']['size']
+
+        # eTag and Size is not included at object deletion event
+        try:
+            s3_object_etag = s3['object']['eTag']
+            s3_object_size = s3['object']['size']
+        except KeyError:
+            s3_object_etag = ""
+            s3_object_size = ""
 
         # Check event type
         if S3EventType.EVENT_OBJECT_CREATED.value in event_name:

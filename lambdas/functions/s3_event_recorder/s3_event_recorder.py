@@ -73,12 +73,6 @@ def handler(event, context):
         logger.info(f"DynamoDb record has been created from s3 event:")
         logger.info(json.dumps(db_record.__dict__, cls=util.DecimalEncoder))
 
-        # Construct ETag record
-        etag_record = dynamodb.ETagFileRecord(
-            etag=db_record.etag,
-            s3_key=db_record.s3_key,
-            bucket_name= s3_record.bucket_name)
-
         # Distinguish between different buckets
         if s3_record.bucket_name == STAGING_BUCKET:
 
@@ -88,8 +82,7 @@ def handler(event, context):
                 write_standard_file_record(file_record_table_name=DYNAMODB_STAGING_TABLE_NAME,
                                            archive_file_record_table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
                                            etag_table_name=DYNAMODB_ETAG_TABLE_NAME,
-                                           file_record=db_record,
-                                           etag_record=etag_record)
+                                           file_record=db_record)
 
 
             elif s3_record.event_type == s3.S3EventType.EVENT_OBJECT_REMOVED:
@@ -97,32 +90,12 @@ def handler(event, context):
                 delete_standard_file_record(file_record_table_name=DYNAMODB_STAGING_TABLE_NAME,
                                            archive_file_record_table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
                                            etag_table_name=DYNAMODB_ETAG_TABLE_NAME,
-                                           file_record=db_record,
-                                           etag_record=etag_record)
+                                           file_record=db_record)
 
                 # Delete MANIFEST file record
-                # Grab from existing record for archive record
-                manifest_json = dynamodb.get_item_from_pk_and_sk(DYNAMODB_STAGING_TABLE_NAME,
-                                                                   db_record.s3_key,
-                                                                   dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
-                manifest_record = dynamodb.ManifestFileRecord(**manifest_json)
-
-                # Delete from record
-                delete_item = dynamodb.delete_record_from_record_class(DYNAMODB_STAGING_TABLE_NAME, manifest_record)
-                logger.info(f'Delete the following record from {DYNAMODB_STAGING_TABLE_NAME} table')
-                logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))
-
-                # Archive database
-                db_record_archive = dynamodb.ArchiveManifestFileRecord.\
-                    create_archive_manifest_record_from_manifest_record(manifest_record,
-                                                                        s3.S3EventType.EVENT_OBJECT_REMOVED.value)
-                logger.info(f'Updating records at {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME}')
-                write_res = dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
-                dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, db_record_archive)
-                logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} table response:')
-                logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
-
-
+                delete_manifest_file_record(manifest_record_table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                            manifest_record_archive_table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
+                                            db_record=db_record)
 
             else:
                 logger.warning(
@@ -136,9 +109,7 @@ def handler(event, context):
                 write_standard_file_record(file_record_table_name=DYNAMODB_STORE_TABLE_NAME,
                                            archive_file_record_table_name=DYNAMODB_ARCHIVE_STORE_TABLE_NAME,
                                            etag_table_name=DYNAMODB_ETAG_TABLE_NAME,
-                                           file_record=db_record,
-                                           etag_record=etag_record)
-
+                                           file_record=db_record)
 
             elif s3_record.event_type == s3.S3EventType.EVENT_OBJECT_REMOVED:
 
@@ -146,30 +117,11 @@ def handler(event, context):
                 delete_standard_file_record(file_record_table_name=DYNAMODB_STORE_TABLE_NAME,
                                            archive_file_record_table_name=DYNAMODB_ARCHIVE_STORE_TABLE_NAME,
                                            etag_table_name=DYNAMODB_ETAG_TABLE_NAME,
-                                           file_record=db_record,
-                                           etag_record=etag_record)
+                                           file_record=db_record)
 
-                # Delete MANIFEST file record
-                # Grab from existing record for archive record
-                manifest_json = dynamodb.get_item_from_pk_and_sk(DYNAMODB_STORE_TABLE_NAME,
-                                                                   db_record.s3_key,
-                                                                   dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
-                manifest_record = dynamodb.ManifestFileRecord(**manifest_json)
-
-                # Delete from main record
-                delete_item = dynamodb.delete_record_from_record_class(DYNAMODB_STORE_TABLE_NAME, manifest_record)
-                logger.info(f'Delete the following record from {DYNAMODB_STORE_TABLE_NAME} table')
-                logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))
-
-                # Archive database
-                db_record_archive = dynamodb.ArchiveManifestFileRecord.\
-                    create_archive_manifest_record_from_manifest_record(manifest_record,
-                                                                        s3.S3EventType.EVENT_OBJECT_REMOVED.value)
-                logger.info(f'Updating records at {DYNAMODB_ARCHIVE_STORE_TABLE_NAME}')
-                write_res = dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STORE_TABLE_NAME, db_record_archive)
-                dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STORE_TABLE_NAME, db_record_archive)
-                logger.info(f'Updating {DYNAMODB_ARCHIVE_STORE_TABLE_NAME} table response:')
-                logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
+                delete_manifest_file_record(manifest_record_table_name=DYNAMODB_STORE_TABLE_NAME,
+                                            manifest_record_archive_table_name=DYNAMODB_ARCHIVE_STORE_TABLE_NAME,
+                                            db_record=db_record)
 
             else:
                 logger.warning(
@@ -182,8 +134,7 @@ def handler(event, context):
                 write_standard_file_record(file_record_table_name=DYNAMODB_STORE_TABLE_NAME,
                                            archive_file_record_table_name=DYNAMODB_ARCHIVE_STORE_TABLE_NAME,
                                            etag_table_name=DYNAMODB_ETAG_TABLE_NAME,
-                                           file_record=db_record,
-                                           etag_record=etag_record)
+                                           file_record=db_record)
 
                 # Read content for result file
                 if "__results.json" in s3_record.object_key:
@@ -226,8 +177,7 @@ def handler(event, context):
 # The following are helper function used for the handler
 
 def write_standard_file_record(file_record_table_name:str, archive_file_record_table_name:str,
-                               etag_table_name:str, file_record:dynamodb.FileRecord,
-                               etag_record:dynamodb.ETagFileRecord):
+                               etag_table_name:str, file_record:dynamodb.FileRecord):
     """
     This function is aim to remove redundancy of writing dynamodb for a file record. This include writing FileRecord,
     ArchiveFileRecord, and eTag record.
@@ -235,7 +185,6 @@ def write_standard_file_record(file_record_table_name:str, archive_file_record_t
     :param archive_file_record_table_name: The table name to write
     :param etag_table_name: The table name to write
     :param file_record: The File record class
-    :param etag_record: The eTag record class
     :return:
     """
     # Write to database
@@ -252,6 +201,13 @@ def write_standard_file_record(file_record_table_name:str, archive_file_record_t
     logger.info(f'Updating {archive_file_record_table_name} table response:')
     logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
 
+    # Construct ETag record
+    etag_record = dynamodb.ETagFileRecord(
+        etag=file_record.etag,
+        s3_key=file_record.s3_key,
+        bucket_name=file_record.bucket_name)
+
+
     # Updating ETag record
     logger.info(f'Updating ETag file to the ETag record')
     write_res = dynamodb.write_record_from_class(etag_table_name,etag_record)
@@ -259,8 +215,7 @@ def write_standard_file_record(file_record_table_name:str, archive_file_record_t
     logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
 
 def delete_standard_file_record(file_record_table_name:str, archive_file_record_table_name:str,
-                               etag_table_name:str, file_record:dynamodb.FileRecord,
-                               etag_record:dynamodb.ETagFileRecord):
+                               etag_table_name:str, file_record:dynamodb.FileRecord):
     """
     This function is aim to remove redundancy of writing dynamodb for a file record. This include writing FileRecord,
     ArchiveFileRecord, and eTag record.
@@ -272,6 +227,15 @@ def delete_standard_file_record(file_record_table_name:str, archive_file_record_
     :return:
     """
 
+    # Get existing file item to delete
+    logger.info(f'Getting item to delete at {file_record_table_name}')
+    get_item_res = dynamodb.get_item_from_pk_and_sk(
+        table_name=file_record_table_name,
+        partition_key=file_record.partition_key,
+        sort_key_prefix=file_record.sort_key)
+    logger.info(f'Get Item response:')
+    logger.info(json.dumps(get_item_res, cls=util.DecimalEncoder))
+
     # Delete FILE record
     logger.info(f'Updating records at {file_record_table_name}')
     delete_item = dynamodb.delete_record_from_record_class(file_record_table_name, file_record)
@@ -281,14 +245,58 @@ def delete_standard_file_record(file_record_table_name:str, archive_file_record_
     # Archive database
     db_record_archive = dynamodb.ArchiveFileRecord.create_archive_file_record_from_file_record(
         file_record=file_record, archive_log=s3.S3EventType.EVENT_OBJECT_REMOVED.value)
-    logger.info(f'Updating records at {archive_file_record_table_name}')
+    logger.info(f'Updating records at {archive_file_record_table_name}. Archive table:')
+    logger.info(json.dumps(db_record_archive.__dict__, cls=util.DecimalEncoder))
     write_res = dynamodb.write_record_from_class(archive_file_record_table_name, db_record_archive)
-    dynamodb.write_record_from_class(archive_file_record_table_name, db_record_archive)
     logger.info(f'Updating {archive_file_record_table_name} table response:')
     logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
 
-    # delete from etag table
-    logger.info(f'Updating records at {etag_table_name}')
-    delete_item = dynamodb.delete_record_from_record_class(etag_table_name, etag_record)
-    logger.info(f'Delete the following record from {etag_table_name} table')
-    logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))
+    if get_item_res['Count'] >0:
+        logger.info('Existing record found')
+        record_json = get_item_res['Items'][0]
+
+    if record_json:
+        logger.info('Deleting record From eTag table')
+        # Construct ETag record from deletion response
+        etag_record = dynamodb.ETagFileRecord(
+            etag=record_json["etag"],
+            s3_key=record_json["s3_key"],
+            bucket_name=record_json["bucket_name"])
+
+        # delete from etag table
+        logger.info(f'Deleting from {etag_table_name}')
+        delete_item = dynamodb.delete_record_from_record_class(etag_table_name, etag_record)
+        logger.info(f'Delete the following record from {etag_table_name} table')
+        logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))
+
+def delete_manifest_file_record(manifest_record_table_name, manifest_record_archive_table_name, db_record):
+    # Delete MANIFEST file record
+    # Grab from existing record for archive record
+    logger.info('Grab Manifest data before deletion')
+    manifest_res = dynamodb.get_item_from_pk_and_sk(manifest_record_table_name,
+                                                    db_record.partition_key,
+                                                    dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
+    logger.info(f'Get manifest record response:')
+    logger.info(json.dumps(manifest_res, cls=util.DecimalEncoder))
+
+    if manifest_res["Count"] == 1:
+        logger.info(f'Deleting {manifest_res["Count"]} number of records')
+
+        # Parsing records
+        manifest_json = manifest_res["Items"][0]
+        manifest_record = dynamodb.ManifestFileRecord(**manifest_json)
+
+        # Delete from record
+        delete_item = dynamodb.delete_record_from_record_class(manifest_record_table_name, manifest_record)
+        logger.info(f'Delete the following record from {manifest_record_table_name} table')
+        logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))
+
+        # Archive database
+        db_record_archive = dynamodb.ArchiveManifestFileRecord. \
+            create_archive_manifest_record_from_manifest_record(manifest_record,
+                                                                s3.S3EventType.EVENT_OBJECT_REMOVED.value)
+        logger.info(f'Updating records at {manifest_record_archive_table_name}')
+        write_res = dynamodb.write_record_from_class(manifest_record_archive_table_name, db_record_archive)
+        dynamodb.write_record_from_class(manifest_record_archive_table_name, db_record_archive)
+        logger.info(f'Updating {manifest_record_archive_table_name} table response:')
+        logger.info(json.dumps(write_res, cls=util.DecimalEncoder))

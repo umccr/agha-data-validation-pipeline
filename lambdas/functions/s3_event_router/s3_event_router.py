@@ -108,7 +108,7 @@ def handler(event, context):
     logger.info(f"Processing {len(manifest_records)}/{len(non_manifest_records)} manifest/non-manifest events.")
 
     # Call S3 recorder lambda for every file uplaoded
-    ser_res = call_lambda(S3_RECORDER_LAMBDA_ARN, {"Records": non_manifest_records})
+    ser_res = call_lambda(S3_RECORDER_LAMBDA_ARN, {"Records": s3_records})
     logger.info(f"S3 Event Recorder Lambda call response: {ser_res}")
 
     # call corresponding lambda functions
