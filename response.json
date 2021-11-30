@@ -1,0 +1,1 @@
+{"errorMessage": "'dict' object has no attribute 'validation_status'", "errorType": "AttributeError", "stackTrace": ["  File \"/var/task/validation_manager.py\", line 104, in handler\n    if manifest_record.validation_status.upper() != \"PASS\".upper():\n"]}

@@ -52,6 +52,8 @@ def handler(event, context):
     :param event: payload to process and run batchjob
     :param context: not used
     """
+    logger.info('Processing event at validation manager lambda:')
+    logger.info(json.dumps(event))
 
     # Parse event data and get record
     validate_event_data(event)
@@ -88,33 +90,38 @@ def handler(event, context):
         partition_key = f'{data.submission_prefix}/{filename}'
 
         # Search for existing record
-        manifest_record = dynamodb.get_item_from_pk_and_sk(DYNAMODB_STAGING_TABLE_NAME, partition_key,
-                                                           dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
+        logger.info('Grabing existing record from partition and sort key')
+        manifest_response = dynamodb.get_item_from_pk_and_sk(DYNAMODB_STAGING_TABLE_NAME, partition_key,
+                                                             dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
+        logger.info('Record Response')
+        logger.info(json.dumps(manifest_response))
 
-        if manifest_record['Count'] != 1:
+        if manifest_response['Count'] != 1:
             message = f'No or more than one S3_key record of \'{partition_key}\' found. Aborting!'
 
             notification.log_and_store_message(message, 'error')
             notification.notify_and_exit()
             return
 
+        manifest_record_json = manifest_response["Items"][0]
         # Check to dynamodb if staging record has been validated
-        if manifest_record.validation_status.upper() != "PASS".upper():
+        if manifest_record_json['validation_status'].upper() != "PASS".upper():
             message = f"Data at '{partition_key}' has not pass manifest check. Aborting!"
             notification.log_and_store_message(message, 'error')
             notification.notify_and_exit()
-        
 
         # Replace tasks with those specified by user if available
         tasks_list = batch.get_tasks_list()
 
         # Create job data
-        job_data = batch.create_job_data(partition_key, tasks_list, manifest_record["submission"], data)
+        job_data = batch.create_job_data(partition_key, 'FILE', tasks_list, data)
+
         batch_job_data.append(job_data)
 
     # Submit Batch jobs
     for job_data in batch_job_data:
         batch.submit_batch_job(job_data)
+
 
 def validate_event_data(event_record):
     # Check for unknown argments
@@ -211,7 +218,6 @@ def validate_event_data(event_record):
 
 
 def handle_input_manifest(data: submission_data.SubmissionData, event, strict_mode):
-
     data.manifest_key = event['manifest_fp']
     data.submission_prefix = os.path.dirname(data.manifest_key)
     data.file_metadata = s3.get_s3_object_metadata(data.bucket_name, data.submission_prefix)
@@ -239,8 +245,7 @@ def handle_input_manifest(data: submission_data.SubmissionData, event, strict_mo
     return data
 
 
-def handle_input_filepaths(data:submission_data.SubmissionData, event):
-
+def handle_input_filepaths(data: submission_data.SubmissionData, event):
     # Populate submission data from event
     data.submission_prefix = os.path.dirname(event['filepaths'][0])
     data.output_prefix = data.submission_prefix
@@ -249,13 +254,12 @@ def handle_input_filepaths(data:submission_data.SubmissionData, event):
 
     for filepath in event['filepaths']:
 
-        if not (file_mdata_list := s3.get_s3_object_metadata(bucket_name=STAGING_BUCKET, directory_prefix=data.submission_prefix)):
+        if not (file_mdata_list := s3.get_s3_object_metadata(bucket_name=STAGING_BUCKET,
+                                                             directory_prefix=data.submission_prefix)):
             missing_files.append(filepath)
         else:
             assert len(file_mdata_list)
             data.file_metadata.extend(file_mdata_list)
-
-        
 
     if missing_files:
         plurality = 'files' if len(missing_files) > 1 else 'file'
@@ -263,7 +267,7 @@ def handle_input_filepaths(data:submission_data.SubmissionData, event):
         message_base = f'could not find {len(missing_files)} {plurality} in \'{STAGING_BUCKET}\''
         notification.log_and_store_message(f'{message_base}:\r\t{files_str}', level='critical')
         notification.notify_and_exit()
-    
+
     data.filename_accepted = [os.path.basename(filepath) for filepath in event['filepaths']]
 
     return data

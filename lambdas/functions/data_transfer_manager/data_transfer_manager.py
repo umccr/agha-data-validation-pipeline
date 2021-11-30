@@ -6,7 +6,7 @@ import re
 import textwrap
 
 import util
-import util.batch as batch
+from util import batch, dynamodb
 
 JOB_NAME_RE = re.compile(r'[.\\/]')
 
@@ -31,17 +31,25 @@ def handler(event, context):
     :param context: not used
     """
 
+    logger.info('Processing event:')
+    logger.info(json.dumps(event))
+
+
     # Parse event data and get record
     # validate_event_data(event)
     s3_keys = event["s3_keys"]
 
-    # TODO: Check to DynamoDb if it is ok to do the migration
-    # Insert implementation here ...
 
     # Process each record and prepare Batch commands
     batch_job_data = list()
 
     for s3_key in s3_keys:
+
+        # TODO: Check to DynamoDb if it is ok to do the migration
+        # Insert implementation here ...
+        dynamodb.get_item_from_pk_and_sk()
+
+
         source_s3_uri = create_s3_uri_from_bucket_name_and_key(STAGING_BUCKET, s3_key)
         target_s3_uri = create_s3_uri_from_bucket_name_and_key(STORE_BUCKET, s3_key)
 

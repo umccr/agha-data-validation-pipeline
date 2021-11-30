@@ -195,8 +195,22 @@ class LambdaStack(core.NestedStack):
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     'AmazonS3ReadOnlyAccess'),
                 iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'IAMReadOnlyAccess')
+                    'IAMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonDynamoDBFullAccess')
             ]
+        )
+
+        validation_manager_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    'batch:SubmitJob'
+                ],
+                resources=[
+                    batch.batch_job_queue.job_queue_arn,
+                    batch.batch_job_definition.job_definition_arn,
+                ]
+            )
         )
 
         self.validation_manager_lambda = lambda_.Function(
@@ -337,6 +351,17 @@ class LambdaStack(core.NestedStack):
             ]
         )
 
+        data_transfer_manager_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    'batch:SubmitJob'
+                ],
+                resources=[
+                    batch.batch_job_queue.job_queue_arn,
+                    batch.batch_s3_job_definition.job_definition_arn,
+                ]
+            )
+        )
         self.data_transfer_manager_lambda = lambda_.Function(
             self,
             'DataTransferManagerLambda',
