@@ -10,10 +10,28 @@ s3 = boto3.client('s3')
 
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 
+BUCKET_POLICY_TEMPLATE = {
+    "Version": "2012-10-17",
+    "Statement": []
+}
+
+POLICY_STATEMENT_TEMPLATE = {
+    "Sid": "FolderLock",
+    "Effect": "Deny",
+    "Principal": "*",
+    "Action": [
+        "s3:PutObject",
+        "s3:DeleteObject"
+    ],
+    "Resource": []
+}
+
 def find_folder_lock_statement(policy: dict):
     for policy_statement in policy.get('Statement'):
         if policy_statement.get('Sid') == "FolderLock":
             return policy_statement
+
+    raise ValueError
 
 def handler(event, context):
     """
@@ -72,29 +90,45 @@ def handler(event, context):
     logger.info(f"Updating folder lock with {len(resource_arns)} resources: {resource_arns}")
     
     # Get Bucket Policy
-    get_bucket_policy_response = s3.get_bucket_policy(Bucket=STAGING_BUCKET)
-    logger.info("Received policy response:\n", get_bucket_policy_response)
+    try:
+        get_bucket_policy_response = s3.get_bucket_policy(Bucket=STAGING_BUCKET)
+        logger.info("Received policy response:\n", get_bucket_policy_response)
+        bucket_policy = json.loads(get_bucket_policy_response['Policy'])
 
-    # Load bucket policy
-    bucket_policy = json.loads(get_bucket_policy_response['Policy'])
+    except:
+        logger.warning("No Bucket policy found. Creating a brand new policy")
+        bucket_policy = BUCKET_POLICY_TEMPLATE
+
     logger.info("Existing bucket policy:")
     logger.info(json.dumps(bucket_policy))
 
     # Find Lock resource
-    folder_lock_statement = find_folder_lock_statement(bucket_policy)
-    folder_lock_resource = folder_lock_statement.get('Resource')
+    try:
+        logger.info("Grab folder lock statement")
+        folder_lock_statement = find_folder_lock_statement(bucket_policy)
 
-    # The resource could either be a list of strings or a single resource string
-    # TODO: improvements: make sure there are no duplicates and sort ARNs
+        folder_lock_resource = folder_lock_statement.get('Resource')
+        logger.info('Folder Lock statement')
+        logger.info(json.dumps(folder_lock_resource))
 
-    # Appending existing bucket policy to the new policy
-    if isinstance(folder_lock_resource, list):
-        resource_arns.extend(folder_lock_resource)
-    else:
-        resource_arns.append(folder_lock_resource)
+        # The resource could either be a list of strings or a single resource string
+        # TODO: improvements: make sure there are no duplicates and sort ARNs
 
-    # Update statement with new resource ARNs
-    folder_lock_statement['Resource'] = resource_arns
+        # Appending existing bucket policy to the new policy
+        if isinstance(folder_lock_resource, list):
+            resource_arns.extend(folder_lock_resource)
+        else:
+            resource_arns.append(folder_lock_resource)
+
+        # Update statement with new resource ARNs
+        folder_lock_statement['Resource'] = resource_arns
+
+    except ValueError:
+        logger.info("No 'FolderLock' policy is found. Creating a new statement")
+        folder_lock_statement = POLICY_STATEMENT_TEMPLATE
+        folder_lock_statement['Resource'] = resource_arns
+        bucket_policy['Statement'].append(folder_lock_statement)
+
 
     bucket_policy_json = json.dumps(bucket_policy)
     logger.info("New bucket policy:")

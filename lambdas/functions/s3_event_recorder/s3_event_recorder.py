@@ -240,7 +240,7 @@ def delete_standard_file_record(file_record_table_name:str, archive_file_record_
     logger.info(f'Updating records at {file_record_table_name}')
     delete_item = dynamodb.delete_record_from_record_class(file_record_table_name, file_record)
     logger.info(f'Delete the following record from {file_record_table_name} table')
-    logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))
+    print(delete_item)
 
     # Archive database
     db_record_archive = dynamodb.ArchiveFileRecord.create_archive_file_record_from_file_record(
@@ -255,7 +255,6 @@ def delete_standard_file_record(file_record_table_name:str, archive_file_record_
         logger.info('Existing record found')
         record_json = get_item_res['Items'][0]
 
-    if record_json:
         logger.info('Deleting record From eTag table')
         # Construct ETag record from deletion response
         etag_record = dynamodb.ETagFileRecord(
