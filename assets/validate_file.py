@@ -11,6 +11,7 @@ import sys
 
 import boto3
 import util
+from util import s3, dynamodb
 
 
 # Logging
@@ -22,7 +23,7 @@ LOG_FILE_HANDLER = util.FileHandlerNewLine(LOG_FILE_NAME)
 LOGGER.addHandler(LOG_FILE_HANDLER)
 
 # Get environment variables
-DYNAMODB_RESULT_TABLE_NAME = util.get_environment_variable('DYNAMODB_RESULT_TABLE_NAME')
+DYNAMODB_STAGING_TABLE_NAME = util.get_environment_variable('DYNAMODB_STAGING_TABLE_NAME')
 RESULTS_BUCKET = util.get_environment_variable('RESULTS_BUCKET')
 STAGING_BUCKET = util.get_environment_variable('STAGING_BUCKET')
 RESULTS_KEY_PREFIX = util.get_environment_variable('RESULTS_KEY_PREFIX')
@@ -31,7 +32,7 @@ RESULTS_KEY_PREFIX = util.get_environment_variable('RESULTS_KEY_PREFIX')
 BATCH_JOBID = util.get_environment_variable('AWS_BATCH_JOB_ID')
 
 # Get AWS clients
-RESOURCE_DYNAMODB = util.get_dynamodb_table_resource(DYNAMODB_RESULT_TABLE_NAME, region_name='ap-southeast-2')
+RESOURCE_DYNAMODB = util.get_dynamodb_table_resource(DYNAMODB_STAGING_TABLE_NAME, region_name='ap-southeast-2')
 CLIENT_S3 = util.get_client('s3')
 
 class BatchJobResult:
@@ -88,7 +89,7 @@ def main():
 
     # Parsing values
     staging_s3_key = args.partition_key
-    filename = util.get_s3_filename(staging_s3_key)
+    filename = s3.get_s3_filename_from_s3_key(staging_s3_key)
 
     # Grab dynamodb staging record
     file_record = get_record(staging_s3_key)
@@ -117,18 +118,19 @@ def main():
 
         filetype=file_validation_result.value
 
-    # Simplify index requirement check
-    if Tasks.INDEX in tasks and filetype in INDEXABLE_FILES:
-        indexing_result = run_indexing(fp_local, file_record, filetype)
-        batch_job_result_list.append(indexing_result.__dict__)
+        # Simplify index requirement check
+        if Tasks.INDEX in tasks and filetype in INDEXABLE_FILES:
+            indexing_result = run_indexing(fp_local, file_record, filetype)
+            batch_job_result_list.append(indexing_result.__dict__)
 
     # Write completed result to log and S3
     write_results_s3(batch_job_result_list, staging_s3_key)
 
 
 def get_record(partition_key):
+
     response = RESOURCE_DYNAMODB.get_item(
-        Key={'partition_key': partition_key}
+        Key={'partition_key': partition_key, 'sort_key': dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value}
     )
     if 'Item' not in response:
         msg_key_text = f'partition key {partition_key}.'
@@ -162,7 +164,7 @@ def run_checksum(fp, file_record):
 
     # Some environment
     check_type = "checksum"
-    staging_s3_key = file_record["s3_key"]
+    staging_s3_key = file_record["partition_key"]
     provided_checksum = file_record["provided_checksum"]
 
     # Execute checksum
@@ -172,7 +174,7 @@ def run_checksum(fp, file_record):
     caluclated_checksum = result.stdout.rstrip()
 
     # Create result class
-    batch_job_result = BatchJobResult(s3_key_staging=staging_s3_key, type=check_type, value=caluclated_checksum)
+    batch_job_result = BatchJobResult(staging_s3_key=staging_s3_key, type=check_type, value=caluclated_checksum)
 
     if result.returncode != 0:
         stdstrm_msg = f'\r\tstdout: {result.stdout}\r\tstderr: {result.stderr}'
@@ -205,10 +207,10 @@ def run_filetype_validation(fp, file_record) -> BatchJobResult:
 
     # Some environment
     check_type = "filetype"
-    staging_s3_key = file_record["s3_key"]
+    staging_s3_key = file_record["partition_key"]
 
     # Create result class
-    batch_job_result = BatchJobResult(s3_key_staging=staging_s3_key, type=check_type)
+    batch_job_result = BatchJobResult(staging_s3_key=staging_s3_key, type=check_type)
 
     # Get file type
     if any(fp.name.endswith(fext) for fext in util.FEXT_BAM):
@@ -259,10 +261,10 @@ def run_indexing(fp, file_record, filetype) -> BatchJobResult:
 
     # Some environment
     check_type = "index"
-    staging_s3_key = file_record["s3_key"]
+    staging_s3_key = file_record["partition_key"]
 
     # Create result class
-    batch_job_result = BatchJobResult(s3_key_staging=staging_s3_key, type=check_type)
+    batch_job_result = BatchJobResult(staging_s3_key=staging_s3_key, type=check_type)
 
     # Run appropriate indexing command
     LOGGER.info('running indexing')
@@ -300,14 +302,18 @@ def run_indexing(fp, file_record, filetype) -> BatchJobResult:
     filetype_str = f'{result_str}\r\t{filename_str}\r\t{bucket_str}\r\t{key_str}'
     LOGGER.info(f'file indexing results:\r\t{filetype_str}')
 
+    return batch_job_result
 
-def get_results_data_s3_key(file_info):
-    s3_key_fn = f'{file_info["filename"]}__results.json'
+
+def get_results_data_s3_key(s3_key):
+    filename = s3.get_s3_filename_from_s3_key(s3_key)
+    s3_key_fn = f'{filename}__results.json'
     return os.path.join(RESULTS_KEY_PREFIX, s3_key_fn)
 
 
-def get_log_s3_key(file_info):
-    s3_key_fn = f'{file_info["filename"]}__log.txt'
+def get_log_s3_key(s3_key):
+    filename = s3.get_s3_filename_from_s3_key(s3_key)
+    s3_key_fn = f'{filename}__log.txt'
     return os.path.join(RESULTS_KEY_PREFIX, s3_key_fn)
 
 

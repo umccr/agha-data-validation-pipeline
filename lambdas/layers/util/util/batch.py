@@ -15,7 +15,7 @@ BATCH_QUEUE_NAME = os.environ.get('BATCH_QUEUE_NAME')
 JOB_DEFINITION_ARN = os.environ.get('JOB_DEFINITION_ARN')
 
 # Dynamodb table name
-DYNAMODB_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_RESULT_TABLE_NAME')
+DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 
 # Bucket names
 STAGING_BUCKET =  os.environ.get('STAGING_BUCKET')
@@ -69,7 +69,7 @@ def submit_batch_job(job_data):
     environment = [
         {'name': 'RESULTS_BUCKET', 'value': RESULTS_BUCKET},
         {'name': 'STAGING_BUCKET', 'value': STAGING_BUCKET},
-        {'name': 'DYNAMODB_RESULT_TABLE_NAME', 'value': DYNAMODB_RESULT_TABLE_NAME},
+        {'name': 'DYNAMODB_STAGING_TABLE_NAME', 'value': DYNAMODB_STAGING_TABLE_NAME},
         {'name': 'RESULTS_KEY_PREFIX', 'value': job_data['output_prefix']},
     ]
     client_batch.submit_job(

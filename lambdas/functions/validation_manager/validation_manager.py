@@ -114,12 +114,17 @@ def handler(event, context):
         tasks_list = batch.get_tasks_list()
 
         # Create job data
+        logger.info(f'Creating batch job for, s3_key:{partition_key}')
         job_data = batch.create_job_data(partition_key, 'FILE', tasks_list, data)
 
         batch_job_data.append(job_data)
 
     # Submit Batch jobs
+    logger.info('Submitting job to batch')
     for job_data in batch_job_data:
+        logger.info('Job submitted')
+        logger.info(json.dumps(job_data))
+
         batch.submit_batch_job(job_data)
 
 

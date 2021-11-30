@@ -144,8 +144,11 @@ def get_object_from_bucket_name_and_s3_key(bucket_name, s3_key):
 
 def get_s3_filename(metadata_record):
     filepath = metadata_record.get('Key')
-    return os.path.basename(filepath)
+    return get_s3_filename_from_s3_key(filepath)
 
 def get_output_prefix(submission_prefix):
     output_dn = f'{util.get_datetimestamp()}_{uuid.uuid1().hex[:7]}'
     return os.path.join(submission_prefix, output_dn)
+
+def get_s3_filename_from_s3_key(filepath):
+    return os.path.basename(filepath)
