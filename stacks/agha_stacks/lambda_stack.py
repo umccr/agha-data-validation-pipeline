@@ -251,6 +251,8 @@ class LambdaStack(core.NestedStack):
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonS3ReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
                     'service-role/AWSLambdaBasicExecutionRole'),
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     'AmazonDynamoDBFullAccess')

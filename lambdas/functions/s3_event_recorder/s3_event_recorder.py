@@ -131,8 +131,8 @@ def handler(event, context):
 
             if s3_record.event_type == s3.S3EventType.EVENT_OBJECT_CREATED:
 
-                write_standard_file_record(file_record_table_name=DYNAMODB_STORE_TABLE_NAME,
-                                           archive_file_record_table_name=DYNAMODB_ARCHIVE_STORE_TABLE_NAME,
+                write_standard_file_record(file_record_table_name=DYNAMODB_RESULT_TABLE_NAME,
+                                           archive_file_record_table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
                                            etag_table_name=DYNAMODB_ETAG_TABLE_NAME,
                                            file_record=db_record)
 
@@ -151,19 +151,34 @@ def handler(event, context):
                         value = batch_result['value']
 
                         # STATUS record
-
+                        sort_key = dynamodb.ResultSortKeyPrefix.create_sort_key_with_result_prefix(
+                            data_type=dynamodb.ResultSortKeyPrefix.STATUS.value,
+                            check_type=type)
                         status_record = dynamodb.ResultRecord(partition_key=s3_key,
-                                                              sort_key=dynamodb.ResultSortKeyPrefix.STATUS.value,
+                                                              sort_key=sort_key,
                                                               date_modified=util.get_datetimestamp(),
                                                               value=status)
                         dynamodb_put_item_list.append(status_record)
+                        # Archive
+                        archive_status_record = dynamodb.ArchiveResultRecord.\
+                            create_archive_result_record_from_result_record(status_record,\
+                                                                            s3.S3EventType.EVENT_OBJECT_CREATED.value)
+                        dynamodb_put_item_list.append(archive_status_record)
 
                         # DATA record
+                        sort_key = dynamodb.ResultSortKeyPrefix.create_sort_key_with_result_prefix(
+                            data_type=dynamodb.ResultSortKeyPrefix.DATA.value,
+                            check_type=type)
                         data_record = dynamodb.ResultRecord(partition_key=s3_key,
-                                                            sort_key=dynamodb.ResultSortKeyPrefix.DATA.value,
+                                                            sort_key=sort_key,
                                                             date_modified=util.get_datetimestamp(),
                                                             value=value)
                         dynamodb_put_item_list.append(data_record)
+                        # Archive
+                        archive_data_record = dynamodb.ArchiveResultRecord.\
+                            create_archive_result_record_from_result_record(data_record,\
+                                                                            s3.S3EventType.EVENT_OBJECT_CREATED.value)
+                        dynamodb_put_item_list.append(archive_data_record)
 
                     # Write record to db
                     dynamodb.batch_write_records(DYNAMODB_RESULT_TABLE_NAME, dynamodb_put_item_list)

@@ -299,6 +299,11 @@ class ResultSortKeyPrefix(Enum):
     def __str__(self):
         return self.value
 
+    @staticmethod
+    def create_sort_key_with_result_prefix(data_type, check_type):
+        return f'{data_type}:{check_type}'
+
+
 class ResultRecord:
     """
     partition_key: Most probably the s3 of the original file

@@ -25,7 +25,8 @@ def handler(event, context):
     """
     The lambda is to invoke s3 file migration batch job
     {
-        s3_keys = []
+        submission: "13023_3432423"
+        flagship_code: "ACG"
     }
     :param event: payload to process and run batchjob
     :param context: not used
@@ -37,34 +38,36 @@ def handler(event, context):
 
     # Parse event data and get record
     # validate_event_data(event)
-    s3_keys = event["s3_keys"]
+    submission = event["submission"]
+    flagship = event["flagship_code"]
 
+    s3_key = construct_directory_from_flagship_and_submission(flagship,submission)
 
     # Process each record and prepare Batch commands
     batch_job_data = list()
 
-    for s3_key in s3_keys:
-
-        # TODO: Check to DynamoDb if it is ok to do the migration
-        # Insert implementation here ...
-        dynamodb.get_item_from_pk_and_sk()
+    # TODO: Check to DynamoDb if it is ok to do the migration
+    # Insert implementation here ...
 
 
-        source_s3_uri = create_s3_uri_from_bucket_name_and_key(STAGING_BUCKET, s3_key)
-        target_s3_uri = create_s3_uri_from_bucket_name_and_key(STORE_BUCKET, s3_key)
+    source_s3_uri = create_s3_uri_from_bucket_name_and_key(STAGING_BUCKET, s3_key)
+    target_s3_uri = create_s3_uri_from_bucket_name_and_key(STORE_BUCKET, s3_key)
 
-        batch_job_data.extend(create_mv_s3_object_batch_job(source_s3_uri, target_s3_uri))
+    batch_job_data.extend(create_mv_s3_object_batch_job(source_s3_uri, target_s3_uri))
 
     # Submit Batch jobs
     for job_data in batch_job_data:
         batch.submit_batch_job(job_data)
+
+def construct_directory_from_flagship_and_submission(flagship,submission):
+    return f'{flagship}/{submission}/'
 
 def create_s3_uri_from_bucket_name_and_key(bucket_name, s3_key):
     return f"s3://{bucket_name}/{s3_key}"
 
 def create_mv_s3_object_batch_job(source_s3_uri, target_s3_uri):
     command = textwrap.dedent(f'''
-        aws s3 mv {source_s3_uri} {target_s3_uri}
+        aws s3 mv {source_s3_uri} {target_s3_uri} --recursive
     ''')
     return command
 

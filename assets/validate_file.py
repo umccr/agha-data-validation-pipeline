@@ -90,9 +90,12 @@ def main():
     # Parsing values
     staging_s3_key = args.partition_key
     filename = s3.get_s3_filename_from_s3_key(staging_s3_key)
+    LOGGER.info(f'Grabbing filename: {filename}')
 
     # Grab dynamodb staging record
     file_record = get_record(staging_s3_key)
+    LOGGER.info('File record')
+    LOGGER.info(json.dumps(file_record))
 
     # Grab list result
     batch_job_result_list = []
@@ -110,11 +113,15 @@ def main():
     if Tasks.CHECKSUM in tasks:
         checksum_result = run_checksum(fp_local, file_record)
         batch_job_result_list.append(checksum_result.__dict__)
+        LOGGER.info('Appending results:')
+        LOGGER.info(json.dumps(batch_job_result_list))
 
     # File Validation task
     if Tasks.FILE_VALIDATE in tasks:
         file_validation_result = run_filetype_validation(fp_local, file_record)
         batch_job_result_list.append(file_validation_result.__dict__)
+        LOGGER.info('Appending results:')
+        LOGGER.info(json.dumps(batch_job_result_list))
 
         filetype=file_validation_result.value
 
@@ -122,6 +129,8 @@ def main():
         if Tasks.INDEX in tasks and filetype in INDEXABLE_FILES:
             indexing_result = run_indexing(fp_local, file_record, filetype)
             batch_job_result_list.append(indexing_result.__dict__)
+            LOGGER.info('Appending results:')
+            LOGGER.info(json.dumps(batch_job_result_list))
 
     # Write completed result to log and S3
     write_results_s3(batch_job_result_list, staging_s3_key)
@@ -155,7 +164,7 @@ def stage_file(staging_bucket, s3_key, filename):
     return output_fp
 
 
-def run_checksum(fp, file_record):
+def run_checksum(fp, file_record) -> BatchJobResult:
     """
     Expected result: A record class of BatchJobResult
     """
@@ -182,8 +191,7 @@ def run_checksum(fp, file_record):
 
         batch_job_result.status='FAIL'
 
-        write_results_s3(batch_job_result.__dict__, staging_s3_key)
-        sys.exit(1)
+        return batch_job_result
     
     # Update status result
     if caluclated_checksum == provided_checksum:
@@ -241,8 +249,7 @@ def run_filetype_validation(fp, file_record) -> BatchJobResult:
         batch_job_result.status = 'FAIL'
 
         # Write log and exit
-        write_results_s3(batch_job_result.__dict__, staging_s3_key)
-        sys.exit(1)
+        return batch_job_result
 
     else:
         # Update status
@@ -285,8 +292,7 @@ def run_indexing(fp, file_record, filetype) -> BatchJobResult:
         LOGGER.critical(f'failed to run indexing ({command}): {stdstrm_msg}')
 
         batch_job_result.status = 'FAIL'
-        write_results_s3(batch_job_result.__dict__, staging_s3_key)
-        sys.exit(1)
+        return batch_job_result
 
     # Upload index and set results
     index_s3_key = upload_index(index_fp)
