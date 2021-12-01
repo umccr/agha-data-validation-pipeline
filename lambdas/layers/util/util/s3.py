@@ -152,3 +152,11 @@ def get_output_prefix(submission_prefix):
 
 def get_s3_filename_from_s3_key(filepath):
     return os.path.basename(filepath)
+
+
+def find_folder_lock_statement(policy: dict):
+    for policy_statement in policy.get('Statement'):
+        if policy_statement.get('Sid') == "FolderLock":
+            return policy_statement
+
+    raise ValueError

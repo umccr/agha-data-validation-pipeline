@@ -349,8 +349,21 @@ class LambdaStack(core.NestedStack):
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     'AmazonS3ReadOnlyAccess'),
                 iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'IAMReadOnlyAccess')
+                    'IAMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonDynamoDBReadOnlyAccess')
             ]
+        )
+
+        data_transfer_manager_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    's3:GetBucketPolicy',
+                    's3:PutBucketPolicy',
+                    's3:DeleteBucketPolicy'
+                ],
+                resources=[f'arn:aws:s3:::{bucket_name["staging_bucket"]}']
+            )
         )
 
         data_transfer_manager_lambda_role.add_to_policy(
@@ -379,8 +392,9 @@ class LambdaStack(core.NestedStack):
                 # Buckets
                 'STORE_BUCKET':bucket_name['store_bucket'],
                 'RESULTS_BUCKET':bucket_name['results_bucket'],
-                'STAGING_BUCKET':bucket_name['staging_bucket']
-
+                'STAGING_BUCKET':bucket_name['staging_bucket'],
+                # Dynamodb
+                'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"]
             },
             role=data_transfer_manager_lambda_role,
             layers=[

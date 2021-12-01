@@ -463,59 +463,6 @@ def get_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix
 
     return response
 
-# def db_response_to_file_record(db_dict: dict) -> BucketFileRecord:
-#     retval = BucketFileRecord(
-#         s3_key=db_dict[FileRecordAttribute.S3_KEY.value],
-#         flagship=db_dict[FileRecordAttribute.FLAGSHIP.value]
-#     )
-#
-#     if FileRecordAttribute.ETAG.value in db_dict:
-#         retval.etag = db_dict[FileRecordAttribute.ETAG.value]
-#     if FileRecordAttribute.PROVIDED_CHECKSUM.value in db_dict:
-#         retval.provided_checksum = db_dict[FileRecordAttribute.PROVIDED_CHECKSUM.value]
-#     if FileRecordAttribute.IS_IN_MANIFEST.value in db_dict:
-#         retval.is_in_manifest = db_dict[FileRecordAttribute.IS_IN_MANIFEST.value]
-#     if FileRecordAttribute.AGHA_STUDY_ID.value in db_dict:
-#         retval.agha_study_id = db_dict[FileRecordAttribute.AGHA_STUDY_ID.value]
-#     if FileRecordAttribute.IS_VALIDATED.value in db_dict:
-#         retval.is_validated = db_dict[FileRecordAttribute.IS_VALIDATED.value]
-#     if FileRecordAttribute.FILENAME.value in db_dict:
-#         retval.filename = db_dict[FileRecordAttribute.FILENAME.value]
-#     if FileRecordAttribute.FILETYPE.value in db_dict:
-#         retval.filetype = db_dict[FileRecordAttribute.FILETYPE.value]
-#     if FileRecordAttribute.DATE_MODIFIED.value in db_dict:
-#         retval.date_modified = db_dict[FileRecordAttribute.DATE_MODIFIED.value]
-#     if FileRecordAttribute.SIZE_IN_BYTES.value in db_dict:
-#         retval.size_in_bytes = db_dict[FileRecordAttribute.SIZE_IN_BYTES.value]
-#
-#     return retval
-
-# def db_response_to_file_record(db_dict: dict) -> BucketFileRecord:
-#     retval = BucketFileRecord(
-#         s3_key=db_dict[FileRecordAttribute.S3_KEY.value],
-#         flagship=db_dict[FileRecordAttribute.FLAGSHIP.value]
-#     )
-#
-#     if FileRecordAttribute.ETAG.value in db_dict:
-#         retval.etag = db_dict[FileRecordAttribute.ETAG.value]
-#     if FileRecordAttribute.PROVIDED_CHECKSUM.value in db_dict:
-#         retval.provided_checksum = db_dict[FileRecordAttribute.PROVIDED_CHECKSUM.value]
-#     if FileRecordAttribute.IS_IN_MANIFEST.value in db_dict:
-#         retval.is_in_manifest = db_dict[FileRecordAttribute.IS_IN_MANIFEST.value]
-#     if FileRecordAttribute.AGHA_STUDY_ID.value in db_dict:
-#         retval.agha_study_id = db_dict[FileRecordAttribute.AGHA_STUDY_ID.value]
-#     if FileRecordAttribute.IS_VALIDATED.value in db_dict:
-#         retval.is_validated = db_dict[FileRecordAttribute.IS_VALIDATED.value]
-#     if FileRecordAttribute.FILENAME.value in db_dict:
-#         retval.filename = db_dict[FileRecordAttribute.FILENAME.value]
-#     if FileRecordAttribute.FILETYPE.value in db_dict:
-#         retval.filetype = db_dict[FileRecordAttribute.FILETYPE.value]
-#     if FileRecordAttribute.DATE_MODIFIED.value in db_dict:
-#         retval.date_modified = db_dict[FileRecordAttribute.DATE_MODIFIED.value]
-#     if FileRecordAttribute.SIZE_IN_BYTES.value in db_dict:
-#         retval.size_in_bytes = db_dict[FileRecordAttribute.SIZE_IN_BYTES.value]
-#
-#     return retval
 
 # def get_by_prefix(bucket: str, prefix: str):
 #     ddb = get_resource()
@@ -564,35 +511,3 @@ def get_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix
 
 #     return result
 
-
-# def update_store_record(record):
-#     """
-#     A store record should only be created when a validated staging record/file is transferred from the
-#     STAGING to the STORE bucket.
-#     As such we want to make sure the STORE record is updated with the metadata from the STAGING record.
-#     :param record: the STORE record to update
-#     :return: a dict containing any 'old' values that have been replaced with this update
-#     """
-#     if record.bucket != agha.STORE_BUCKET:
-#         logger.warning(f"Attempt to update non-STORE record! Skipping {record}")
-#         return
-
-#     # get the corresponding STAGING record to retrieve the (validation) metadata from
-#     # (there should always be one, unless the object keys have been changed during the STAGING -> STORE transfer)
-#     staging_record = get_record(agha.STAGING_BUCKET, record.s3key)
-
-#     # make sure the s3 object keys are the same
-#     if not staging_record:
-#         logger.warning(f"Store and Staging records don't have the same object key! Skipping {record}!")
-#         return
-
-#     # Copy the validation metadata from the staging record to the store record
-#     record.checksum_calculated = staging_record.checksum_calculated
-#     record.checksum_provided = staging_record.checksum_provided
-#     record.has_index = staging_record.has_index
-#     record.study_id = staging_record.study_id
-#     record.quick_ckeck = staging_record.quick_ckeck
-
-#     # persist the record
-#     resp = write_record(record=record)
-#     return resp
