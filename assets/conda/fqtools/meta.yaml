@@ -1,5 +1,5 @@
 {% set name = "fqtools" %}
-{% set version = "2.3" %}
+{% set version = "2.3+umccr.0.0.1" %}
 {% set md5 = "1cd84d52bb42ec5401f462aab7b0d2f9" %}
 
 package:
