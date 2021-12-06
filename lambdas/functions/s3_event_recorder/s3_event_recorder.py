@@ -142,6 +142,7 @@ def handler(event, context):
                                                       bucket_name=s3_record.bucket_name)
 
                     dynamodb_put_item_list = []
+                    dynamodb_archive_put_item_list = []
                     # Iterate and create file record accordingly
                     for batch_result in result_list:
 
@@ -163,7 +164,7 @@ def handler(event, context):
                         archive_status_record = dynamodb.ArchiveResultRecord.\
                             create_archive_result_record_from_result_record(status_record,\
                                                                             s3.S3EventType.EVENT_OBJECT_CREATED.value)
-                        dynamodb_put_item_list.append(archive_status_record)
+                        dynamodb_archive_put_item_list.append(archive_status_record)
 
                         # DATA record
                         sort_key = dynamodb.ResultSortKeyPrefix.create_sort_key_with_result_prefix(
@@ -178,10 +179,11 @@ def handler(event, context):
                         archive_data_record = dynamodb.ArchiveResultRecord.\
                             create_archive_result_record_from_result_record(data_record,\
                                                                             s3.S3EventType.EVENT_OBJECT_CREATED.value)
-                        dynamodb_put_item_list.append(archive_data_record)
+                        dynamodb_archive_put_item_list.append(archive_data_record)
 
                     # Write record to db
                     dynamodb.batch_write_records(DYNAMODB_RESULT_TABLE_NAME, dynamodb_put_item_list)
+                    dynamodb.batch_write_records(DYNAMODB_ARCHIVE_RESULT_TABLE_NAME, dynamodb_archive_put_item_list)
 
         else:
             logger.warning(f"Unsupported AGHA bucket: {s3_record.bucket_name}")

@@ -12,7 +12,7 @@ DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 DYNAMODB_ARCHIVE_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_STAGING_TABLE_NAME')
 DYNAMODB_ETAG_TABLE_NAME = os.environ.get('DYNAMODB_ETAG_TABLE_NAME')
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
-
+VALIDATION_MANAGER_LAMBDA_ARN = os.environ.get('VALIDATION_MANAGER_LAMBDA_ARN')
 
 # NOTE(SW): it seems reasonable to require some structuring of uploads in the format of
 # <FLAGSHIP>/<DATE_TS>/<FILES ...>. Outcomes on upload wrt directory structure:
@@ -22,6 +22,7 @@ STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 # Similarly, this logic could be applied to anything that might block or interfere with validation
 # jobs. e.g. prohibited file types such as CRAM
 
+AUTO_EXECUTE_VALIDATION_LAMBDA = False
 
 # Logging
 logger = logging.getLogger()
@@ -83,7 +84,7 @@ def handler(event, context):
         data = submission_data.SubmissionData.create_submission_data_object_from_s3_event(event_record)
 
         # Set submitter information
-        notification.set_submitter_information_from_s3_event(s3_records)
+        notification.set_submitter_information_from_s3_event(event_record)
 
         # Pull file metadata from S3
         logger.info('Grab s3 object metadata')
@@ -167,6 +168,34 @@ def handler(event, context):
             write_res = dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, archive_manifest_record)
             logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} table response:')
             logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
+
+
+        if AUTO_EXECUTE_VALIDATION_LAMBDA:
+            # Invoke validation manager for automation
+            client_lambda = util.get_client('lambda')
+
+            # Cosntruct payload. Expected payload
+            # {
+            #     "manifest_fp": "[S3_KEY]",
+            #     "include_fns": [
+            #         "[FILENAME]",
+            #         "[FILENAME]"
+            #     ]
+            # }
+
+            validation_payload = {
+                "manifest_fp": event_record['s3']['object']['key'],
+                "include_fns": file_list
+            }
+
+            lambda_res = client_lambda.invoke(
+                FunctionName=VALIDATION_MANAGER_LAMBDA_ARN,
+                InvocationType='Event',
+                Payload=json.dumps(validation_payload)
+            )
+            logger.info(f'Invoke lambda validation manager. Response:')
+            logger.info(json.dumps(lambda_res))
+
 
 
 

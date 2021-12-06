@@ -173,9 +173,12 @@ class ArchiveFileRecord(FileRecord):
 
     @classmethod
     def create_archive_file_record_from_file_record(cls, file_record:FileRecord, archive_log):
+
+        sort_key = file_record.sort_key + ':' + util.get_datetimestamp()
+
         return cls(
             partition_key=file_record.partition_key,
-            sort_key=file_record.sort_key,
+            sort_key=sort_key,
             bucket_name=file_record.bucket_name,
             s3_key=file_record.s3_key,
             etag=file_record.etag,
@@ -266,9 +269,12 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
 
     @classmethod
     def create_archive_manifest_record_from_manifest_record(cls, manifest_record: ManifestFileRecord, archive_log):
+
+        sort_key = manifest_record.sort_key + ':' + util.get_datetimestamp()
+
         return cls(
             partition_key = manifest_record.partition_key,
-            sort_key = manifest_record.sort_key,
+            sort_key = sort_key,
             flagship = manifest_record.flagship,
             filename = manifest_record.filename,
             filetype = manifest_record.filetype,
@@ -326,7 +332,7 @@ class ResultRecord:
         self.date_modified = date_modified
         self.value = value
 
-class ArchiveResultRecord:
+class ArchiveResultRecord(ResultRecord):
     def __init__(self,
                 partition_key = "",
                 sort_key = "",
@@ -344,9 +350,12 @@ class ArchiveResultRecord:
 
     @classmethod
     def create_archive_result_record_from_result_record(cls, result_record: ResultRecord, archive_log):
+
+        sort_key = result_record.sort_key + ':' + util.get_datetimestamp()
+
         return cls(
             partition_key = result_record.partition_key,
-            sort_key = result_record.sort_key,
+            sort_key = sort_key,
             date_modified = util.get_datetimestamp(),
             value = result_record.value,
             archive_log = archive_log
@@ -462,52 +471,3 @@ def get_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix
     )
 
     return response
-
-
-# def get_by_prefix(bucket: str, prefix: str):
-#     ddb = get_resource()
-#     tbl = ddb.Table(TABLE_NAME)
-
-#     expr = Key(DbAttribute.BUCKET.value).eq(bucket) & Key(DbAttribute.S3KEY.value).begins_with(prefix)
-
-#     response = tbl.query(
-#         KeyConditionExpression=expr
-#     )
-#     result = response['Items']
-
-#     while 'LastEvaluatedKey' in response:
-#         response = tbl.query(
-#             KeyConditionExpression=expr,
-#             ExclusiveStartKey=response['LastEvaluatedKey']
-#         )
-#         result.extend(response['Items'])
-
-#     return result
-
-
-# def get_pending_validation(bucket: str, prefix: str = None):
-#     ddb = get_resource()
-#     tbl = ddb.Table(TABLE_NAME)
-
-#     if prefix:
-#         key_expr = Key(DbAttribute.BUCKET.value).eq(bucket) & Key(DbAttribute.S3KEY.value).begins_with(prefix)
-#     else:
-#         key_expr = Key(DbAttribute.BUCKET.value).eq(bucket)
-#     filter_expr = Attr(DbAttribute.QUICK_CHECK_STATUS.value).eq("Pending")
-
-#     response = tbl.query(
-#         KeyConditionExpression=key_expr,
-#         FilterExpression=filter_expr
-#     )
-#     result = response['Items']
-
-#     while 'LastEvaluatedKey' in response:
-#         response = tbl.query(
-#             KeyConditionExpression=key_expr,
-#             FilterExpression=filter_expr,
-#             ExclusiveStartKey=response['LastEvaluatedKey']
-#         )
-#         result.extend(response['Items'])
-
-#     return result
-

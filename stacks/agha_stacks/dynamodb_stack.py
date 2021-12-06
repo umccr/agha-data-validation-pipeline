@@ -45,7 +45,7 @@ class DynamoDBStack(core.NestedStack):
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='date_modified',
+                name='sort_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,
@@ -91,7 +91,7 @@ class DynamoDBStack(core.NestedStack):
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='date_modified',
+                name='sort_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,
@@ -132,7 +132,7 @@ class DynamoDBStack(core.NestedStack):
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='date_modified',
+                name='sort_key',
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,

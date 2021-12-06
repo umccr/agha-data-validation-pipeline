@@ -124,63 +124,6 @@ class LambdaStack(core.NestedStack):
         )
 
         ################################################################################
-        # Manifest Processor Lambda
-
-        manifest_processor_lambda_role = iam.Role(
-            self,
-            'FileProcessorLambdaRole',
-            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'service-role/AWSLambdaBasicExecutionRole'),
-                iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'AmazonSSMReadOnlyAccess'),
-                iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'AmazonS3ReadOnlyAccess'),
-                iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'IAMReadOnlyAccess'),
-                iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'AmazonDynamoDBFullAccess')
-            ]
-        )
-
-        manifest_processor_lambda_role.add_to_policy(
-            iam.PolicyStatement(
-                actions=[
-                    'lambda:InvokeFunction'
-                ],
-                resources=[
-                    self.notification_lambda.function_arn
-                ]
-            )
-        )
-
-        self.manifest_processor_lambda = lambda_.Function(
-            self,
-            'FileProcessorLambda',
-            function_name=f"{namespace}_manifest_processor_lambda",
-            handler='manifest_processor.handler',
-            runtime=lambda_.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(10),
-            code=lambda_.Code.from_asset('lambdas/functions/manifest_processor'),
-            environment={
-                # Lambda ARN
-                'NOTIFICATION_LAMBDA_ARN': self.notification_lambda.function_arn,
-                # Table
-                'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
-                'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
-                'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["e-tag"],
-                # Bucket
-                'STAGING_BUCKET': bucket_name['staging_bucket']
-            },
-            role=manifest_processor_lambda_role,
-            layers=[
-                util_layer,
-                runtime_layer
-            ]
-        )
-
-        ################################################################################
         # File Validation Lambda (Trigger Batch)
 
         validation_manager_lambda_role = iam.Role(
@@ -236,6 +179,64 @@ class LambdaStack(core.NestedStack):
                 'STAGING_BUCKET':bucket_name['staging_bucket']
             },
             role=validation_manager_lambda_role,
+            layers=[
+                util_layer,
+                runtime_layer
+            ]
+        )
+
+        ################################################################################
+        # Manifest Processor Lambda
+
+        manifest_processor_lambda_role = iam.Role(
+            self,
+            'FileProcessorLambdaRole',
+            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'service-role/AWSLambdaBasicExecutionRole'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonSSMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonS3ReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'IAMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonDynamoDBFullAccess')
+            ]
+        )
+
+        manifest_processor_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    'lambda:InvokeFunction'
+                ],
+                resources=[
+                    self.notification_lambda.function_arn
+                ]
+            )
+        )
+
+        self.manifest_processor_lambda = lambda_.Function(
+            self,
+            'FileProcessorLambda',
+            function_name=f"{namespace}_manifest_processor_lambda",
+            handler='manifest_processor.handler',
+            runtime=lambda_.Runtime.PYTHON_3_8,
+            timeout=core.Duration.seconds(10),
+            code=lambda_.Code.from_asset('lambdas/functions/manifest_processor'),
+            environment={
+                # Lambda ARN
+                'NOTIFICATION_LAMBDA_ARN': self.notification_lambda.function_arn,
+                'VALIDATION_MANAGER_LAMBDA_ARN': self.validation_manager_lambda.function_arn,
+                # Table
+                'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
+                'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
+                'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["e-tag"],
+                # Bucket
+                'STAGING_BUCKET': bucket_name['staging_bucket']
+            },
+            role=manifest_processor_lambda_role,
             layers=[
                 util_layer,
                 runtime_layer

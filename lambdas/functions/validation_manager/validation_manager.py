@@ -232,6 +232,7 @@ def handle_input_manifest(data: submission_data.SubmissionData, event, strict_mo
     file_list, data.files_extra = submission_data.validate_manifest(
         data,
         strict_mode,
+        False
     )
 
     # TODO:Raise exception notify email
@@ -243,7 +244,8 @@ def handle_input_manifest(data: submission_data.SubmissionData, event, strict_mo
     )
 
     # Create file records
-    data.output_prefix = s3.get_output_prefix(data.submission_prefix)
+    # data.output_prefix = s3.get_output_prefix(data.submission_prefix)
+    data.output_prefix = data.submission_prefix
 
     data.filename_accepted = files_included
 

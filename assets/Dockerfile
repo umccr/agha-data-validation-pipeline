@@ -1,3 +1,4 @@
+
 # Build on top of Ubuntu LTS (focal)
 FROM ubuntu:20.04
 
@@ -32,7 +33,7 @@ RUN \
     --yes \
     bcftools \
     boto3 \
-    fqtools \
+    'umccr::fqtools' \
     samtools && \
   mamba clean --all --force-pkgs-dirs --yes
 

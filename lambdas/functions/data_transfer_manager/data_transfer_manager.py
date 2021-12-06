@@ -42,7 +42,7 @@ def handler(event, context):
 
     # Parse event data and get record
     if validate_event_data(event) == False:
-        return "Incorrect event format"
+        return {"StatusCode": 406, "body": "Invalid event payload"}
 
 
     submission = event["submission"]
@@ -76,7 +76,8 @@ def handler(event, context):
             if status["value"].upper() != "PASS".upper():
                 logger.error('Data has invalid check status')
                 logger.error('Aborting!')
-                return f'{status["value"]} have not pass validation'
+                return {"StatusCode": 406, "body": f"{status['value']} have not pass validation"}
+
     logger.info('Checking fail data has passed')
 
     # Unlock bucket
@@ -100,15 +101,26 @@ def handler(event, context):
 
             folder_lock_resource.remove(resource)
 
-        bucket_policy_json = json.dumps(bucket_policy)
-        logger.info("New bucket policy:")
-        logger.info(bucket_policy_json)
+            bucket_policy_json = json.dumps(bucket_policy)
+            logger.info("New bucket policy:")
+            logger.info(bucket_policy_json)
 
-        response = S3_CLIENT.put_bucket_policy(Bucket=STAGING_BUCKET, Policy=bucket_policy_json)
-        logger.info(f"BucketPolicy update response: {response}")
+            response = S3_CLIENT.put_bucket_policy(Bucket=STAGING_BUCKET, Policy=bucket_policy_json)
+            logger.info(f"BucketPolicy update response: {response}")
+        elif isinstance(folder_lock_resource, str):
+
+            logger.info(f"Only one bucket policy found. Removing it...")
+            response = S3_CLIENT.delete_bucket_policy(Bucket=STAGING_BUCKET)
+            logger.info(f"Delete bucket policy response: {response}")
+        else:
+            logger.info("Unknown bucket policy. Raising an error")
+            raise ValueError('Unkown Bucket policy')
+
 
     except Exception as e:
-        logger.warning(e)
+        logger.error(e)
+        logger.error('Aborting!')
+        return {"StatusCode": 406, "body": f"Something went wrong on lifting bucket policy.\n Error: {e}"}
 
     source_s3_uri = create_s3_uri_from_bucket_name_and_key(STAGING_BUCKET, s3_key)
     target_s3_uri = create_s3_uri_from_bucket_name_and_key(STORE_BUCKET, s3_key)

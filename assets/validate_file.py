@@ -178,6 +178,7 @@ def run_checksum(fp, file_record) -> BatchJobResult:
 
     # Execute checksum
     command = f"md5sum {fp} | cut -f1 -d' '"
+    LOGGER.info(f'Command to execute: {command}')
     result = util.execute_command(command)
 
     caluclated_checksum = result.stdout.rstrip()
@@ -235,10 +236,10 @@ def run_filetype_validation(fp, file_record) -> BatchJobResult:
         batch_job_result.status='FAIL'
         write_results_s3(batch_job_result.__dict__, staging_s3_key)
         sys.exit(1)
-    
+
     # Validate filetype
     batch_job_result.value = filetype.value
-    
+    LOGGER.info(f'Command to execute: {command}')
     result = util.execute_command(command)
     if result.returncode != 0:
 
