@@ -32,7 +32,7 @@ RUN \
     --yes \
     bcftools \
     boto3 \
-    fqtools \
+    'umccr::fqtools' \
     samtools && \
   mamba clean --all --force-pkgs-dirs --yes
 
