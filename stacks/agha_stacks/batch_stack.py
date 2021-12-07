@@ -4,10 +4,7 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_ecs as ecs,
     aws_iam as iam,
-    aws_lambda as lmbda,
-    aws_s3 as s3,
-    core,
-    aws_ssm as ssm
+    core
 )
 
 
@@ -68,10 +65,13 @@ class BatchStack(core.NestedStack):
             ]
         )
 
-        batch_security_group = ec2.SecurityGroup.from_security_group_id(
+        batch_security_group = ec2.SecurityGroup(
             self,
             'SecruityGroupOutBoundOnly',
-            batch_environment['security_group_id']
+            vpc=vpc,
+            description="Defined outbound only traffic for AGHA validation pipeline batch job",
+            allow_all_outbound=True,
+            security_group_name="AGHA validation pipeline"
         )
 
         block_device_mappings = [

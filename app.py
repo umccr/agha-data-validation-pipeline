@@ -41,14 +41,13 @@ stack_props = {
         'job_definition_name': 'agha-gdr-input-validation',
         'batch_queue_name': 'agha-gdr-job-queue',
         'vpc_id':'vpc-6ceacc0b',
-        'security_group_id' : 'sg-087b969ecd89cf993',
         'container_image': '843407916570.dkr.ecr.ap-southeast-2.amazonaws.com/agha-gdr-file-validation-dev:0.0.1',
         's3_job_definition_name':'agha-gdr-s3-manipulation',
     }
 }
 
 
-### TODO: VERY IMPORTANT:  bucket_name, security_group, vpc, container_image is based on dev account NOT agha account
+### TODO: VERY IMPORTANT:  bucket_name, vpc, container_image is based on dev account NOT agha account
 
 
 # Initialise stack
