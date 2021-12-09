@@ -128,7 +128,7 @@ def handler(event, context):
                     f"Unsupported S3 event type {s3_record.event_type} for {s3_record}")
 
         elif s3_record.bucket_name == RESULT_BUCKET:
-
+            # NOTE: Current S3 event configuration only send create object event
             if s3_record.event_type == s3.S3EventType.EVENT_OBJECT_CREATED:
 
                 write_standard_file_record(file_record_table_name=DYNAMODB_RESULT_TABLE_NAME,

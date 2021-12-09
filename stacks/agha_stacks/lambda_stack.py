@@ -1,6 +1,8 @@
 from aws_cdk import (
     aws_lambda as lambda_,
+    aws_s3_notifications as s3notification,
     aws_iam as iam,
+    aws_s3 as s3,
     core
 )
 
@@ -16,6 +18,25 @@ class LambdaStack(core.NestedStack):
         notification = self.node.try_get_context("notification")
         dynamodb_table = self.node.try_get_context("dynamodb_table")
         batch_environment = self.node.try_get_context("batch_environment")
+
+        ################################################################################
+        # S3 bucket
+        staging_bucket = s3.Bucket.from_bucket_name(
+            self,
+            "StagingBucket",
+            bucket_name = bucket_name['staging_bucket']
+        )
+        result_bucket = s3.Bucket.from_bucket_name(
+            self,
+            "ResultBucket",
+            bucket_name = bucket_name['results_bucket']
+        )
+        store_bucket = s3.Bucket.from_bucket_name(
+            self,
+            "StoreBucket",
+            bucket_name = bucket_name['store_bucket']
+        )
+
 
         ################################################################################
         # Lambda layers
@@ -290,6 +311,17 @@ class LambdaStack(core.NestedStack):
             ]
         )
 
+        # add bucket notification to lambda
+        result_bucket.add_object_created_notification(
+            s3notification.LambdaDestination(self.s3_event_recorder_lambda)
+        )
+        store_bucket.add_object_created_notification(
+            s3notification.LambdaDestination(self.s3_event_recorder_lambda)
+        )
+        store_bucket.add_object_removed_notification(
+            s3notification.LambdaDestination(self.s3_event_recorder_lambda)
+        )
+
         ################################################################################
         # S3 event router Lambda
 
@@ -332,8 +364,14 @@ class LambdaStack(core.NestedStack):
             },
             role=s3_event_router_lambda_role
         )
-        ################################################################################
-        # s3 Migration
+
+        # Bucket event emmit
+        staging_bucket.add_object_created_notification(
+            s3notification.LambdaDestination(self.s3_event_recorder_lambda)
+        )
+        staging_bucket.add_object_removed_notification(
+            s3notification.LambdaDestination(self.s3_event_recorder_lambda)
+        )
 
         ################################################################################
         # File Validation Lambda (Trigger Batch)
