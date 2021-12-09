@@ -3,7 +3,7 @@ import os
 
 from aws_cdk import core
 
-from stacks.agha_stack import AghaStack
+from stacks.codepipeline_stacks.codepipeline_stack import CodePipelineStack
 
 # Retrieve AWS details from currently active AWS profile/credentials
 aws_env = {
@@ -13,7 +13,8 @@ aws_env = {
 
 # Construct full set of properties for stack
 stack_props = {
-    'namespace': 'agha-gdr-batch-dynamodb',
+    'namespace': 'agha-gdr-validation-pipeline',
+    'aws_env': aws_env,
     'bucket_name': {
         'staging_bucket': 'agha-staging-dev',
         'results_bucket': 'agha-results-dev',
@@ -41,13 +42,22 @@ stack_props = {
         'job_definition_name': 'agha-gdr-input-validation',
         'batch_queue_name': 'agha-gdr-job-queue',
         'vpc_id':'vpc-6ceacc0b',
-        'container_image': '843407916570.dkr.ecr.ap-southeast-2.amazonaws.com/agha-gdr-file-validation-dev:0.0.1',
+        'file_validation_ecr': {
+            'name':'agha-gdr-validate-file',
+            'tag':'0.0.1'
+        },
         's3_job_definition_name':'agha-gdr-s3-manipulation',
+    },
+    'pipeline' : {
+        'artifact_bucket_name': 'agha-validation-pipeline-artifact',
+        'pipeline_name': 'agha-validation-build-pipeline',
+        'repository_name': 'agha-data-validation-pipeline',
+        'branch_name':'dev'
     }
 }
 
 
-### TODO: VERY IMPORTANT:  bucket_name, vpc, container_image is based on dev account NOT agha account
+### TODO: VERY IMPORTANT:  bucket_name, vpc, container_image, branch_name is based on dev account NOT agha account
 
 
 # Initialise stack
@@ -55,12 +65,13 @@ app = core.App(
     context=stack_props
 )
 
-AghaStack(
+CodePipelineStack(
     app,
-    stack_props['namespace'],
+    "AGHAValidationCodePipeline",
+    stack_name="agha-cdk-codepipeline",
     tags={
-        'Stack': stack_props['namespace'],
-        'Creator': f"cdk-{stack_props['namespace']}",
+        "Stack": "agha-cdk-codepipeline",
+        "Creator": "cdk-codepipeline"
     },
     env=aws_env
 )

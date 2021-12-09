@@ -2,9 +2,9 @@ from aws_cdk import (
     core
 )
 
-from .agha_stacks.dynamodb_stack import DynamoDBStack
-from .agha_stacks.lambda_stack import LambdaStack
-from .agha_stacks.batch_stack import BatchStack
+from stacks.agha_stacks.dynamodb_stack import DynamoDBStack
+from stacks.agha_stacks.lambda_stack import LambdaStack
+from stacks.agha_stacks.batch_stack import BatchStack
 
 class AghaStack(core.Stack):
 

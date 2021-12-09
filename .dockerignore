@@ -1,4 +1,0 @@
-*
-!assets/validate_file.py
-!lambdas/layers/util/*
-!assets/s3_manipulation/s3_manipulation.py

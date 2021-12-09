@@ -14,7 +14,7 @@ docker run \
   --rm \
   -v $(pwd):/foo \
   -w /foo \
-  lambci/lambda:build-python3.8 \
+  public.ecr.aws/sam/build-python3.8 \
   pip install -r requirements.txt --no-deps -t ${PKG_DIR} 1>/dev/null
 # Clean the lib directory
 rm -rf ${PKG_DIR}/*.dist-info

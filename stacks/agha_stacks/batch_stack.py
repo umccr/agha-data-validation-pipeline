@@ -4,7 +4,7 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_ecs as ecs,
     aws_iam as iam,
-    core
+    aws_ecr as ecr
 )
 
 
@@ -153,7 +153,14 @@ class BatchStack(core.NestedStack):
             'BatchJobDefinition',
             job_definition_name=batch_environment['job_definition_name'],
             container=batch.JobDefinitionContainer(
-                image=ecs.ContainerImage.from_registry(name=batch_environment['container_image']),
+                image=ecs.ContainerImage.from_ecr_repository(
+                    repository=ecr.Repository.from_repository_name(
+                        self,
+                        "FileValidationRepository",
+                        repository_name=batch_environment["file_validation_ecr"]["name"]
+                    ),
+                    tag=batch_environment["file_validation_ecr"]["tag"]
+                ),
                 command=['true'],
                 memory_limit_mib=1000,
                 vcpus=1,

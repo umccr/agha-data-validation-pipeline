@@ -19,6 +19,8 @@ setuptools.setup(
     packages=setuptools.find_packages(where="stacks"),
 
     install_requires=[
+        "aws-cdk.aws_codepipeline",
+        "aws-cdk.aws_codepipeline_actions",
         "aws-cdk.aws_batch",
         "aws-cdk.aws_dynamodb",
         "aws-cdk.aws_ec2",
@@ -31,6 +33,7 @@ setuptools.setup(
         "aws-cdk.aws_sns_subscriptions",
         "aws-cdk.aws_sqs",
         "aws-cdk.core",
+        "aws-cdk.pipelines",
         "boto3"
     ],
 
