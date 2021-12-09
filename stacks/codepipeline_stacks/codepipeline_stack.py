@@ -6,6 +6,7 @@ from aws_cdk import (
     aws_codepipeline_actions as codepipeline_actions,
     aws_codebuild as codebuild,
     aws_ecr as ecr,
+    aws_iam as iam,
     pipelines as pipelines,
 )
 from stacks.agha_stacks.agha_stack import AghaStack
@@ -112,17 +113,11 @@ class CodePipelineStack(cdk.Stack):
                     "for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d);"
                     "do /bin/bash ./build_lambda_layers.sh ${dir}; done",
 
-                    # CDK lint test
-                    "cdk synth",
-                    "mkdir ./cfnnag_output",
-                    "for template in $(find ./cdk.out -type f -maxdepth 2 -name '*.template.json');"
-                    "do cp $template ./cfnnag_output; done",
-                    "cfn_nag_scan --input-path ./cfnnag_output",
-
+                    # CDK synth
+                    "cdk synth --verbose"
                 ],
                 install_commands=[
                     "npm install -g aws-cdk",
-                    "gem install cfn-nag",
                     "pip install -r requirements.txt",
                     "docker -v"
                 ],
@@ -132,7 +127,13 @@ class CodePipelineStack(cdk.Stack):
                 build_environment=codebuild.BuildEnvironment(
                     build_image=codebuild.LinuxBuildImage.STANDARD_5_0,
                     privileged=True
-                )
+                ),
+                role_policy=[
+                    iam.PolicyStatement(
+                        actions=["ec2:Describe*", "ec2:Get*"],
+                        resources=["*"]
+                    )
+                ]
             )
         )
 
