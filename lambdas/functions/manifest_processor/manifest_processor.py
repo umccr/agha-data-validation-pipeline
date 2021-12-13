@@ -1,5 +1,4 @@
-
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 import json
 import logging
 import os
@@ -105,20 +104,20 @@ def handler(event, context):
 
             # Variables from manifest data
             agha_study_id = submission_data.find_study_id_from_manifest_df_and_filename(data.manifest_data, filename)
-            provided_checksum = submission_data.find_checksum_from_manifest_df_and_filename(data.manifest_data, filename)
+            provided_checksum = submission_data.find_checksum_from_manifest_df_and_filename(data.manifest_data,
+                                                                                            filename)
             logger.info(f"Variables extracted from manifest file for '{filename}'.")
             logger.info(f"AGHA_STUDY_ID:{agha_study_id}, PROVIDED_CHECKSUM:{provided_checksum}")
 
             # Search if file exist at s3
             logger.info('Getting dynamodb item from file_record partition and sort key')
             file_record_response = dynamodb.get_item_from_pk_and_sk(DYNAMODB_STAGING_TABLE_NAME, partition_key,
-                                                                           dynamodb.FileRecordSortKey.FILE_RECORD.value)
+                                                                    dynamodb.FileRecordSortKey.FILE_RECORD.value)
             logger.info('file_record_response')
             logger.info(json.dumps(file_record_response, cls=util.DecimalEncoder))
 
             # If no File record found database. Warn and exit the application
             if file_record_response['Count'] == 0:
-
                 notification.log_and_store_message(f"No such file found at bucket:{DYNAMODB_STAGING_TABLE_NAME}\
                  s3_key:{partition_key}", 'warning')
                 notification.notify_and_exit()
@@ -131,7 +130,7 @@ def handler(event, context):
             logger.info('eTag query response:')
             logger.info(json.dumps(etag_response, cls=util.DecimalEncoder))
 
-            if etag_response['Count']>1:
+            if etag_response['Count'] > 1:
                 notification.log_and_store_message("File with the same eTag appear at multiple location", 'warning')
                 for each_etag_appearance in etag_response['Items']:
                     # Parsing...
@@ -163,12 +162,11 @@ def handler(event, context):
 
             # Updating archive record
             logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} DynamoDB table')
-            archive_manifest_record = dynamodb.ArchiveManifestFileRecord.\
+            archive_manifest_record = dynamodb.ArchiveManifestFileRecord. \
                 create_archive_manifest_record_from_manifest_record(manifest_record, 'CREATE')
             write_res = dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, archive_manifest_record)
             logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} table response:')
             logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
-
 
         if AUTO_EXECUTE_VALIDATION_LAMBDA:
             # Invoke validation manager for automation
@@ -197,8 +195,6 @@ def handler(event, context):
             logger.info(json.dumps(lambda_res))
 
 
-
-
 def validate_event_data(event_record):
     if 's3' not in event_record:
         logger.critical('no \'s3\' entry found in record')
@@ -222,4 +218,3 @@ def validate_event_data(event_record):
     if record_s3['bucket']['name'] != STAGING_BUCKET:
         logger.critical(f'expected {STAGING_BUCKET} bucket but got {record_s3["bucket"]["name"]}')
         raise ValueError
-

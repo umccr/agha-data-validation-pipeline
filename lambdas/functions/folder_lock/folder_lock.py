@@ -26,12 +26,14 @@ POLICY_STATEMENT_TEMPLATE = {
     "Resource": []
 }
 
+
 def find_folder_lock_statement(policy: dict):
     for policy_statement in policy.get('Statement'):
         if policy_statement.get('Sid') == "FolderLock":
             return policy_statement
 
     raise ValueError
+
 
 def handler(event, context):
     """
@@ -77,18 +79,18 @@ def handler(event, context):
 
     # Loop on S3 event records
     for s3_record in s3_records:
-        
+
         # Only manipulating bucket policy of the staging bucket
         if s3_record['s3']['bucket']['name'] != STAGING_BUCKET:
             logger.warning(f"S3 record for unexpected bucket {s3_record['s3']['bucket']['name']}. Skipping.")
             continue
-        
+
         s3key: str = s3_record['s3']['object']['key']
         obj_prefix = os.path.dirname(s3key)
         resource_arns.append(f"arn:aws:s3:::{STAGING_BUCKET}/{obj_prefix}/*")
 
     logger.info(f"Updating folder lock with {len(resource_arns)} resources: {resource_arns}")
-    
+
     # Get Bucket Policy
     try:
         get_bucket_policy_response = s3.get_bucket_policy(Bucket=STAGING_BUCKET)
@@ -128,7 +130,6 @@ def handler(event, context):
         folder_lock_statement = POLICY_STATEMENT_TEMPLATE
         folder_lock_statement['Resource'] = resource_arns
         bucket_policy['Statement'].append(folder_lock_statement)
-
 
     bucket_policy_json = json.dumps(bucket_policy)
     logger.info("New bucket policy:")

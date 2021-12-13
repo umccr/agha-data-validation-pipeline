@@ -2,9 +2,7 @@
 import json
 import logging
 import os
-import re
 
-import util
 import util.dynamodb as dynamodb
 import util.submission_data as submission_data
 import util.notification as notification
@@ -144,7 +142,6 @@ def validate_event_data(event_record):
     }
     args_unknown = [arg for arg in event_record if arg not in args_known]
     if args_unknown:
-        plurality = 'arguments' if len(args_unknown) > 1 else 'argument'
         args_unknown_str = '\r\t'.join(args_unknown)
         logger.critical(f'got {len(args_unknown)} unknown arguments:\r\t{args_unknown_str}')
         raise ValueError

@@ -99,7 +99,6 @@ def handler(event, context):
             logger.warning(f"Non staging bucket event received. Received event from '{bucket}' bucket. Skipping... ")
             continue
 
-
         if s3key.endswith('manifest.txt') and 'ObjectCreated' in event_name:
             manifest_records.append(s3_record)
         else:
@@ -122,4 +121,3 @@ def handler(event, context):
         # Call validation lambda
         validation_response = call_lambda(MANIFEST_PROCESSOR_LAMBDA_ARN, {"Records": manifest_records})
         logger.info(f"Validation Lambda call response: {validation_response}")
-

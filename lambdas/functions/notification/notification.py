@@ -33,6 +33,7 @@ SLACK_WEBHOOK_ENDPOINT = util.get_ssm_parameter(
 # Other
 EMAIL_SUBJECT = '[AGHA service] Submission received'
 
+
 def handler(event, context):
     """
     Notification lambda will send notification to email/slack channel.
@@ -82,8 +83,6 @@ def handler(event, context):
         logger.info(f'Slack call response: {slack_response}')
 
 
-
-
 def send_email(recipients, sender, subject_text, body_html, ses_client):
     try:
         response = ses_client.send_email(
@@ -106,8 +105,10 @@ def send_email(recipients, sender, subject_text, body_html, ses_client):
         )
     except botocore.exceptions.ClientError as e:
         logger.error(f'email failed to send: {e}')
+        return e
     else:
         logger.info(f'email sent, message ID: {response["MessageId"]}')
+        return response
 
 
 def call_slack_webhook(topic, title, message, slack_host, slack_channel, slack_webhook_endpoint):

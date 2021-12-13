@@ -16,9 +16,9 @@ stack_props = {
     'namespace': 'agha-gdr-validation-pipeline',
     'aws_env': aws_env,
     'bucket_name': {
-        'staging_bucket': 'agha-staging-dev',
-        'results_bucket': 'agha-results-dev',
-        'store_bucket': 'agha-store-dev'
+        'staging_bucket': 'agha-gdr-staging-2.0',
+        'results_bucket': 'agha-gdr-results-2.0',
+        'store_bucket': 'agha-gdr-store-2.0'
     },
     'dynamodb_table': {
         "staging-bucket": 'agha-gdr-staging-bucket',
@@ -35,29 +35,29 @@ stack_props = {
         'email_notify': 'yes',
         'slack_host': 'hooks.slack.com',
         'slack_channel': '#agha-gdr',
-        'manager_email': 'william.intan@unimelb.edu.au', # Change email to: sarah.casauria@mcri.edu.au
+        'manager_email': 'william.intan@unimelb.edu.au', # When its done change back email to: sarah.casauria@mcri.edu.au
         'sender_email': 'services@umccr.org'
     },
-    'batch_environment' : {
-        'file_validation_job_definition_name': 'agha-gdr-input-validation',
+    'batch_environment': {
         'batch_queue_name': 'agha-gdr-job-queue',
-        'vpc_id':'vpc-6ceacc0b',
+        'vpc_id': 'vpc-36fbdf51',
         'file_validation_ecr': {
-            'name':'agha-gdr-validate-file',
-            'tag':'0.0.1'
+            'name': 'agha-gdr-validate-file',
+            'tag': '0.0.1'
         },
-        's3_job_definition_name':'agha-gdr-s3-manipulation',
+        'file_validation_job_definition_name': 'agha-gdr-input-validation',
+        's3_job_definition_name': 'agha-gdr-s3-manipulation',
     },
-    'pipeline' : {
+    'pipeline': {
         'artifact_bucket_name': 'agha-validation-pipeline-artifact',
         'pipeline_name': 'agha-validation-build-pipeline',
         'repository_name': 'agha-data-validation-pipeline',
-        'branch_name':'dev'
+        'branch_name': 'dev'
     }
 }
 
 
-### TODO: VERY IMPORTANT:  bucket_name, vpc, container_image, branch_name is based on dev account NOT agha account
+# TODO: VERY IMPORTANT:  github source branch_name and email is for dev, NOT for production
 
 
 # Initialise stack
