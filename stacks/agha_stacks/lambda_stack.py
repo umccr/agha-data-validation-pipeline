@@ -86,7 +86,7 @@ class LambdaStack(core.NestedStack):
         self.folder_lock_lambda = lambda_.Function(
             self,
             'FolderLockLambda',
-            function_name=f'{namespace}_folder_lock_lambda',
+            function_name=f'{namespace}-folder-lock',
             handler='folder_lock.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
@@ -125,7 +125,7 @@ class LambdaStack(core.NestedStack):
         self.notification_lambda = lambda_.Function(
             self,
             'NotificationLambda',
-            function_name=f"{namespace}_notification_lambda",
+            function_name=f"{namespace}-notification",
             handler='notification.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(20),
@@ -180,7 +180,7 @@ class LambdaStack(core.NestedStack):
         self.validation_manager_lambda = lambda_.Function(
             self,
             'ValidationManagerLambda',
-            function_name=f"{namespace}_validation_manager_lambda",
+            function_name=f"{namespace}-validation-manager",
             handler='validation_manager.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
@@ -241,7 +241,7 @@ class LambdaStack(core.NestedStack):
         self.manifest_processor_lambda = lambda_.Function(
             self,
             'FileProcessorLambda',
-            function_name=f"{namespace}_manifest_processor_lambda",
+            function_name=f"{namespace}-manifest-processor",
             handler='manifest_processor.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
@@ -284,7 +284,7 @@ class LambdaStack(core.NestedStack):
         self.s3_event_recorder_lambda = lambda_.Function(
             self,
             'S3EventRecorderLambda',
-            function_name=f"{namespace}_s3_event_recorder_lambda",
+            function_name=f"{namespace}-s3-event-recorder",
             handler='s3_event_recorder.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
@@ -351,7 +351,7 @@ class LambdaStack(core.NestedStack):
         self.s3_event_router_lambda = lambda_.Function(
             self,
             'S3EventRouterLambda',
-            function_name=f"{namespace}_s3_event_router_lambda",
+            function_name=f"{namespace}-s3-event-router",
             handler='s3_event_router.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(20),
@@ -390,7 +390,7 @@ class LambdaStack(core.NestedStack):
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     'IAMReadOnlyAccess'),
                 iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'AmazonDynamoDBReadOnlyAccess')
+                    'AmazonDynamoDBFullAccess')
             ]
         )
 
@@ -419,7 +419,7 @@ class LambdaStack(core.NestedStack):
         self.data_transfer_manager_lambda = lambda_.Function(
             self,
             'DataTransferManagerLambda',
-            function_name=f"{namespace}_data_transfer_manager_lambda",
+            function_name=f"{namespace}-data-transfer-manager",
             handler='data_transfer_manager.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(10),
@@ -433,7 +433,11 @@ class LambdaStack(core.NestedStack):
                 'RESULTS_BUCKET':bucket_name['results_bucket'],
                 'STAGING_BUCKET':bucket_name['staging_bucket'],
                 # Dynamodb
-                'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"]
+                'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
+                'DYNAMODB_STORE_TABLE_NAME': dynamodb_table["store-bucket"],
+                'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
+                'DYNAMODB_STORE_ARCHIVE_TABLE_NAME': dynamodb_table["store-bucket-archive"]
+
             },
             role=data_transfer_manager_lambda_role,
             layers=[

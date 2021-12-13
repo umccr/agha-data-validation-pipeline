@@ -35,11 +35,11 @@ stack_props = {
         'email_notify': 'yes',
         'slack_host': 'hooks.slack.com',
         'slack_channel': '#agha-gdr',
-        'manager_email': 'sarah.casauria@mcri.edu.au',
+        'manager_email': 'william.intan@unimelb.edu.au', # Change email to: sarah.casauria@mcri.edu.au
         'sender_email': 'services@umccr.org'
     },
     'batch_environment' : {
-        'job_definition_name': 'agha-gdr-input-validation',
+        'file_validation_job_definition_name': 'agha-gdr-input-validation',
         'batch_queue_name': 'agha-gdr-job-queue',
         'vpc_id':'vpc-6ceacc0b',
         'file_validation_ecr': {

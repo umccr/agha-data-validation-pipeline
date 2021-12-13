@@ -446,6 +446,18 @@ def batch_write_records(table_name: str, records: list()):
         for record in records:
             batch.put_item(Item=record.__dict__)
 
+def batch_write_objects(table_name: str, object_list: list()):
+    tbl = get_resource().Table(table_name)
+    with tbl.batch_writer() as batch:
+        for object in object_list:
+            batch.put_item(Item=object)
+
+def batch_write_objects_archive(table_name: str, object_list: list(), archive_log: str):
+    tbl = get_resource().Table(table_name)
+    with tbl.batch_writer() as batch:
+        for object in object_list:
+            object["archive_log"] = archive_log
+            batch.put_item(Item=object)
 
 def get_item_from_pk(table_name: str, partition_key: str):
     ddb = get_resource()

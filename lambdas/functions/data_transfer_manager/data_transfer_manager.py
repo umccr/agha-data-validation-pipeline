@@ -3,12 +3,11 @@ import json
 import logging
 import os
 import re
-import textwrap
 import uuid
 import boto3
 
 import util
-from util import batch, dynamodb, s3
+from util import dynamodb, s3
 
 JOB_NAME_RE = re.compile(r'[.\\/]')
 
@@ -18,7 +17,9 @@ STORE_BUCKET = os.environ.get('STORE_BUCKET')
 BATCH_QUEUE_NAME = os.environ.get('BATCH_QUEUE_NAME')
 S3_JOB_DEFINITION_ARN = os.environ.get('S3_JOB_DEFINITION_ARN')
 DYNAMODB_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_RESULT_TABLE_NAME')
-
+DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
+DYNAMODB_STORE_TABLE_NAME = os.environ.get('DYNAMODB_STORE_TABLE_NAME')
+DYNAMODB_STORE_ARCHIVE_TABLE_NAME = os.environ.get('DYNAMODB_STORE_ARCHIVE_TABLE_NAME')
 # Logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -41,9 +42,8 @@ def handler(event, context):
     logger.info(json.dumps(event))
 
     # Parse event data and get record
-    if validate_event_data(event) == False:
+    if not validate_event_data(event):
         return {"StatusCode": 406, "body": "Invalid event payload"}
-
 
     submission = event["submission"]
     flagship = event["flagship_code"]
@@ -56,12 +56,12 @@ def handler(event, context):
 
     # Get object list'
     logger.info('Check if data is have passed checks before moving')
-    object_list = s3.get_s3_object_metadata(bucket_name=STAGING_BUCKET,directory_prefix=s3_key)
+    object_list = s3.get_s3_object_metadata(bucket_name=STAGING_BUCKET, directory_prefix=s3_key)
     logger.info('Object list response:')
     print(object_list)
 
-    for object in object_list:
-        key = object['Key']
+    for object_ in object_list:
+        key = object_['Key']
         logger.info(f'Get status for {key} metadata')
         status_response = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_RESULT_TABLE_NAME,
                                                            partition_key=key,
@@ -114,13 +114,40 @@ def handler(event, context):
             logger.info(f"Delete bucket policy response: {response}")
         else:
             logger.info("Unknown bucket policy. Raising an error")
-            raise ValueError('Unkown Bucket policy')
-
+            raise ValueError('Unknown Bucket policy')
 
     except Exception as e:
         logger.error(e)
         logger.error('Aborting!')
         return {"StatusCode": 406, "body": f"Something went wrong on lifting bucket policy.\n Error: {e}"}
+
+    # Migrating manifest record table from staging to store
+    try:
+        for object_ in object_list:
+            key = object_['Key']
+            logger.info(f'Get status for {key} metadata')
+            manifest_response = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                                 partition_key=key,
+                                                                 sort_key_prefix=dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
+            logger.info(f'Metadata response {manifest_response}:')
+            logger.info(json.dumps(manifest_response))
+
+            manifest_file_list = manifest_response['Items']
+            logger.info(f'Moving manifest file list:')
+            print(manifest_file_list)
+            res_write_obj = dynamodb.batch_write_objects(DYNAMODB_STORE_TABLE_NAME, manifest_file_list)
+            logger.info('Write manifest record')
+            print(res_write_obj)
+
+            res_write_archive_obj = dynamodb.batch_write_objects_archive(DYNAMODB_STORE_ARCHIVE_TABLE_NAME, manifest_file_list, "ObjectCreated")
+            logger.info('Archive write manifest response')
+            print(res_write_archive_obj)
+
+    except Exception as e:
+        logger.error(e)
+        logger.error('Aborting!')
+        return {"StatusCode": 406, "body": f"Something went wrong on moving manifest records from staging to store.\n"
+                                           f",Error: {e}"}
 
     source_s3_uri = create_s3_uri_from_bucket_name_and_key(STAGING_BUCKET, s3_key)
     target_s3_uri = create_s3_uri_from_bucket_name_and_key(STORE_BUCKET, s3_key)
@@ -147,6 +174,7 @@ def construct_directory_from_flagship_and_submission(flagship, submission):
 
 def create_s3_uri_from_bucket_name_and_key(bucket_name, s3_key):
     return f"s3://{bucket_name}/{s3_key}"
+
 
 def create_mv_s3_object_batch_job(source_s3_uri, target_s3_uri, name):
     name_raw = f'agha_data_transfer_{name}'
@@ -184,11 +212,12 @@ def validate_event_data(event_record):
         'flagship_code',
     }
 
-    for arg  in args_known:
+    for arg in args_known:
         if arg not in event_record:
             logger.error(f'must contain {arg} of the payload')
             return False
     return True
+
 
 def construct_resource_from_s3_key_and_bucket(bucket_name, s3_key):
     return f'arn:aws:s3:::{bucket_name}/{s3_key}*'

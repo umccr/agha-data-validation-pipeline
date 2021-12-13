@@ -151,7 +151,7 @@ class BatchStack(core.NestedStack):
         self.batch_job_definition = batch.JobDefinition(
             self,
             'BatchJobDefinition',
-            job_definition_name=batch_environment['job_definition_name'],
+            job_definition_name=batch_environment['file_validation_job_definition_name'],
             container=batch.JobDefinitionContainer(
                 image=ecs.ContainerImage.from_ecr_repository(
                     repository=ecr.Repository.from_repository_name(

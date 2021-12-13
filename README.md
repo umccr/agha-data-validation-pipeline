@@ -79,7 +79,7 @@ We currently assume that all input data is in the staging bucket, and output dat
 #### Invoke: manifest path
 ```bash
 aws lambda invoke \
-    --function-name agha-validation_file_processor_lambda \
+    --function-name agha-gdr-validation-pipeline_validation_manager_lambda \
     --cli-binary-format raw-in-base64-out \
     --payload '{
       "manifest_fp": "cardiac/20210711_170230/manifest.txt",
@@ -96,7 +96,7 @@ aws lambda invoke \
 #### Invoke: file paths
 ```bash
 aws lambda invoke \
-    --function-name agha-validation_file_processor_lambda \
+    --function-name agha-gdr-validation-pipeline_validation_manager_lambda \
     --cli-binary-format raw-in-base64-out \
     --payload '{
       "filepaths": [
@@ -130,10 +130,10 @@ bucket to store bucket.
 
 ```bash
 aws lambda invoke \
-    --function-name agha-validation_file_processor_lambda \
+    --function-name agha-gdr-validation-pipeline_data_transfer_manager_lambda \
     --cli-binary-format raw-in-base64-out \
     --payload '{
-        submission: "13023_3432423"
+        submission: "13023_3432423",
         flagship_code: "ACG"
     }' \
     response.json
