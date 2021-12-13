@@ -367,10 +367,10 @@ class LambdaStack(core.NestedStack):
 
         # Bucket event emmit
         staging_bucket.add_object_created_notification(
-            s3notification.LambdaDestination(self.s3_event_recorder_lambda)
+            s3notification.LambdaDestination(self.s3_event_router_lambda)
         )
         staging_bucket.add_object_removed_notification(
-            s3notification.LambdaDestination(self.s3_event_recorder_lambda)
+            s3notification.LambdaDestination(self.s3_event_router_lambda)
         )
 
         ################################################################################
