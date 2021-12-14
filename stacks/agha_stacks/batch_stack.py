@@ -16,9 +16,6 @@ class BatchStack(core.NestedStack):
         # Batch properties
         batch_environment = self.node.try_get_context("batch_environment")
 
-        # TODO: Put VPC and security group as part of the stack
-
-
         ################################################################################
         # Batch
 
@@ -53,7 +50,7 @@ class BatchStack(core.NestedStack):
             self,
             'BatchInstanceProfile',
             roles=[batch_instance_role.role_name],
-            instance_profile_name='agha-batch-instance-profile',
+            instance_profile_name='agha-batch-instance-profile-2.0',
         )
 
         batch_spot_fleet_role = iam.Role(
@@ -88,7 +85,7 @@ class BatchStack(core.NestedStack):
         batch_launch_template = ec2.CfnLaunchTemplate(
             self,
             'BatchLaunchTemplate',
-            launch_template_name='agha-launch-template',
+            launch_template_name='agha-validation-launch-template',
             launch_template_data=ec2.CfnLaunchTemplate.LaunchTemplateDataProperty(
                 block_device_mappings=block_device_mappings,
             ),
@@ -121,7 +118,7 @@ class BatchStack(core.NestedStack):
         batch_compute_environment = batch.ComputeEnvironment(
             self,
             'BatchComputeEnvironment',
-            compute_environment_name='agha-file-validation-compute-environment',
+            compute_environment_name='agha-validation-pipeline-compute-environment',
             compute_resources=batch.ComputeResources(
                 vpc=vpc,
                 allocation_strategy=batch.AllocationStrategy.SPOT_CAPACITY_OPTIMIZED,

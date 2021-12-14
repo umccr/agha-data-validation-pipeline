@@ -12,8 +12,6 @@ import pandas as pd
 import util
 from util import notification, s3
 
-
-
 MANIFEST_REQUIRED_COLUMNS = {'filename', 'checksum', 'agha_study_id'}
 # Manifest field validation related
 AGHA_ID_RE = re.compile('^A\d{7,8}(?:_mat|_pat|_R1|_R2|_R3)?$|^unknown$')
@@ -23,18 +21,18 @@ MD5_RE = re.compile('^[0-9a-f]{32}$')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+
 ########################################################################################################################
 # Data placeholder for submitted data
 
 class SubmissionData:
 
     def __init__(
-            self, 
+            self,
             bucket_name='',
             manifest_s3_key='',
             submission_prefix=''
-        ):
-
+    ):
         # Event data
         self.bucket_name = bucket_name
         self.manifest_s3_key = manifest_s3_key
@@ -54,7 +52,6 @@ class SubmissionData:
 
     @classmethod
     def create_submission_data_object_from_s3_event(cls, s3_record):
-
         s3_key: str = s3_record['s3']['object']['key']
         bucket: str = s3_record['s3']['bucket']['name']
         prefix: str = os.path.dirname(s3_key)
@@ -65,8 +62,8 @@ class SubmissionData:
             submission_prefix=prefix
         )
 
-def retrieve_manifest_data(bucket_name:str, manifest_key: str):
 
+def retrieve_manifest_data(bucket_name: str, manifest_key: str):
     client_s3 = util.get_client('s3')
 
     logger.info(
@@ -92,13 +89,11 @@ def retrieve_manifest_data(bucket_name:str, manifest_key: str):
     return manifest_data
 
 
-def validate_manifest(data:SubmissionData, strict_mode:bool=True, notify:bool=True):
-    
+def validate_manifest(data: SubmissionData, strict_mode: bool = True, notify: bool = True):
     # Check manifest columns
     columns_present = set(data.manifest_data.columns.tolist())
     columns_missing = MANIFEST_REQUIRED_COLUMNS.difference(columns_present)
-    
-    
+
     if columns_missing:
         plurality = 'column' if len(columns_missing) == 1 else 'columns'
         cmissing_str = '\r\t'.join(columns_missing)
@@ -111,28 +106,28 @@ def validate_manifest(data:SubmissionData, strict_mode:bool=True, notify:bool=Tr
     # File discovery
     # Entry count
     notification.log_and_store_message(f'Entries in manifest: {len(data.manifest_data)}')
-    
+
     # Files present on S3
     message_text = f'Entries on S3 (including manifest)'
     files_s3 = {s3.get_s3_filename(md) for md in data.file_metadata}
     notification.log_and_store_file_message(message_text, files_s3)
-    
+
     # Files missing from S3
     files_manifest = set(data.manifest_data['filename'].to_list())
     files_missing_from_s3 = files_manifest.difference(files_s3)
     message_text = f'Entries in manifest, but not on S3'
     notification.log_and_store_file_message(message_text, files_missing_from_s3)
-    
+
     # Extra files present on S3
     files_missing_from_manifest = files_s3.difference(files_manifest)
     message_text = f'Entries on S3, but not in manifest'
     notification.log_and_store_file_message(message_text, files_missing_from_manifest)
-    
+
     # Files present in manifest *and* S3
     files_matched = files_manifest.intersection(files_s3)
     message_text = f'Entries matched in manifest and S3'
     notification.log_and_store_file_message(message_text, files_matched)
-    
+
     # Matched files that are accepted. Here files such as indices are filtered.
     files_matched_prohibited = list()
     files_matched_accepted = list()
@@ -145,10 +140,16 @@ def validate_manifest(data:SubmissionData, strict_mode:bool=True, notify:bool=Tr
     notification.log_and_store_file_message(message_text, files_matched_prohibited)
     message_text = f'Matched entries eligible for validation'
     notification.log_and_store_file_message(message_text, files_matched_accepted)
-    
-    # Record error messages for extra files (other than manifest.txt) or missing files
-    if 'manifest.txt' in files_missing_from_manifest:
-        files_missing_from_manifest.remove('manifest.txt')
+
+    # Record error messages for extra files (other than manifest.txt, *.tbi, *.bai) or missing files
+    for missing_filename in files_missing_from_manifest:
+        if missing_filename.endswith('manifest.txt') or \
+                missing_filename.endswith('.tbi') or \
+                missing_filename.endswith('.bai'):
+            files_missing_from_manifest.remove(missing_filename)
+            notification.log_and_store_message(f'{missing_filename} is in the exclusion filetype list. '
+                                               f'Removing from missing file error!')
+
     messages_error = list()
     if files_missing_from_s3:
         messages_error.append('files listed in manifest were absent from S3')
@@ -195,6 +196,7 @@ def validate_manifest(data:SubmissionData, strict_mode:bool=True, notify:bool=Tr
 def find_study_id_from_manifest_df_and_filename(manifest_df, filename):
     file_info = manifest_df.loc[manifest_df['filename'] == filename].iloc[0]
     return file_info['agha_study_id']
+
 
 def find_checksum_from_manifest_df_and_filename(manifest_df, filename):
     file_info = manifest_df.loc[manifest_df['filename'] == filename].iloc[0]

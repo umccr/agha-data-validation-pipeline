@@ -39,13 +39,13 @@ stack_props = {
         'sender_email': 'services@umccr.org'
     },
     'batch_environment': {
-        'batch_queue_name': 'agha-gdr-job-queue',
+        'batch_queue_name': 'agha-gdr-pipeline-job-queue',
         'vpc_id': 'vpc-36fbdf51',
         'file_validation_ecr': {
             'name': 'agha-gdr-validate-file',
             'tag': '0.0.1'
         },
-        'file_validation_job_definition_name': 'agha-gdr-input-validation',
+        'file_validation_job_definition_name': 'agha-gdr-validate-file',
         's3_job_definition_name': 'agha-gdr-s3-manipulation',
     },
     'pipeline': {
