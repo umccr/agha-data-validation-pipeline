@@ -3,6 +3,7 @@ import uuid
 import os
 import re
 import textwrap
+import enum
 
 import util
 
@@ -21,6 +22,13 @@ DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 STAGING_BUCKET =  os.environ.get('STAGING_BUCKET')
 RESULTS_BUCKET = os.environ.get('RESULTS_BUCKET')
 
+class Tasks(enum.Enum):
+    CHECKSUM = 'checksum'
+    FILE_VALIDATE = 'validate_filetype'
+    INDEX = 'create_index'
+    COMPRESS = 'create_compress'
+
+
 def get_tasks_list():
     """
     Trigger which tasks should run
@@ -28,19 +36,17 @@ def get_tasks_list():
 
     tasks_list = list()
 
-    # Check on which have not exist/run yet
-    # For time being append all test to the list
+    # Always run checksum
+    tasks_list.append(Tasks.CHECKSUM.value)
 
-    # if record['valid_checksum'] == 'not run':
-    #     tasks_list.append('checksum')
-    # if record['valid_filetype'] == 'not run':
-    #     tasks_list.append('validate_filetype')
-    # if record['index_result'] == 'not run':
-    #     tasks_list.append('create_index')
+    # Always validate filetype
+    tasks_list.append(Tasks.FILE_VALIDATE.value)
 
-    tasks_list.append('checksum')
-    tasks_list.append('validate_filetype')
-    tasks_list.append('create_index')
+    # Always create index if supported (In this case BAM and VCF file)
+    tasks_list.append(Tasks.INDEX.value)
+
+    # Always compress file when it is uncompressed for FASTQ and VCF
+    tasks_list.append(Tasks.COMPRESS.value)
 
     return tasks_list
 

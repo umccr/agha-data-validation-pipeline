@@ -95,7 +95,7 @@ def handler(event, context):
         logger.info('Retrieve manifest metadata')
         data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_s3_key)
         file_list, data.files_extra = submission_data.validate_manifest(data)
-        logger.info(f'Processing {len(file_list)} number of file_lisst, and {len(data.files_extra)} \
+        logger.info(f'Processing {len(file_list)} number of file_list, and {len(data.files_extra)} \
                     number of files_extra')
 
         for filename in file_list:
