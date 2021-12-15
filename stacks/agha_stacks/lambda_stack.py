@@ -24,19 +24,18 @@ class LambdaStack(core.NestedStack):
         staging_bucket = s3.Bucket.from_bucket_name(
             self,
             "StagingBucket",
-            bucket_name = bucket_name['staging_bucket']
+            bucket_name=bucket_name['staging_bucket']
         )
         result_bucket = s3.Bucket.from_bucket_name(
             self,
             "ResultBucket",
-            bucket_name = bucket_name['results_bucket']
+            bucket_name=bucket_name['results_bucket']
         )
         store_bucket = s3.Bucket.from_bucket_name(
             self,
             "StoreBucket",
-            bucket_name = bucket_name['store_bucket']
+            bucket_name=bucket_name['store_bucket']
         )
-
 
         ################################################################################
         # Lambda layers
@@ -105,8 +104,8 @@ class LambdaStack(core.NestedStack):
             'NotificationLambdaRole',
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
             managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'service-role/AWSLambdaBasicExecutionRole')
+                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonSSMReadOnlyAccess')
             ]
         )
 
@@ -191,13 +190,13 @@ class LambdaStack(core.NestedStack):
                 # Table
                 'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
                 'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
-                'DYNAMODB_RESULT_TABLE_NAME' : dynamodb_table["result-bucket"],
+                'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
                 # Batch
-                'BATCH_QUEUE_NAME':batch_environment['batch_queue_name'],
+                'BATCH_QUEUE_NAME': batch_environment['batch_queue_name'],
                 'JOB_DEFINITION_ARN': batch.batch_job_definition.job_definition_arn,
                 # Buckets
-                'RESULTS_BUCKET':bucket_name['results_bucket'],
-                'STAGING_BUCKET':bucket_name['staging_bucket']
+                'RESULTS_BUCKET': bucket_name['results_bucket'],
+                'STAGING_BUCKET': bucket_name['staging_bucket']
             },
             role=validation_manager_lambda_role,
             layers=[
@@ -300,14 +299,14 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_ARCHIVE_RESULT_TABLE_NAME': dynamodb_table["result-bucket-archive"],
                 'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
                 'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
-                'DYNAMODB_STORE_TABLE_NAME':dynamodb_table["store-bucket"],
-                'DYNAMODB_ARCHIVE_STORE_TABLE_NAME':dynamodb_table["store-bucket-archive"],
-                'DYNAMODB_ETAG_TABLE_NAME':dynamodb_table["e-tag"]
+                'DYNAMODB_STORE_TABLE_NAME': dynamodb_table["store-bucket"],
+                'DYNAMODB_ARCHIVE_STORE_TABLE_NAME': dynamodb_table["store-bucket-archive"],
+                'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["e-tag"]
             },
             role=s3_event_recorder_lambda_role,
             layers=[
                 util_layer,
-                runtime_layer                
+                runtime_layer
             ]
         )
 
@@ -426,12 +425,12 @@ class LambdaStack(core.NestedStack):
             code=lambda_.Code.from_asset('lambdas/functions/data_transfer_manager'),
             environment={
                 # Batch
-                'BATCH_QUEUE_NAME':batch_environment['batch_queue_name'],
+                'BATCH_QUEUE_NAME': batch_environment['batch_queue_name'],
                 'S3_JOB_DEFINITION_ARN': batch.batch_s3_job_definition.job_definition_arn,
                 # Buckets
-                'STORE_BUCKET':bucket_name['store_bucket'],
-                'RESULTS_BUCKET':bucket_name['results_bucket'],
-                'STAGING_BUCKET':bucket_name['staging_bucket'],
+                'STORE_BUCKET': bucket_name['store_bucket'],
+                'RESULTS_BUCKET': bucket_name['results_bucket'],
+                'STAGING_BUCKET': bucket_name['staging_bucket'],
                 # Dynamodb
                 'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
                 'DYNAMODB_STORE_TABLE_NAME': dynamodb_table["store-bucket"],
