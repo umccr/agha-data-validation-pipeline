@@ -4,6 +4,7 @@ import logging
 import re
 
 import util
+
 # Logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -17,6 +18,7 @@ class SubmitterInfo:
         self.email = str()
         self.submission_prefix = str()
 
+
 # Some constants for the notification
 NOTIFICATION_LAMBDA_ARN = os.environ.get('NOTIFICATION_LAMBDA_ARN')
 EMAIL_SUBJECT = '[AGHA service] Submission received'
@@ -25,11 +27,12 @@ SUBMITTER_INFO = SubmitterInfo()
 
 CLIENT_IAM = util.get_client('iam')
 
+
 def append_message(message):
     MESSAGE_STORE.append(message)
 
-def send_notifications():
 
+def send_notifications():
     client_lambda = util.get_client('lambda')
 
     notification_payload = {
@@ -53,6 +56,7 @@ def initialized_submitter_information(name="", email="", submission_prefix=""):
     SUBMITTER_INFO.name = name
     SUBMITTER_INFO.email = email
     SUBMITTER_INFO.submission_prefix = submission_prefix
+
 
 def log_and_store_file_message(message_text, files):
     # Notification only gets summary message; Lambda log gets both summary and full
@@ -108,8 +112,8 @@ def get_name_email_from_principalid(principal_id):
         logger.warning(f'Could not extract name and email: unsupported principalId format')
         return None, None
 
-def set_submitter_information_from_s3_event(event_record):
 
+def set_submitter_information_from_s3_event(event_record):
     if 'userIdentity' in event_record and 'principalId' in event_record['userIdentity']:
         principal_id = event_record['userIdentity']['principalId']
         SUBMITTER_INFO.name, SUBMITTER_INFO.email = get_name_email_from_principalid(principal_id)

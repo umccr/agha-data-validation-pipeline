@@ -87,6 +87,7 @@ def parse_s3_event(s3_event: dict) -> List[S3EventRecord]:
 
     return s3_event_records
 
+
 def get_s3_object_metadata(bucket_name: str, directory_prefix: str):
     """
     Expected Output:
@@ -129,8 +130,8 @@ def get_s3_object_metadata(bucket_name: str, directory_prefix: str):
 
     return results
 
-def get_object_from_bucket_name_and_s3_key(bucket_name, s3_key):
 
+def get_object_from_bucket_name_and_s3_key(bucket_name, s3_key):
     client_s3 = util.get_client('s3')
 
     get_object_response = client_s3.get_object(
@@ -142,13 +143,16 @@ def get_object_from_bucket_name_and_s3_key(bucket_name, s3_key):
 
     return json.loads(data)
 
+
 def get_s3_filename(metadata_record):
     filepath = metadata_record.get('Key')
     return get_s3_filename_from_s3_key(filepath)
 
+
 def get_output_prefix(submission_prefix):
     output_dn = f'{util.get_datetimestamp()}_{uuid.uuid1().hex[:7]}'
     return os.path.join(submission_prefix, output_dn)
+
 
 def get_s3_filename_from_s3_key(filepath):
     return os.path.basename(filepath)

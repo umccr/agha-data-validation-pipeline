@@ -19,8 +19,9 @@ JOB_DEFINITION_ARN = os.environ.get('JOB_DEFINITION_ARN')
 DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 
 # Bucket names
-STAGING_BUCKET =  os.environ.get('STAGING_BUCKET')
+STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 RESULTS_BUCKET = os.environ.get('RESULTS_BUCKET')
+
 
 class Tasks(enum.Enum):
     CHECKSUM = 'checksum'
@@ -68,7 +69,6 @@ def create_job_data(partition_key, sort_key, tasks_list, file_record):
 
 
 def submit_batch_job(job_data):
-
     client_batch = util.get_client('batch')
 
     command = ['bash', '-o', 'pipefail', '-c', job_data['command']]
@@ -88,4 +88,3 @@ def submit_batch_job(job_data):
             'command': command
         }
     )
-   

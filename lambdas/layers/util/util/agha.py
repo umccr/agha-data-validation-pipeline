@@ -2,9 +2,9 @@ import re
 from enum import Enum
 from typing import List
 
-
 AGHA_ID_PATTERN = re.compile("A\d{7,8}(?:_mat|_pat|_R1|_R2|_R3)?|unknown")
 MD5_PATTERN = re.compile("[0-9a-f]{32}")
+
 
 class FlagShip(Enum):
     """
@@ -15,7 +15,8 @@ class FlagShip(Enum):
     - aliases
     """
     ACUTE_CARE_GENOMICS = ('AC', 'Acute Care Genomics', 'ACG', 'acute', 'acutecare', 'acute_care_genomics')
-    MITOCHONDRIAL_DISORDERS = ('Mito', 'Mitochondrial Disorders', 'mito', 'MITO', 'mito-batch-7', 'mitochondrial_disease')
+    MITOCHONDRIAL_DISORDERS = ('Mito', 'Mitochondrial Disorders', 'mito', 'MITO', 'mito-batch-7',
+                               'mitochondrial_disease')
     EPILEPTIC_ENCEPHALOPATHY = ('EE', 'Epileptic Encephalopathy')
     GENETIC_IMMUNOLOGY = ('GI', 'Genetic Immunology')
     LEUKODYSTROPHIES = ('Leuko', 'Leukodystrophies', 'LD', 'leukodystrophies')
@@ -46,6 +47,7 @@ class FlagShip(Enum):
                 return fs
         return FlagShip.UNKNOWN
 
+
 class FileType(Enum):
     BAM = "BAM"
     BAM_INDEX = "BAM_INDEX"
@@ -60,6 +62,7 @@ class FileType(Enum):
 
     def __str__(self):
         return self.value
+
 
 FEXT_FASTQ = ['.fq', '.fq.gz', '.fastq', '.fastq.gz']
 FEXT_BAM = ['.bam']

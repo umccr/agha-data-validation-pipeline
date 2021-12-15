@@ -83,7 +83,7 @@ def get_ssm_parameter(name, ssm_client, with_decryption=False):
             Name=name,
             WithDecryption=with_decryption,
         )
-    except ssm_client.Client.exceptions.ParameterNotFound:
+    except ssm_client.exceptions.ParameterNotFound:
         LOGGER.critical(f'could not find SSM parameter \'{name}\'')
         sys.exit(1)
     if 'Parameter' not in response:
@@ -154,3 +154,9 @@ class DecimalEncoder(json.JSONEncoder):
         if isinstance(o, decimal.Decimal):
             return str(o)
         return super(DecimalEncoder, self).default(o)
+
+def replace_record_decimal_object(record):
+    for k in record:
+        if isinstance(record[k], decimal.Decimal):
+            record[k] = int(record[k]) if record[k] % 1 == 0 else float(record[k])
+    return record

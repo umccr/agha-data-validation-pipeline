@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-import json
 import logging
 import os
 import re
 import io
 
-import boto3
 import botocore
 import pandas as pd
 
@@ -142,13 +140,20 @@ def validate_manifest(data: SubmissionData, strict_mode: bool = True, notify: bo
     notification.log_and_store_file_message(message_text, files_matched_accepted)
 
     # Record error messages for extra files (other than manifest.txt, *.tbi, *.bai) or missing files
+    remove_list = []
     for missing_filename in files_missing_from_manifest:
         if missing_filename.endswith('manifest.txt') or \
                 missing_filename.endswith('.tbi') or \
                 missing_filename.endswith('.bai'):
-            files_missing_from_manifest.remove(missing_filename)
+
+            remove_list.append(missing_filename)
             notification.log_and_store_message(f'{missing_filename} is in the exclusion filetype list. '
-                                               f'Removing from missing file error!')
+                                               f'Adding it for removal')
+
+    # Removing it
+    for remove_item in remove_list:
+        files_missing_from_manifest.remove(remove_item)
+        notification.log_and_store_message(f'{remove_item} is removed from missing list')
 
     messages_error = list()
     if files_missing_from_s3:

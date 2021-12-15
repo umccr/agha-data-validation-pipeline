@@ -3,10 +3,12 @@ from typing import List
 import logging
 import json
 import os
+import decimal
 
 import util
 import util.s3 as s3
 import util.dynamodb as dynamodb
+import util.batch as batch
 
 # Buckets
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
@@ -140,25 +142,31 @@ def handler(event, context):
                 if "__results.json" in s3_record.object_key:
                     result_list = s3.get_object_from_bucket_name_and_s3_key(s3_key=s3_record.object_key,
                                                                             bucket_name=s3_record.bucket_name)
+                    logger.info(f'Grab data from result file')
+                    print(result_list)
 
                     dynamodb_put_item_list = []
                     dynamodb_archive_put_item_list = []
                     # Iterate and create file record accordingly
                     for batch_result in result_list:
                         s3_key = batch_result['staging_s3_key']
-                        type = batch_result['type']
-                        status = batch_result['status']
-                        value = batch_result['value']
+                        type = batch_result['task_type']
 
                         # STATUS record
                         sort_key = dynamodb.ResultSortKeyPrefix.create_sort_key_with_result_prefix(
                             data_type=dynamodb.ResultSortKeyPrefix.STATUS.value,
                             check_type=type)
+
+                        # Some intense validation checks here
+                        status = validate_batch_job_result(batch_result)
+
+                        # Writing validation results
                         status_record = dynamodb.ResultRecord(partition_key=s3_key,
                                                               sort_key=sort_key,
                                                               date_modified=util.get_datetimestamp(),
                                                               value=status)
                         dynamodb_put_item_list.append(status_record)
+
                         # Archive
                         archive_status_record = dynamodb.ArchiveResultRecord. \
                             create_archive_result_record_from_result_record(status_record,
@@ -166,14 +174,9 @@ def handler(event, context):
                         dynamodb_archive_put_item_list.append(archive_status_record)
 
                         # DATA record
-                        sort_key = dynamodb.ResultSortKeyPrefix.create_sort_key_with_result_prefix(
-                            data_type=dynamodb.ResultSortKeyPrefix.DATA.value,
-                            check_type=type)
-                        data_record = dynamodb.ResultRecord(partition_key=s3_key,
-                                                            sort_key=sort_key,
-                                                            date_modified=util.get_datetimestamp(),
-                                                            value=value)
+                        data_record = create_result_data_record_from_batch_result(batch_result)
                         dynamodb_put_item_list.append(data_record)
+
                         # Archive
                         archive_data_record = dynamodb.ArchiveResultRecord. \
                             create_archive_result_record_from_result_record(data_record,
@@ -316,3 +319,58 @@ def delete_manifest_file_record(manifest_record_table_name, manifest_record_arch
         dynamodb.write_record_from_class(manifest_record_archive_table_name, db_record_archive)
         logger.info(f'Updating {manifest_record_archive_table_name} table response:')
         logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
+
+
+def validate_batch_job_result(batch_result: dict):
+    s3_key = batch_result['staging_s3_key']
+    type = batch_result['task_type']
+    status = batch_result['status']
+    value = batch_result['value']
+
+    if type == batch.Tasks.CHECKSUM.value:
+        calculated_checksum = value
+        provided_checksum = get_checksum_from_manifest_record(DYNAMODB_STAGING_TABLE_NAME, s3_key)
+
+        if calculated_checksum == provided_checksum:
+            return "PASS"
+
+    else:
+        if status == "SUCCEED":
+            return "PASS"
+
+    return "FAIL"
+
+
+def get_checksum_from_manifest_record(table_name, partition_key):
+    record_response = dynamodb.get_item_from_pk_and_sk(table_name=table_name, partition_key=partition_key,
+                                                       sort_key_prefix=dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
+    logger.info(f'Manifest record response:')
+    print(record_response)
+    if 'Items' not in record_response:
+        msg_key_text = f'partition key {partition_key}.'
+        logger.critical(f'could not retrieve DynamoDB entry with {msg_key_text}')
+
+    record = util.replace_record_decimal_object(record_response.get('Items')[0])
+    return record[dynamodb.ManifestFileRecordAttribute.PROVIDED_CHECKSUM.value]
+
+
+def create_result_data_record_from_batch_result(batch_result: dict):
+    s3_key = batch_result['staging_s3_key']
+    type = batch_result['task_type']
+    value = batch_result['value']
+    source_file = batch_result['source_file']
+
+    sort_key = dynamodb.ResultSortKeyPrefix.create_sort_key_with_result_prefix(
+        data_type=dynamodb.ResultSortKeyPrefix.DATA.value,
+        check_type=type)
+
+    if value == 'FILE':
+        return dynamodb.ResultRecord(partition_key=s3_key,
+                                     sort_key=sort_key,
+                                     date_modified=util.get_datetimestamp(),
+                                     value=source_file)
+    else:
+        return dynamodb.ResultRecord(partition_key=s3_key,
+                                     sort_key=sort_key,
+                                     date_modified=util.get_datetimestamp(),
+                                     value=value)

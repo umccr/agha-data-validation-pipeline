@@ -7,7 +7,7 @@ import uuid
 import boto3
 
 import util
-from util import dynamodb, s3
+from util import dynamodb, s3, batch, agha
 
 JOB_NAME_RE = re.compile(r'[.\\/]')
 
@@ -60,6 +60,7 @@ def handler(event, context):
     logger.info('Object list response:')
     print(object_list)
 
+    # Checking for all status has passed
     for object_ in object_list:
         key = object_['Key']
         logger.info(f'Get status for {key} metadata')
@@ -78,7 +79,77 @@ def handler(event, context):
                 logger.error('Aborting!')
                 return {"StatusCode": 406, "body": f"{status['value']} have not pass validation"}
 
-    logger.info('Checking fail data has passed')
+    logger.info('Checking status validation has passed')
+
+    # Processing s3 key (moving manifest record, and create move job)
+    try:
+        for object_ in object_list:
+            key = object_['Key']
+            logger.info(f'Processing s3_key:{key}')
+            # Check if the following file has a compressed or index file
+            result_data_record = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_RESULT_TABLE_NAME,
+                                                                  partition_key=key,
+                                                                  sort_key_prefix=dynamodb.ResultSortKeyPrefix.DATA.value)
+            logger.info(f'Result data response:')
+            logger.info(json.dumps(result_data_record))
+
+            # Find out source file to transfer
+            output_file_record = find_output_file(result_data_record['Items'])
+            if (output_file_record):
+                source_bucket_name = output_file_record["value"][0]["bucket_name"]
+                source_s3_key = output_file_record["value"][0]["s3_key"]
+            else:
+                source_bucket_name = STAGING_BUCKET
+                source_s3_key = key
+
+            # Create s3 uri
+            source_s3_uri = create_s3_uri_from_bucket_name_and_key(source_bucket_name, source_s3_key)
+            target_s3_uri = create_s3_uri_from_bucket_name_and_key(STORE_BUCKET, source_s3_key)
+            logger.info(f'Generating source and target s3 URI')
+            logger.info(f'source: {source_s3_uri}')
+            logger.info(f'target: {target_s3_uri}')
+
+            # Create and append job to job list
+            create_batch_job = create_mv_s3_object_batch_job(source_s3_uri, target_s3_uri, s3_key)
+            logger.info(f'Batch Job:')
+            logger.info(json.dumps(create_batch_job))
+            batch_job_data.append(create_batch_job)
+
+            logger.info(f'Searcing manifest record for: {s3_key}')
+            # Dynamodb manifest record construct (manifest exclusion)
+            manifest_response = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                                 partition_key=key,
+                                                                 sort_key_prefix=dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
+            # Should only have one response
+            logger.info(f'Manifest response:')
+            logger.info(json.dumps(manifest_response))
+            if (manifest_response['Count']>0):
+                logger.info(f'Manifest record found on staging table')
+                manifest_file_list = manifest_response['Items']
+
+                logger.info(f'Moving manifest record from staging to store')
+                store_manifest_record = dynamodb.ManifestFileRecord(**manifest_file_list[0])
+                store_manifest_record.partition_key = source_s3_key
+                store_manifest_record.filename = s3.get_s3_filename_from_s3_key(source_s3_key)
+                store_manifest_record.filetype = agha.FileType.from_name(store_manifest_record.filename).get_name()
+
+                res_write_obj = dynamodb.write_record_from_class(DYNAMODB_STORE_TABLE_NAME, store_manifest_record)
+                logger.info('Write manifest record')
+                print(res_write_obj)
+
+                archive_record = dynamodb.ArchiveManifestFileRecord.create_archive_manifest_record_from_manifest_record(
+                    store_manifest_record, s3.S3EventType.EVENT_OBJECT_CREATED.value)
+                res_write_archive_obj = dynamodb.write_record_from_class(DYNAMODB_STORE_ARCHIVE_TABLE_NAME, archive_record)
+                logger.info('Archive write manifest response')
+                print(res_write_archive_obj)
+            else:
+                logger.info(f'{s3_key} does not have manifest record. Skipping ...')
+
+    except Exception as e:
+        logger.error(e)
+        logger.error('Aborting!')
+        return {"StatusCode": 406, "body": f"Something went wrong on moving manifest records from staging to store.\n"
+                                           f",Error: {e}"}
 
     # Unlock bucket
     try:
@@ -121,47 +192,11 @@ def handler(event, context):
         logger.error('Aborting!')
         return {"StatusCode": 406, "body": f"Something went wrong on lifting bucket policy.\n Error: {e}"}
 
-    # Migrating manifest record table from staging to store
-    try:
-        for object_ in object_list:
-            key = object_['Key']
-            logger.info(f'Get status for {key} metadata')
-            manifest_response = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                                                 partition_key=key,
-                                                                 sort_key_prefix=dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
-            logger.info(f'Metadata response {manifest_response}:')
-            logger.info(json.dumps(manifest_response))
-
-            manifest_file_list = manifest_response['Items']
-            logger.info(f'Moving manifest file list:')
-            print(manifest_file_list)
-            res_write_obj = dynamodb.batch_write_objects(DYNAMODB_STORE_TABLE_NAME, manifest_file_list)
-            logger.info('Write manifest record')
-            print(res_write_obj)
-
-            res_write_archive_obj = dynamodb.batch_write_objects_archive(DYNAMODB_STORE_ARCHIVE_TABLE_NAME, manifest_file_list, "ObjectCreated")
-            logger.info('Archive write manifest response')
-            print(res_write_archive_obj)
-
-    except Exception as e:
-        logger.error(e)
-        logger.error('Aborting!')
-        return {"StatusCode": 406, "body": f"Something went wrong on moving manifest records from staging to store.\n"
-                                           f",Error: {e}"}
-
-    source_s3_uri = create_s3_uri_from_bucket_name_and_key(STAGING_BUCKET, s3_key)
-    target_s3_uri = create_s3_uri_from_bucket_name_and_key(STORE_BUCKET, s3_key)
-    logger.info(f'Generating source and target s3 URI')
-    logger.info(f'source: {source_s3_uri}')
-    logger.info(f'target: {target_s3_uri}')
-
-    create_batch_job = create_mv_s3_object_batch_job(source_s3_uri, target_s3_uri, s3_key)
-    logger.info(f'Batch Job:')
-    logger.info(json.dumps(create_batch_job))
-    batch_job_data.append(create_batch_job)
 
     # Submit Batch jobs
     for job_data in batch_job_data:
+
+        logger.info(f'Executing job:{json.dumps(job_data)}')
         submit_data_transfer_job(job_data)
 
     logger.info(f'Batch job has executed.')
@@ -184,7 +219,7 @@ def create_mv_s3_object_batch_job(source_s3_uri, target_s3_uri, name):
     if len(name) > 128:
         name = f'{name[:120]}_{uuid.uuid1().hex[:7]}'
 
-    command = ['s3', 'mv', source_s3_uri, target_s3_uri, '--recursive']
+    command = ['s3', 'mv', source_s3_uri, target_s3_uri]
 
     return {"name": name, "command": command}
 
@@ -220,4 +255,12 @@ def validate_event_data(event_record):
 
 
 def construct_resource_from_s3_key_and_bucket(bucket_name, s3_key):
-    return f'arn:aws:s3:::{bucket_name}/{s3_key}*'
+    return f'arn:aws:s3:::{bucket_name}/{s3_key}'
+
+
+def find_output_file(result_data_record: list):
+    """ Return a record with output file contain if any. Return void when none"""
+    for data_record in result_data_record:
+        if data_record['sort_key'].endswith(batch.Tasks.INDEX.value) or data_record['sort_key'].endswith(
+                batch.Tasks.COMPRESS.value):
+            return data_record
