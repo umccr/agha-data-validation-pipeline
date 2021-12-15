@@ -65,8 +65,8 @@ def handler(event, context):
         key = object_['Key']
         logger.info(f'Get status for {key} metadata')
         status_response = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_RESULT_TABLE_NAME,
-                                                           partition_key=key,
-                                                           sort_key_prefix=dynamodb.ResultSortKeyPrefix.STATUS.value)
+                                                           partition_key=dynamodb.ResultPartitionKey.STATUS.value,
+                                                           sort_key_prefix=key)
         logger.info(f'Metadata response {status_response}:')
         logger.info(json.dumps(status_response))
 
@@ -88,14 +88,14 @@ def handler(event, context):
             logger.info(f'Processing s3_key:{key}')
             # Check if the following file has a compressed or index file
             result_data_record = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_RESULT_TABLE_NAME,
-                                                                  partition_key=key,
-                                                                  sort_key_prefix=dynamodb.ResultSortKeyPrefix.DATA.value)
+                                                                  partition_key=dynamodb.ResultPartitionKey.DATA.value,
+                                                                  sort_key_prefix=key)
             logger.info(f'Result data response:')
             logger.info(json.dumps(result_data_record))
 
             # Find out source file to transfer
             output_file_record = find_output_file(result_data_record['Items'])
-            if (output_file_record):
+            if output_file_record:
                 source_bucket_name = output_file_record["value"][0]["bucket_name"]
                 source_s3_key = output_file_record["value"][0]["s3_key"]
             else:
@@ -115,15 +115,15 @@ def handler(event, context):
             logger.info(json.dumps(create_batch_job))
             batch_job_data.append(create_batch_job)
 
-            logger.info(f'Searcing manifest record for: {s3_key}')
+            logger.info(f'Searching manifest record for: {s3_key}')
             # Dynamodb manifest record construct (manifest exclusion)
             manifest_response = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                                                 partition_key=key,
-                                                                 sort_key_prefix=dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
+                                                                 partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                                                                 sort_key_prefix=key)
             # Should only have one response
             logger.info(f'Manifest response:')
             logger.info(json.dumps(manifest_response))
-            if (manifest_response['Count']>0):
+            if manifest_response['Count'] > 0:
                 logger.info(f'Manifest record found on staging table')
                 manifest_file_list = manifest_response['Items']
 
@@ -139,7 +139,8 @@ def handler(event, context):
 
                 archive_record = dynamodb.ArchiveManifestFileRecord.create_archive_manifest_record_from_manifest_record(
                     store_manifest_record, s3.S3EventType.EVENT_OBJECT_CREATED.value)
-                res_write_archive_obj = dynamodb.write_record_from_class(DYNAMODB_STORE_ARCHIVE_TABLE_NAME, archive_record)
+                res_write_archive_obj = dynamodb.write_record_from_class(DYNAMODB_STORE_ARCHIVE_TABLE_NAME,
+                                                                         archive_record)
                 logger.info('Archive write manifest response')
                 print(res_write_archive_obj)
             else:
@@ -192,10 +193,8 @@ def handler(event, context):
         logger.error('Aborting!')
         return {"StatusCode": 406, "body": f"Something went wrong on lifting bucket policy.\n Error: {e}"}
 
-
     # Submit Batch jobs
     for job_data in batch_job_data:
-
         logger.info(f'Executing job:{json.dumps(job_data)}')
         submit_data_transfer_job(job_data)
 

@@ -85,17 +85,18 @@ def handler(event, context):
     for filename in data.filename_accepted:
 
         # Get partition key and existing records
-        partition_key = f'{data.submission_prefix}/{filename}'
+        sort_key = f'{data.submission_prefix}/{filename}'
 
         # Search for existing record
         logger.info('Grabing existing record from partition and sort key')
-        manifest_response = dynamodb.get_item_from_pk_and_sk(DYNAMODB_STAGING_TABLE_NAME, partition_key,
-                                                             dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
+        manifest_response = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                             partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                                                             sort_key_prefix=sort_key)
         logger.info('Record Response')
         logger.info(json.dumps(manifest_response))
 
         if manifest_response['Count'] != 1:
-            message = f'No or more than one S3_key record of \'{partition_key}\' found. Aborting!'
+            message = f'No or more than one S3_key record of \'{sort_key}\' found. Aborting!'
 
             notification.log_and_store_message(message, 'error')
             notification.notify_and_exit()
@@ -104,7 +105,7 @@ def handler(event, context):
         manifest_record_json = manifest_response["Items"][0]
         # Check to dynamodb if staging record has been validated
         if manifest_record_json['validation_status'].upper() != "PASS".upper():
-            message = f"Data at '{partition_key}' has not pass manifest check. Aborting!"
+            message = f"Data at '{sort_key}' has not pass manifest check. Aborting!"
             notification.log_and_store_message(message, 'error')
             notification.notify_and_exit()
 
@@ -112,8 +113,9 @@ def handler(event, context):
         tasks_list = batch.get_tasks_list()
 
         # Create job data
-        logger.info(f'Creating batch job for, s3_key:{partition_key}')
-        job_data = batch.create_job_data(partition_key, 'FILE', tasks_list, data)
+        logger.info(f'Creating batch job for, s3_key:{sort_key}')
+        job_data = batch.create_job_data(s3_key=sort_key, partition_key=dynamodb.ResultPartitionKey.FILE.value,
+                                         tasks_list=tasks_list, file_record=data)
 
         batch_job_data.append(job_data)
 
@@ -155,7 +157,7 @@ def validate_event_data(event_record):
         raise ValueError
 
     # If given filepaths require output directory, prohibit for manifest_fp
-    if 'filepaths' in event_record and not 'output_prefix' in event_record:
+    if 'filepaths' in event_record and 'output_prefix' not in event_record:
         logger.critical('\'output_prefix\' must be set when providing \'filepaths\'')
         raise ValueError
     if 'manifest_fp' in event_record and 'output_prefix' in event_record:
@@ -213,9 +215,9 @@ def validate_event_data(event_record):
         event_record['strict_mode'] = True
 
     # Set remaining defaults
-    if not 'exclude_fns' in event_record:
+    if 'exclude_fns' not in event_record:
         event_record['exclude_fns'] = list()
-    if not 'include_fns' in event_record:
+    if 'include_fns' not in event_record:
         event_record['include_fns'] = list()
 
 

@@ -52,8 +52,8 @@ def get_tasks_list():
     return tasks_list
 
 
-def create_job_data(partition_key, sort_key, tasks_list, file_record):
-    name_raw = f'agha_validation__{partition_key}__{sort_key}'
+def create_job_data(s3_key, partition_key, tasks_list, file_record):
+    name_raw = f'agha_validation__{s3_key}__{partition_key}'
     name = JOB_NAME_RE.sub('_', name_raw)
     # Job name must be less than 128 characters. If job name exceeds this length, truncate to the
     # first 120 characters and append a 7 character uid separated by an underscore.
@@ -62,7 +62,7 @@ def create_job_data(partition_key, sort_key, tasks_list, file_record):
     tasks = ' '.join(tasks_list)
     command = textwrap.dedent(f'''
         /opt/validate_file.py \
-        --partition_key {partition_key} \
+        --s3_key {s3_key} \
         --tasks {tasks}
     ''')
     return {'name': name, 'command': command, 'output_prefix': file_record.output_prefix}

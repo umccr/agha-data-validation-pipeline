@@ -153,16 +153,16 @@ def handler(event, context):
                         type = batch_result['task_type']
 
                         # STATUS record
-                        sort_key = dynamodb.ResultSortKeyPrefix.create_sort_key_with_result_prefix(
-                            data_type=dynamodb.ResultSortKeyPrefix.STATUS.value,
+                        partition_key = dynamodb.ResultPartitionKey.create_partition_key_with_result_prefix(
+                            data_type=dynamodb.ResultPartitionKey.STATUS.value,
                             check_type=type)
 
                         # Some intense validation checks here
                         status = validate_batch_job_result(batch_result)
 
                         # Writing validation results
-                        status_record = dynamodb.ResultRecord(partition_key=s3_key,
-                                                              sort_key=sort_key,
+                        status_record = dynamodb.ResultRecord(partition_key=partition_key,
+                                                              sort_key=s3_key,
                                                               date_modified=util.get_datetimestamp(),
                                                               value=status)
                         dynamodb_put_item_list.append(status_record)
@@ -294,7 +294,7 @@ def delete_manifest_file_record(manifest_record_table_name, manifest_record_arch
     logger.info('Grab Manifest data before deletion')
     manifest_res = dynamodb.get_item_from_pk_and_sk(manifest_record_table_name,
                                                     db_record.partition_key,
-                                                    dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
+                                                    dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value)
     logger.info(f'Get manifest record response:')
     logger.info(json.dumps(manifest_res, cls=util.DecimalEncoder))
 
@@ -343,7 +343,7 @@ def validate_batch_job_result(batch_result: dict):
 
 def get_checksum_from_manifest_record(table_name, partition_key):
     record_response = dynamodb.get_item_from_pk_and_sk(table_name=table_name, partition_key=partition_key,
-                                                       sort_key_prefix=dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value)
+                                                       sort_key_prefix=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value)
     logger.info(f'Manifest record response:')
     print(record_response)
     if 'Items' not in record_response:
@@ -360,17 +360,17 @@ def create_result_data_record_from_batch_result(batch_result: dict):
     value = batch_result['value']
     source_file = batch_result['source_file']
 
-    sort_key = dynamodb.ResultSortKeyPrefix.create_sort_key_with_result_prefix(
-        data_type=dynamodb.ResultSortKeyPrefix.DATA.value,
+    partition_key = dynamodb.ResultPartitionKey.create_sort_key_with_result_prefix(
+        data_type=dynamodb.ResultPartitionKey.DATA.value,
         check_type=type)
 
     if value == 'FILE':
-        return dynamodb.ResultRecord(partition_key=s3_key,
-                                     sort_key=sort_key,
+        return dynamodb.ResultRecord(partition_key=partition_key,
+                                     sort_key=s3_key,
                                      date_modified=util.get_datetimestamp(),
                                      value=source_file)
     else:
-        return dynamodb.ResultRecord(partition_key=s3_key,
-                                     sort_key=sort_key,
+        return dynamodb.ResultRecord(partition_key=partition_key,
+                                     sort_key=s3_key,
                                      date_modified=util.get_datetimestamp(),
                                      value=value)

@@ -75,7 +75,7 @@ class ManifestFileRecordAttribute(Enum):
         return self.value
 
 
-class FileRecordSortKey(Enum):
+class FileRecordPartitionKey(Enum):
     FILE_RECORD = 'TYPE:FILE'
     MANIFEST_FILE_RECORD = 'TYPE:MANIFEST'
 
@@ -87,8 +87,8 @@ class FileRecordSortKey(Enum):
 class FileRecord:
     """
     The DynamoDB table is configured with a mandatory composite key composed of two elements:
-    - partition_key: Most Probably the s3_key
-    - sort_key: The type of file indicate it stores the file properties.
+    - partition_key: The type of file indicate it stores the file properties.
+    - sort_key: Most Probably the s3_key.
     All other attributes are self explanatory (although some can automatically be derived from the object key)
     """
 
@@ -124,8 +124,8 @@ class FileRecord:
         filetype = FileType.from_name(filename)
 
         # Additional Field
-        partition_key = s3_key
-        sort_key = FileRecordSortKey.FILE_RECORD.value
+        partition_key = FileRecordPartitionKey.FILE_RECORD.value
+        sort_key = s3_key
 
         return cls(
             partition_key=partition_key,
@@ -199,8 +199,8 @@ class ArchiveFileRecord(FileRecord):
 class ManifestFileRecord:
     """
     The DynamoDB table is configured with a mandatory composite key composed of two elements:
-    - partition_key: Most Probably the s3_key
-    - sort_key: The type of file indicate it stores the file properties.
+    - partition_key: The type of file indicate it stores the file properties.
+    - sort_key: Most Probably the s3_key
     All other attributes are self explanatory (although some can automatically be derived from the object key)
     """
 
@@ -297,7 +297,7 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
 # 2. ResultRecord class (defined below) to hold the data output of the test. ResultRecord class may contain 2 types. \
 #       Explanation defined at the docstring class
 
-class ResultSortKeyPrefix(Enum):
+class ResultPartitionKey(Enum):
     FILE = "FILE"
     STATUS = "STATUS"
     DATA = "DATA"
@@ -306,14 +306,14 @@ class ResultSortKeyPrefix(Enum):
         return self.value
 
     @staticmethod
-    def create_sort_key_with_result_prefix(data_type, check_type):
+    def create_partition_key_with_result_prefix(data_type, check_type):
         return f'{data_type}:{check_type}'
 
 
 class ResultRecord:
     """
-    partition_key: Most probably the s3 of the original file
-    sort_key:
+    sort_key: Most probably the s3 of the original file
+    partition_key:
         Can be defined 2 types:
             1. Prefix will be 'DATA' followed by check_type seperated by colon
                 (e.g. Result of checksum check would be stored as 'DATA:CHECKSUM')

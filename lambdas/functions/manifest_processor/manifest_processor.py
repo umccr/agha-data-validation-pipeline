@@ -100,7 +100,7 @@ def handler(event, context):
 
         for filename in file_list:
 
-            partition_key = f'{data.submission_prefix}/{filename}'
+            sort_key = f'{data.submission_prefix}/{filename}'
 
             # Variables from manifest data
             agha_study_id = submission_data.find_study_id_from_manifest_df_and_filename(data.manifest_data, filename)
@@ -111,15 +111,16 @@ def handler(event, context):
 
             # Search if file exist at s3
             logger.info('Getting dynamodb item from file_record partition and sort key')
-            file_record_response = dynamodb.get_item_from_pk_and_sk(DYNAMODB_STAGING_TABLE_NAME, partition_key,
-                                                                    dynamodb.FileRecordSortKey.FILE_RECORD.value)
+            file_record_response = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                                    partition_key=dynamodb.FileRecordPartitionKey.FILE_RECORD.value,
+                                                                    sort_key_prefix=sort_key)
             logger.info('file_record_response')
             logger.info(json.dumps(file_record_response, cls=util.DecimalEncoder))
 
             # If no File record found database. Warn and exit the application
             if file_record_response['Count'] == 0:
                 notification.log_and_store_message(f"No such file found at bucket:{DYNAMODB_STAGING_TABLE_NAME}\
-                 s3_key:{partition_key}", 'warning')
+                 s3_key:{sort_key}", 'warning')
                 notification.notify_and_exit()
 
             file_record_json = file_record_response['Items'][0]
@@ -141,9 +142,9 @@ def handler(event, context):
 
             # Create Manifest type record
             manifest_record = dynamodb.ManifestFileRecord(
-                partition_key=partition_key,
-                sort_key=dynamodb.FileRecordSortKey.MANIFEST_FILE_RECORD.value,
-                flagship=agha.FlagShip.from_name(partition_key.split("/")[0]).preferred_code(),
+                partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                sort_key=sort_key,
+                flagship=agha.FlagShip.from_name(sort_key.split("/")[0]).preferred_code(),
                 filename=filename,
                 filetype=agha.FileType.from_name(filename).get_name(),
                 submission=data.submission_prefix,
