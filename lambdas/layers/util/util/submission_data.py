@@ -147,13 +147,13 @@ def validate_manifest(data: SubmissionData, strict_mode: bool = True, notify: bo
                 missing_filename.endswith('.bai'):
 
             remove_list.append(missing_filename)
-            notification.log_and_store_message(f'{missing_filename} is in the exclusion filetype list. '
+            logger.info(f'{missing_filename} is in the exclusion filetype list. '
                                                f'Adding it for removal')
 
     # Removing it
     for remove_item in remove_list:
         files_missing_from_manifest.remove(remove_item)
-        notification.log_and_store_message(f'{remove_item} is removed from missing list')
+        logger.info(f'{remove_item} is removed from missing list')
 
     messages_error = list()
     if files_missing_from_s3:

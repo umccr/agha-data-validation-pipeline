@@ -57,7 +57,7 @@ def handler(event, context):
     if EMAIL_NOTIFY == 'yes':
         logger.info(f'Sending email to {submitter_info["name"]} <{submitter_info["email"]}>')
         logger.info('\r'.join(messages))
-        recipients = [MANAGER_EMAIL, submitter_info.email]
+        recipients = [MANAGER_EMAIL, submitter_info["email"]]
         email_body = make_email_body_html(
             submitter_info["submission_prefix"],
             submitter_info["name"],
