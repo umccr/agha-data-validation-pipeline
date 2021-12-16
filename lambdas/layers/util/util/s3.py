@@ -126,7 +126,7 @@ def get_s3_object_metadata(bucket_name: str, directory_prefix: str):
             Prefix=directory_prefix,
             ContinuationToken=token
         )
-        results.extend(object_metadata)
+        results.extend(response.get('Contents'))
 
     return results
 

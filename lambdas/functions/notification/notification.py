@@ -47,7 +47,11 @@ def handler(event, context):
     :param event: S3 event to parse user 
     :param context: not used
     """
-    messages = json.loads(event["submitter_info"])
+    logger.info(f'Event processed:')
+    print(event)
+
+
+    messages = event["submitter_info"]
     subject = json.loads(event["subject"])
     submitter_info = json.loads(event["submitter_info"])
 

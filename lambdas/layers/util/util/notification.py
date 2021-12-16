@@ -46,7 +46,7 @@ def send_notifications():
         client_lambda.invoke(
             FunctionName=NOTIFICATION_LAMBDA_ARN,
             InvocationType='Event',
-            Payload=json.dumps(notification_payload)
+            Payload=notification_payload
         )
     except Exception as e:
         logger.error(f'Something went wrong when calling notification Lambda.\n Error: {e}')
