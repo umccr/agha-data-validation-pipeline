@@ -22,12 +22,29 @@ DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 RESULTS_BUCKET = os.environ.get('RESULTS_BUCKET')
 
+########################################################################################################################
+# Batch result result file
+class StatusBatchResult(enum.Enum):
+    SUCCEED='SUCCEED'
+    FAIL='FAIL'
+
+class BatchJobResult:
+
+    def __init__(self, staging_s3_key='', task_type='', value='', status='', source_file=None):
+        self.staging_s3_key = staging_s3_key
+        self.task_type = task_type
+        self.value = value
+        self.status = status
+        self.source_file = source_file
+
+########################################################################################################################
+# Tasks available for batch task
 
 class Tasks(enum.Enum):
-    CHECKSUM = 'checksum'
-    FILE_VALIDATE = 'validate_filetype'
-    INDEX = 'create_index'
-    COMPRESS = 'create_compress'
+    CHECKSUM_VALIDATION = 'CHECKSUM_VALIDATION'
+    FILE_VALIDATION = 'FILE_VALIDATION'
+    INDEX = 'CREATE_INDEX'
+    COMPRESS = 'CREATE_COMPRESS'
 
 
 def get_tasks_list():
@@ -38,10 +55,10 @@ def get_tasks_list():
     tasks_list = list()
 
     # Always run checksum
-    tasks_list.append(Tasks.CHECKSUM.value)
+    tasks_list.append(Tasks.CHECKSUM_VALIDATION.value)
 
     # Always validate filetype
-    tasks_list.append(Tasks.FILE_VALIDATE.value)
+    tasks_list.append(Tasks.FILE_VALIDATION.value)
 
     # Always create index if supported (In this case BAM and VCF file)
     tasks_list.append(Tasks.INDEX.value)
@@ -52,7 +69,7 @@ def get_tasks_list():
     return tasks_list
 
 
-def create_job_data(s3_key, partition_key, tasks_list, file_record):
+def create_job_data(s3_key, partition_key, checksum, tasks_list, output_prefix):
     name_raw = f'agha_validation__{s3_key}__{partition_key}'
     name = JOB_NAME_RE.sub('_', name_raw)
     # Job name must be less than 128 characters. If job name exceeds this length, truncate to the
@@ -63,9 +80,10 @@ def create_job_data(s3_key, partition_key, tasks_list, file_record):
     command = textwrap.dedent(f'''
         /opt/validate_file.py \
         --s3_key {s3_key} \
+        --checksum {checksum} \
         --tasks {tasks}
     ''')
-    return {'name': name, 'command': command, 'output_prefix': file_record.output_prefix}
+    return {'name': name, 'command': command, 'output_prefix': output_prefix}
 
 
 def submit_batch_job(job_data):

@@ -96,3 +96,17 @@ class FileType(Enum):
             if t.is_type(name):
                 return t
         return FileType.UNSUPPORTED
+
+    @staticmethod
+    def is_indexable(filetype:str)-> bool:
+        INDEXABLE_TYPE = [FileType.BAM.get_name(), FileType.VCF.get_name()]
+        if filetype in INDEXABLE_TYPE:
+            return True
+        return False
+
+    @staticmethod
+    def is_compressable(filetype:str)-> bool:
+        COMPRESSABLE_TYPE = [FileType.VCF.get_name(), FileType.FASTQ.get_name()]
+        if filetype in COMPRESSABLE_TYPE:
+            return True
+        return False

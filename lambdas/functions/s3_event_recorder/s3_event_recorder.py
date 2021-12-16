@@ -143,19 +143,18 @@ def handler(event, context):
                     result_list = s3.get_object_from_bucket_name_and_s3_key(s3_key=s3_record.object_key,
                                                                             bucket_name=s3_record.bucket_name)
                     logger.info(f'Grab data from result file')
-                    print(result_list)
 
                     dynamodb_put_item_list = []
                     dynamodb_archive_put_item_list = []
                     # Iterate and create file record accordingly
                     for batch_result in result_list:
                         s3_key = batch_result['staging_s3_key']
-                        type = batch_result['task_type']
+                        task_type = batch_result['task_type']
 
                         # STATUS record
                         partition_key = dynamodb.ResultPartitionKey.create_partition_key_with_result_prefix(
                             data_type=dynamodb.ResultPartitionKey.STATUS.value,
-                            check_type=type)
+                            check_type=task_type)
 
                         # Some intense validation checks here
                         status = validate_batch_job_result(batch_result)
@@ -327,7 +326,7 @@ def validate_batch_job_result(batch_result: dict):
     status = batch_result['status']
     value = batch_result['value']
 
-    if type == batch.Tasks.CHECKSUM.value:
+    if type == batch.Tasks.CHECKSUM_VALIDATION.value:
         calculated_checksum = value
         provided_checksum = get_checksum_from_manifest_record(DYNAMODB_STAGING_TABLE_NAME, s3_key)
 
@@ -360,7 +359,7 @@ def create_result_data_record_from_batch_result(batch_result: dict):
     value = batch_result['value']
     source_file = batch_result['source_file']
 
-    partition_key = dynamodb.ResultPartitionKey.create_sort_key_with_result_prefix(
+    partition_key = dynamodb.ResultPartitionKey.create_partition_key_with_result_prefix(
         data_type=dynamodb.ResultPartitionKey.DATA.value,
         check_type=type)
 

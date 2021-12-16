@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import sys
 
 import util.dynamodb as dynamodb
 import util.submission_data as submission_data
@@ -109,13 +110,15 @@ def handler(event, context):
             notification.log_and_store_message(message, 'error')
             notification.notify_and_exit()
 
+        provided_checksum = manifest_record_json['provided_checksum']
+
         # Replace tasks with those specified by user if available
         tasks_list = batch.get_tasks_list()
 
         # Create job data
         logger.info(f'Creating batch job for, s3_key:{sort_key}')
         job_data = batch.create_job_data(s3_key=sort_key, partition_key=dynamodb.ResultPartitionKey.FILE.value,
-                                         tasks_list=tasks_list, file_record=data)
+                                         checksum=provided_checksum, tasks_list=tasks_list, output_prefix=data.output_prefix)
 
         batch_job_data.append(job_data)
 
@@ -126,7 +129,6 @@ def handler(event, context):
         logger.info(json.dumps(job_data))
 
         batch.submit_batch_job(job_data)
-
 
 def validate_event_data(event_record):
     # Check for unknown argments
