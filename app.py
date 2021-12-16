@@ -29,13 +29,13 @@ stack_props = {
         "store-bucket-archive": 'agha-gdr-store-bucket-archive',
         "e-tag": 'agha-gdr-e-tag'
     },
-    'autorun_validation_jobs': 'no',
+    'autorun_validation_jobs': 'no', # TODO: Change to yes
     'notification': {
-        'slack_notify': 'yes',
+        'slack_notify': 'no', # TODO: change to yes
         'email_notify': 'yes',
         'slack_host': 'hooks.slack.com',
         'slack_channel': '#agha-gdr',
-        'manager_email': 'william.intan@unimelb.edu.au', # When its done change back email to: sarah.casauria@mcri.edu.au
+        'manager_email': 'william.intan@unimelb.edu.au', # TODO: Change to: sarah.casauria@mcri.edu.au
         'sender_email': 'services@umccr.org'
     },
     'batch_environment': {

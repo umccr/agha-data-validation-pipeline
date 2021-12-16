@@ -12,6 +12,7 @@ DYNAMODB_ARCHIVE_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_STAGING_T
 DYNAMODB_ETAG_TABLE_NAME = os.environ.get('DYNAMODB_ETAG_TABLE_NAME')
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 VALIDATION_MANAGER_LAMBDA_ARN = os.environ.get('VALIDATION_MANAGER_LAMBDA_ARN')
+AUTORUN_VALIDATION_JOBS = os.environ.get('AUTORUN_VALIDATION_JOBS')
 
 # NOTE(SW): it seems reasonable to require some structuring of uploads in the format of
 # <FLAGSHIP>/<DATE_TS>/<FILES ...>. Outcomes on upload wrt directory structure:
@@ -21,7 +22,6 @@ VALIDATION_MANAGER_LAMBDA_ARN = os.environ.get('VALIDATION_MANAGER_LAMBDA_ARN')
 # Similarly, this logic could be applied to anything that might block or interfere with validation
 # jobs. e.g. prohibited file types such as CRAM
 
-AUTO_EXECUTE_VALIDATION_LAMBDA = False
 
 # Logging
 logger = logging.getLogger()
@@ -169,7 +169,7 @@ def handler(event, context):
             logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} table response:')
             logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
 
-        if AUTO_EXECUTE_VALIDATION_LAMBDA:
+        if AUTORUN_VALIDATION_JOBS == 'yes':
             # Invoke validation manager for automation
             client_lambda = util.get_client('lambda')
 

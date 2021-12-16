@@ -43,11 +43,13 @@ def send_notifications():
 
     # Handle notification to another lambda
     try:
-        client_lambda.invoke(
+        lambda_res = client_lambda.invoke(
             FunctionName=NOTIFICATION_LAMBDA_ARN,
             InvocationType='Event',
-            Payload=notification_payload
+            Payload=json.dumps(notification_payload)
         )
+        logger.info(f'Lambda invoke response:')
+        print(lambda_res)
     except Exception as e:
         logger.error(f'Something went wrong when calling notification Lambda.\n Error: {e}')
 
@@ -77,8 +79,13 @@ def log_and_store_message(message, level='info'):
 
 
 def notify_and_exit():
-    if SUBMITTER_INFO:
+    if SUBMITTER_INFO.email:
+        logger.info(f'SUBMITTER_INFO has been found with email:{SUBMITTER_INFO.email}')
         send_notifications()
+    else:
+        logger.warning(f'Could not find Submitter Information:')
+
+
     raise Exception
 
 
@@ -117,6 +124,7 @@ def set_submitter_information_from_s3_event(event_record):
     if 'userIdentity' in event_record and 'principalId' in event_record['userIdentity']:
         principal_id = event_record['userIdentity']['principalId']
         SUBMITTER_INFO.name, SUBMITTER_INFO.email = get_name_email_from_principalid(principal_id)
+        SUBMITTER_INFO.submission_prefix=os.path.dirname(event_record['s3']['object']['key'])
         logger.info(f'Extracted name and email from record: {SUBMITTER_INFO.name} <{SUBMITTER_INFO.email}>')
     else:
         logger.warning(f'Could not extract name and email: unsuitable event type/data')

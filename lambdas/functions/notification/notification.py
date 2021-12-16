@@ -50,18 +50,17 @@ def handler(event, context):
     logger.info(f'Event processed:')
     print(event)
 
-
-    messages = event["submitter_info"]
-    subject = json.loads(event["subject"])
-    submitter_info = json.loads(event["submitter_info"])
+    messages = event["messages"]
+    subject = event["subject"]
+    submitter_info = event["submitter_info"]
 
     if EMAIL_NOTIFY == 'yes':
-        logger.info(f'Sending email to {submitter_info.name} <{submitter_info.email}>')
+        logger.info(f'Sending email to {submitter_info["name"]} <{submitter_info["email"]}>')
         logger.info('\r'.join(messages))
         recipients = [MANAGER_EMAIL, submitter_info.email]
         email_body = make_email_body_html(
-            submitter_info.submission_prefix,
-            submitter_info.name,
+            submitter_info["submission_prefix"],
+            submitter_info["name"],
             messages
         )
         email_response = send_email(
@@ -74,11 +73,12 @@ def handler(event, context):
 
         logger.info('Email response:')
         logger.info(json.dumps(email_response, cls=util.DecimalEncoder))
+
     if SLACK_NOTIFY == 'yes':
         logger.info(f'Sending notification to {SLACK_CHANNEL}')
         slack_response = call_slack_webhook(
             subject,
-            f'Submission: {submitter_info.submission_prefix} ({submitter_info.name})',
+            f'Submission: {submitter_info["submission_prefix"]} ({submitter_info["name"]})',
             '\n'.join(messages),
             SLACK_HOST,
             SLACK_CHANNEL,

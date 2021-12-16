@@ -22,33 +22,33 @@ def create_manifest_record_payload():
                 "eventVersion": "2.1",
                 "eventSource": "aws:s3",
                 "awsRegion": "ap-southeast-2",
-                "eventTime": "2021-11-29T05:13:49.487Z",
-                "eventName": "ObjectCreated:Put",
+                "eventTime": "2021-12-15T23:04:31.056Z",
+                "eventName": "ObjectCreated:Copy",
                 "userIdentity": {
-                    "principalId": "AWS:AROA4IXYHPYNJHCREIMFQ:william.intan@umccr.org"
+                    "principalId": "XXX"
                 },
                 "requestParameters": {
-                    "sourceIPAddress": "203.12.12.109"
+                    "sourceIPAddress": "111.220.182.3"
                 },
                 "responseElements": {
-                    "x-amz-request-id": "V0CVPFDSCCGY5DFV",
-                    "x-amz-id-2": "+t5TGAN3ot3f1IdU8+qrwJard15pcpXTOhQowefJbKMROWWnpwmkJ6nkHROKCWulwIsP4CsFv6abYLWerVSBDteQDMWbN0EX"
+                    "x-amz-request-id": "",
+                    "x-amz-id-2": ""
                 },
                 "s3": {
                     "s3SchemaVersion": "1.0",
-                    "configurationId": "Create or Delete",
+                    "configurationId": "",
                     "bucket": {
-                        "name": "agha-staging-dev",
+                        "name": "a bucket",
                         "ownerIdentity": {
-                            "principalId": "A1VCVQDCTO40LG"
+                            "principalId": ""
                         },
-                        "arn": "arn:aws:s3:::agha-staging-dev"
+                        "arn": "somebucket"
                     },
                     "object": {
-                        "key": "ACG/20210722_090101/manifest.txt",
-                        "size": 219,
-                        "eTag": "00516a3d4d409dd3681e4a8f32002f2a",
-                        "sequencer": "0061A4618D70301F0E"
+                        "key": "XXX",
+                        "size": 16292,
+                        "eTag": "abcde",
+                        "sequencer": "asdfg"
                     }
                 }
             }
@@ -59,8 +59,6 @@ def create_manifest_record_payload():
 
 class ManifestProcessorUnitTestCase(unittest.TestCase):
 
-
-    @mock.patch()
     def test_manifest_processor(self):
         event_payload = create_manifest_record_payload()
 

@@ -18,6 +18,8 @@ class LambdaStack(core.NestedStack):
         notification = self.node.try_get_context("notification")
         dynamodb_table = self.node.try_get_context("dynamodb_table")
         batch_environment = self.node.try_get_context("batch_environment")
+        autorun_validation_jobs = self.node.try_get_context("autorun_validation_jobs")
+
 
         ################################################################################
         # S3 bucket
@@ -254,7 +256,9 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
                 'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["e-tag"],
                 # Bucket
-                'STAGING_BUCKET': bucket_name['staging_bucket']
+                'STAGING_BUCKET': bucket_name['staging_bucket'],
+                # AUTORUN
+                "AUTORUN_VALIDATION_JOBS": autorun_validation_jobs
             },
             role=manifest_processor_lambda_role,
             layers=[
