@@ -90,7 +90,7 @@ class LambdaStack(core.NestedStack):
             function_name=f'{namespace}-folder-lock',
             handler='folder_lock.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(10),
+            timeout=core.Duration.seconds(300),
             code=lambda_.Code.from_asset('lambdas/functions/folder_lock/'),
             environment={
                 'STAGING_BUCKET': bucket_name['staging_bucket']
@@ -129,7 +129,7 @@ class LambdaStack(core.NestedStack):
             function_name=f"{namespace}-notification",
             handler='notification.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(20),
+            timeout=core.Duration.seconds(300),
             code=lambda_.Code.from_asset('lambdas/functions/notification/'),
             environment={
                 'SLACK_NOTIFY': notification["slack_notify"],
@@ -184,7 +184,7 @@ class LambdaStack(core.NestedStack):
             function_name=f"{namespace}-validation-manager",
             handler='validation_manager.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(10),
+            timeout=core.Duration.seconds(300),
             code=lambda_.Code.from_asset('lambdas/functions/validation_manager'),
             environment={
                 # Lambda ARN
@@ -245,7 +245,7 @@ class LambdaStack(core.NestedStack):
             function_name=f"{namespace}-manifest-processor",
             handler='manifest_processor.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(10),
+            timeout=core.Duration.seconds(300),
             code=lambda_.Code.from_asset('lambdas/functions/manifest_processor'),
             environment={
                 # Lambda ARN
@@ -290,7 +290,7 @@ class LambdaStack(core.NestedStack):
             function_name=f"{namespace}-s3-event-recorder",
             handler='s3_event_recorder.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(10),
+            timeout=core.Duration.seconds(300),
             code=lambda_.Code.from_asset(
                 'lambdas/functions/s3_event_recorder'),
             environment={
@@ -357,7 +357,7 @@ class LambdaStack(core.NestedStack):
             function_name=f"{namespace}-s3-event-router",
             handler='s3_event_router.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(20),
+            timeout=core.Duration.seconds(300),
             code=lambda_.Code.from_asset('lambdas/functions/s3_event_router'),
             environment={
                 'STAGING_BUCKET': bucket_name["staging_bucket"],
@@ -425,7 +425,7 @@ class LambdaStack(core.NestedStack):
             function_name=f"{namespace}-data-transfer-manager",
             handler='data_transfer_manager.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(10),
+            timeout=core.Duration.seconds(300),
             code=lambda_.Code.from_asset('lambdas/functions/data_transfer_manager'),
             environment={
                 # Batch

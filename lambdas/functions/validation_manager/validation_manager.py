@@ -236,7 +236,8 @@ def handle_input_manifest(data: submission_data.SubmissionData, event, strict_mo
         False
     )
 
-    # TODO:Raise exception notify email
+    logger.info(f'File list to process:')
+    print(file_list)
 
     files_included, data.files_rejected = filter_filelist(
         file_list,
