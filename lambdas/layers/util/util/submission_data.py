@@ -8,7 +8,7 @@ import botocore
 import pandas as pd
 
 import util
-from util import notification, s3
+from util import notification, s3, agha
 
 MANIFEST_REQUIRED_COLUMNS = {'filename', 'checksum', 'agha_study_id'}
 # Manifest field validation related
@@ -129,11 +129,13 @@ def validate_manifest(data: SubmissionData, strict_mode: bool = True, notify: bo
     # Matched files that are accepted. Here files such as indices are filtered.
     files_matched_prohibited = list()
     files_matched_accepted = list()
+
     for filename in files_matched:
-        if any(filename.endswith(fext) for fext in util.FEXT_ACCEPTED):
+        if agha.FileType.from_name(filename) != agha.FileType.UNSUPPORTED:
             files_matched_accepted.append(filename)
         else:
             files_matched_prohibited.append(filename)
+
     message_text = f'Matched entries excluded on file extension'
     notification.log_and_store_file_message(message_text, files_matched_prohibited)
     message_text = f'Matched entries eligible for validation'

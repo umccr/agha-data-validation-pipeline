@@ -43,7 +43,7 @@ def create_payload():
                     "arn": "arn:aws:s3:::agha-results-dev"
                 },
                 "object": {
-                    "key": "ACG/20210722_090101/SBJ00592-somatic-PASS.vcf.gz__results.json",
+                    "key": "ACG/20210722_090101/short_reads_1.fastq__results.json",
                     "size": 236,
                     "eTag": "caa865c523195e816f244c5893558926",
                     "sequencer": ""

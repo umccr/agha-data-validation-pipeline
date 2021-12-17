@@ -340,13 +340,14 @@ def validate_batch_job_result(batch_result: dict):
     return "FAIL"
 
 
-def get_checksum_from_manifest_record(table_name, partition_key):
-    record_response = dynamodb.get_item_from_pk_and_sk(table_name=table_name, partition_key=partition_key,
-                                                       sort_key_prefix=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value)
+def get_checksum_from_manifest_record(table_name, staging_s3_key):
+    record_response = dynamodb.get_item_from_pk_and_sk(table_name=table_name,
+                                                       partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                                                       sort_key_prefix=staging_s3_key)
     logger.info(f'Manifest record response:')
     print(record_response)
     if 'Items' not in record_response:
-        msg_key_text = f'partition key {partition_key}.'
+        msg_key_text = f'partition key {staging_s3_key}.'
         logger.critical(f'could not retrieve DynamoDB entry with {msg_key_text}')
 
     record = util.replace_record_decimal_object(record_response.get('Items')[0])
