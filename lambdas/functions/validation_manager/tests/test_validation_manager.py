@@ -16,11 +16,7 @@ from validation_manager import handler
 def create_payload():
     return {
     "manifest_fp": "ACG/20210722_090101/manifest.txt",
-    "include_fns": [
-        "test.bam",
-        "SBJ00592-somatic-PASS.vcf.gz",
-        "short_reads_1.fastq"
-    ]
+    "manifest_dynamodb_key_prefix":"ACG/20210722_090101/"
 }
 
 

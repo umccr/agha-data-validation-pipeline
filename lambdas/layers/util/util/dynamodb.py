@@ -487,3 +487,13 @@ def get_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix
     )
 
     return response
+
+def get_field_list_from_dynamodb_record(table_name:str, field_name:str, partition_key:str, sort_key_prefix):
+
+    res = get_item_from_pk_and_sk(table_name=table_name, partition_key=partition_key, sort_key_prefix=sort_key_prefix)
+
+    field_list = []
+    for record in res["Items"]:
+        field_list.append(record[field_name])
+
+    return field_list

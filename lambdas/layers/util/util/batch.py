@@ -9,7 +9,6 @@ import util
 
 JOB_NAME_RE = re.compile(r'[.\\/]')
 
-TASKS_AVAILABLE = ['checksum', 'validate_filetype', 'create_index']
 FINISH_STATUS = ['SUCCESS', 'FAILURE']
 
 BATCH_QUEUE_NAME = os.environ.get('BATCH_QUEUE_NAME')
@@ -46,6 +45,16 @@ class Tasks(enum.Enum):
     INDEX = 'CREATE_INDEX'
     COMPRESS = 'CREATE_COMPRESS'
 
+    @staticmethod
+    def is_valid(name: str) -> bool:
+        for t in Tasks:
+            if t.value==name:
+                return True
+        return False
+
+    @staticmethod
+    def tasks_to_list() -> list:
+        return [task.value for task in Tasks]
 
 def get_tasks_list():
     """

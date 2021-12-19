@@ -48,6 +48,12 @@ def handler(event, context):
       "output_prefix": "cardiac/20210711_170230/20210824_manual_run/"
     }
 
+    Structure #3 (Use dynamodb manifest prefix for filepath):
+    {
+      "manifest_fp": "cardiac/20210711_170230/manifest.txt",
+      "manifest_dynamodb_key_prefix": "cardiac/20210711_170230/"
+    }
+
     :param event: payload to process and run batchjob
     :param context: not used
     """
@@ -66,15 +72,21 @@ def handler(event, context):
         email=event.get('email_address', str()),
     )
 
+    if 'manifest_dynamodb_key_prefix' in event:
+
+        filename_list = dynamodb.get_field_list_from_dynamodb_record(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                                     field_name='filename',
+                                                                     partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                                                                     sort_key_prefix=event['manifest_dynamodb_key_prefix'])
+        event['include_fns'] = filename_list
+
     # Get file lists and other data. Returning and assigning to be explicit.
     # NOTE(SW): FileRecords are used so that we have single interface for record creation and job
     # submission later, and are available through data.files_accepted.
     if 'manifest_fp' in event:
-
         notification.SUBMITTER_INFO.submission_prefix = os.path.dirname(event['manifest_fp'])
         data = handle_input_manifest(data, event, event['strict_mode'])
     elif 'filepaths' in event:
-
         notification.SUBMITTER_INFO.submission_prefix = os.path.dirname(event['filepaths'][0])
         data = handle_input_filepaths(data, event)
     else:
@@ -122,7 +134,9 @@ def handler(event, context):
 
         batch_job_data.append(job_data)
 
-    # Submit Batch jobs
+    # Submit Batch jobs]
+    print('PRINTING')
+    print(batch_job_data)
     logger.info('Submitting job to batch')
     for job_data in batch_job_data:
         logger.info('Job submitted')
@@ -143,6 +157,7 @@ def validate_event_data(event_record):
         'email_name',
         'tasks',
         'strict_mode',
+        'manifest_dynamodb_key_prefix'
     }
     args_unknown = [arg for arg in event_record if arg not in args_known]
     if args_unknown:
@@ -154,7 +169,12 @@ def validate_event_data(event_record):
     if 'manifest_fp' in event_record and 'filepaths' in event_record:
         logger.critical('\'manifest_fp\' or \'filepaths\' cannot both be provided')
         raise ValueError
-    if not ('manifest_fp' in event_record or 'filepaths' in event_record):
+    if 'manifest_dynamodb_key_prefix' in event_record and 'filepaths' in event_record:
+        logger.critical('\'manifest_dynamodb_key_prefix\' or \'filepaths\' cannot both be provided')
+        raise ValueError
+    if not ('manifest_fp' in event_record or
+            'filepaths' in event_record or
+            'manifest_dynamodb_key_prefix' in event_record):
         logger.critical('either \'manifest_fp\' or \'filepaths\' must be provided')
         raise ValueError
 
@@ -166,7 +186,7 @@ def validate_event_data(event_record):
         logger.critical('use of \'output_prefix\' is prohibited with \'manifest_fp\'')
         raise ValueError
 
-    # TODO: ensure that manifest and filepaths are just S3 key prefices
+    # TODO: ensure that manifest and filepaths are just S3 key prefixes
     # TODO: check that output_prefix is prefix only - no bucket name
     # TODO: require filepaths to have the same prefix i.e. be in the same directory
 
@@ -186,10 +206,10 @@ def validate_event_data(event_record):
 
     # Check tasks are valid if provided
     tasks_list = event_record.get('tasks', list())
-    tasks_unknown = [task for task in tasks_list if task not in batch.TASKS_AVAILABLE]
+    tasks_unknown = [task for task in tasks_list if not batch.Tasks.is_valid(task)]
     if tasks_unknown:
         tasks_str = '\r\t'.join(tasks_unknown)
-        tasks_allow_str = '\', \''.join(batch.TASKS_AVAILABLE)
+        tasks_allow_str = '\', \''.join(batch.Tasks.tasks_to_list())
         logger.critical(f'expected tasks to be one of \'{tasks_allow_str}\' but got:\t\r{tasks_str}')
         raise ValueError
 
