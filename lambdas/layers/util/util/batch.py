@@ -69,27 +69,34 @@ def get_tasks_list():
     return tasks_list
 
 
-def create_job_data(s3_key, partition_key, checksum, tasks_list, output_prefix):
+def create_job_data(s3_key:str, partition_key:str, checksum, tasks_list, output_prefix):
     name_raw = f'agha_validation__{s3_key}__{partition_key}'
     name = JOB_NAME_RE.sub('_', name_raw)
     # Job name must be less than 128 characters. If job name exceeds this length, truncate to the
     # first 120 characters and append a 7 character uid separated by an underscore.
     if len(name) > 128:
         name = f'{name[:120]}_{uuid.uuid1().hex[:7]}'
-    tasks = ' '.join(tasks_list)
-    command = textwrap.dedent(f'''
-        /opt/validate_file.py \
-        --s3_key {s3_key} \
-        --checksum {checksum} \
-        --tasks {tasks}
-    ''')
+
+    command = []
+
+    # append s3_key args
+    command.extend(["--s3_key", s3_key])
+
+    # append checksum args
+    command.extend(["--checksum", checksum])
+
+    # append task lists args
+    task_list = ["--tasks"]
+    task_list.extend(tasks_list)
+    command.extend(task_list)
+
     return {'name': name, 'command': command, 'output_prefix': output_prefix}
 
 
 def submit_batch_job(job_data):
     client_batch = util.get_client('batch')
 
-    command = ['bash', '-o', 'pipefail', '-c', job_data['command']]
+    command = job_data['command']
     environment = [
         {'name': 'RESULTS_BUCKET', 'value': RESULTS_BUCKET},
         {'name': 'STAGING_BUCKET', 'value': STAGING_BUCKET},
