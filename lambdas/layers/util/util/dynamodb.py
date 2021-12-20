@@ -488,6 +488,19 @@ def get_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix
 
     return response
 
+def get_item_from_exact_pk_and_sk(table_name: str, partition_key: str, sort_key: str):
+    ddb = get_resource()
+    tbl = ddb.Table(table_name)
+
+    expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key) & Key(
+        FileRecordAttribute.SORT_KEY.value).eq(sort_key)
+
+    response = tbl.query(
+        KeyConditionExpression=expr
+    )
+
+    return response
+
 def get_field_list_from_dynamodb_record(table_name:str, field_name:str, partition_key:str, sort_key_prefix):
 
     res = get_item_from_pk_and_sk(table_name=table_name, partition_key=partition_key, sort_key_prefix=sort_key_prefix)

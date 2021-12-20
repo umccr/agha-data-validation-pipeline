@@ -9,6 +9,7 @@ import util.submission_data as submission_data
 import util.notification as notification
 import util.s3 as s3
 import util.batch as batch
+import util.agha as agha
 
 DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 DYNAMODB_ARCHIVE_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_STAGING_TABLE_NAME')
@@ -73,12 +74,14 @@ def handler(event, context):
     )
 
     if 'manifest_dynamodb_key_prefix' in event:
-
         filename_list = dynamodb.get_field_list_from_dynamodb_record(table_name=DYNAMODB_STAGING_TABLE_NAME,
                                                                      field_name='filename',
                                                                      partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
-                                                                     sort_key_prefix=event['manifest_dynamodb_key_prefix'])
-        event['include_fns'] = filename_list
+                                                                     sort_key_prefix=event[
+                                                                         'manifest_dynamodb_key_prefix'])
+
+        non_index_file_list = [filename for filename in filename_list if not agha.FileType.is_index_file(filename)]
+        event['include_fns'] = non_index_file_list
 
     # Get file lists and other data. Returning and assigning to be explicit.
     # NOTE(SW): FileRecords are used so that we have single interface for record creation and job
@@ -102,9 +105,9 @@ def handler(event, context):
 
         # Search for existing record
         logger.info('Grabing existing record from partition and sort key')
-        manifest_response = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                                             partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
-                                                             sort_key_prefix=sort_key)
+        manifest_response = dynamodb.get_item_from_exact_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                                   partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                                                                   sort_key=sort_key)
         logger.info('Record Response')
         logger.info(json.dumps(manifest_response))
 
@@ -130,22 +133,22 @@ def handler(event, context):
         # Create job data
         logger.info(f'Creating batch job for, s3_key:{sort_key}')
         job_data = batch.create_job_data(s3_key=sort_key, partition_key=dynamodb.ResultPartitionKey.FILE.value,
-                                         checksum=provided_checksum, tasks_list=tasks_list, output_prefix=data.output_prefix)
+                                         checksum=provided_checksum, tasks_list=tasks_list,
+                                         output_prefix=data.output_prefix)
 
         batch_job_data.append(job_data)
 
-    # Submit Batch jobs]
-    print('PRINTING')
-    print(batch_job_data)
-    logger.info('Submitting job to batch')
+    # Submit Batch jobs
+    logger.info(f'Submitting job to batch. Processing {len(batch_job_data)} number of job')
     for job_data in batch_job_data:
         logger.info('Job submitted')
         logger.info(json.dumps(job_data))
 
         batch.submit_batch_job(job_data)
 
+
 def validate_event_data(event_record):
-    # Check for unknown argments
+    # Check for unknown arguments
     args_known = {
         'manifest_fp',
         'filepaths',

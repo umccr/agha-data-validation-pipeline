@@ -48,22 +48,6 @@ class FlagShip(Enum):
         return FlagShip.UNKNOWN
 
 
-class FileType(Enum):
-    BAM = "BAM"
-    BAM_INDEX = "BAM_INDEX"
-    CRAM = "CRAM"
-    CRAM_INDEX = "CRAM_INDEX"
-    FASTQ = "FASTQ"
-    VCF = "VCF"
-    VCF_INDEX = "VCF_INDEX"
-    MD5 = "MD5"
-    MANIFEST = "MANIFEST"
-    OTHER = "OTHER"
-
-    def __str__(self):
-        return self.value
-
-
 FEXT_FASTQ = ['.fq', '.fq.gz', '.fastq', '.fastq.gz']
 FEXT_BAM = ['.bam']
 FEXT_BAM_INDEX = ['.bai']
@@ -108,5 +92,12 @@ class FileType(Enum):
     def is_compressable(filetype:str)-> bool:
         COMPRESSABLE_TYPE = [FileType.VCF.get_name(), FileType.FASTQ.get_name()]
         if filetype in COMPRESSABLE_TYPE:
+            return True
+        return False
+
+    @staticmethod
+    def is_index_file(filename:str)->bool:
+        INDEX_FILE = [FileType.BAM_INDEX, FileType.VCF_INDEX]
+        if FileType.from_name(filename) in INDEX_FILE:
             return True
         return False

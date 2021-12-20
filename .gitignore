@@ -35,3 +35,4 @@ var/
 .DS_Store
 .vscode
 
+foo.py
