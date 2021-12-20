@@ -97,17 +97,6 @@ class BatchStack(core.NestedStack):
         )
 
         instance_types = [
-            'm3.large',
-            'm3.xlarge',
-            'm4.large',
-            'm4.xlarge',
-            'm5.large',
-            'm5.xlarge',
-            'm5a.large',
-            'm5a.xlarge',
-            'm5ad.xlarge',
-            'm5d.large',
-            'm5d.xlarge',
             'r4.large',
             'r5.large',
             'r5a.large',

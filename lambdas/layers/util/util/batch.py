@@ -117,8 +117,13 @@ def submit_batch_job(job_data):
         jobQueue=BATCH_QUEUE_NAME,
         jobDefinition=JOB_DEFINITION_ARN,
         containerOverrides={
-            'memory': 4000,
             'environment': environment,
-            'command': command
+            'command': command,
+            'resourceRequirements': [
+                {
+                    'value': '4000',
+                    'type': 'MEMORY'
+                },
+            ]
         }
     )
