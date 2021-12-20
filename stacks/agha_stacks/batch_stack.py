@@ -107,7 +107,7 @@ class BatchStack(core.NestedStack):
         batch_compute_environment = batch.ComputeEnvironment(
             self,
             'BatchComputeEnvironment',
-            compute_environment_name='agha-validation-pipeline-compute-environment',
+            compute_environment_name=batch_environment['compute_environment_name'],
             compute_resources=batch.ComputeResources(
                 vpc=vpc,
                 allocation_strategy=batch.AllocationStrategy.SPOT_CAPACITY_OPTIMIZED,

@@ -40,6 +40,7 @@ stack_props = {
         'sender_email': 'services@umccr.org'
     },
     'batch_environment': {
+        'compute_environment_name': 'agha-gdr-pipeline-compute-environment',
         'batch_queue_name': 'agha-gdr-pipeline-job-queue',
         'vpc_id': 'vpc-36fbdf51',
         'file_validation_ecr': {
