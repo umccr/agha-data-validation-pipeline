@@ -4,6 +4,7 @@ import os
 from aws_cdk import core
 
 from stacks.codepipeline_stacks.codepipeline_stack import CodePipelineStack
+from stacks.dynamodb_stack.dynamodb_stack import DynamoDBStack
 
 # Retrieve AWS details from currently active AWS profile/credentials
 aws_env = {
@@ -63,6 +64,17 @@ stack_props = {
 # Initialise stack
 app = core.App(
     context=stack_props
+)
+
+# DynamoDB
+DynamoDBStack(
+    app,
+    'AGHADynamoDBStack',
+    tags={
+        "Stack": "cdk-agha-gdr-dynamodb-resource",
+        "Creator": "William"
+    },
+    env = aws_env
 )
 
 CodePipelineStack(

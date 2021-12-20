@@ -36,7 +36,6 @@ class CodePipelineStack(cdk.Stack):
         super().__init__(scope, id, **kwargs)
 
         pipeline_props = self.node.try_get_context("pipeline")
-        batch_environment = self.node.try_get_context("batch_environment")
 
         ################################################################################
         # Basic Pipeline construct
@@ -81,18 +80,6 @@ class CodePipelineStack(cdk.Stack):
             output=github_source_output
         )
 
-        # Uncomment below if ECR change needed as one of the pipeline trigger
-        # ecr_source_action = codepipeline_actions.EcrSourceAction(
-        #     action_name="ECR_Source",
-        #     output=ecr_source_output,
-        #     repository=ecr.Repository.from_repository_name(
-        #         self,
-        #         "FileValidationRepository",
-        #         repository_name=batch_environment["file_validation_ecr"]["name"],
-        #     ),
-        #     image_tag=batch_environment["file_validation_ecr"]["tag"]
-        # )
-
         agha_validation_build_pipeline.add_stage(
             stage_name='GitHub_Source_Stage',
             actions=[github_source_action], # Might add ECR
@@ -115,7 +102,7 @@ class CodePipelineStack(cdk.Stack):
                     "do /bin/bash ./build_lambda_layers.sh ${dir}; done",
 
                     # CDK synth
-                    "cdk synth --verbose"
+                    "cdk synth AGHAValidationCodePipeline --verbose"
                 ],
                 install_commands=[
                     "npm install -g aws-cdk",
