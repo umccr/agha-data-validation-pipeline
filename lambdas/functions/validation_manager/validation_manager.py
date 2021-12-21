@@ -144,7 +144,8 @@ def handler(event, context):
         logger.info('Job submitted')
         logger.info(json.dumps(job_data))
 
-        batch.submit_batch_job(job_data)
+        batch_res = batch.submit_batch_job(job_data)
+        print(batch_res)
 
 
 def validate_event_data(event_record):

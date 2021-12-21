@@ -134,6 +134,10 @@ class BatchStack(core.NestedStack):
             ]
         )
 
+        ################################################################################################################
+        # Definition for batch job
+
+        # Batch job for file validation
         self.batch_job_definition = batch.JobDefinition(
             self,
             'BatchJobDefinition',
@@ -151,12 +155,10 @@ class BatchStack(core.NestedStack):
                 memory_limit_mib=1000,
                 vcpus=1,
             ),
+            retry_attempts=2
         )
 
-
-        ################################################################################
-        # Batch for move_s3_object
-
+        # Batch job definition for s3 mv
         self.batch_s3_job_definition = batch.JobDefinition(
             self,
             'S3BatchJobDefinition',
@@ -167,4 +169,5 @@ class BatchStack(core.NestedStack):
                 memory_limit_mib=1000,
                 vcpus=1,
             ),
+            retry_attempts=2
         )

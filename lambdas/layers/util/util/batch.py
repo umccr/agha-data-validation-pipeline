@@ -112,7 +112,7 @@ def submit_batch_job(job_data):
         {'name': 'DYNAMODB_STAGING_TABLE_NAME', 'value': DYNAMODB_STAGING_TABLE_NAME},
         {'name': 'RESULTS_KEY_PREFIX', 'value': job_data['output_prefix']},
     ]
-    client_batch.submit_job(
+    res = client_batch.submit_job(
         jobName=job_data['name'],
         jobQueue=BATCH_QUEUE_NAME,
         jobDefinition=JOB_DEFINITION_ARN,
@@ -127,3 +127,4 @@ def submit_batch_job(job_data):
             ]
         }
     )
+    return res
