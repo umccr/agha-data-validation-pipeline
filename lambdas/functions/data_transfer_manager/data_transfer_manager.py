@@ -3,8 +3,10 @@ import json
 import logging
 import os
 import re
+import sys
 import uuid
 import boto3
+from boto3.dynamodb.conditions import Attr
 
 import util
 from util import dynamodb, s3, batch, agha
@@ -19,7 +21,7 @@ S3_JOB_DEFINITION_ARN = os.environ.get('S3_JOB_DEFINITION_ARN')
 DYNAMODB_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_RESULT_TABLE_NAME')
 DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 DYNAMODB_STORE_TABLE_NAME = os.environ.get('DYNAMODB_STORE_TABLE_NAME')
-DYNAMODB_STORE_ARCHIVE_TABLE_NAME = os.environ.get('DYNAMODB_STORE_ARCHIVE_TABLE_NAME')
+DYNAMODB_ARCHIVE_STORE_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_STORE_TABLE_NAME')
 # Logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -48,110 +50,108 @@ def handler(event, context):
     submission = event["submission"]
     flagship = event["flagship_code"]
 
-    s3_key = construct_directory_from_flagship_and_submission(flagship, submission)
-    logger.info(f's3_key to be moved: {s3_key}')
+    submission_directory = construct_directory_from_flagship_and_submission(flagship, submission)
+    logger.info(f'Submission directory: {submission_directory}')
 
     # Process each record and prepare Batch commands
-    batch_job_data = list()
+    batch_job_data = []
+    dynamodb_job = []
 
-    # Get object list'
-    logger.info('Check if data is have passed checks before moving')
-    object_list = s3.get_s3_object_metadata(bucket_name=STAGING_BUCKET, directory_prefix=s3_key)
-    logger.info('Object list response:')
-    print(object_list)
+    # Checking if all type of test exist for the submission pass
+    for each_test in batch.Tasks.tasks_to_list():
 
-    # Checking for all status has passed
-    for object_ in object_list:
-        key = object_['Key']
-        logger.info(f'Get status for {key} metadata')
-        status_response = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_RESULT_TABLE_NAME,
-                                                           partition_key=dynamodb.ResultPartitionKey.STATUS.value,
-                                                           sort_key_prefix=key)
-        logger.info(f'Metadata response {status_response}:')
-        logger.info(json.dumps(status_response))
+        partition_key_to_search = dynamodb.ResultPartitionKey.STATUS.value + ':' + each_test
+        filter_key = Attr('value').ne('PASS')  # Not equal to PASS
 
-        status_list = status_response['Items']
-        for status in status_list:
-            logger.info(f'Checking value status for:')
-            logger.info(json.dumps(status))
-            if status["value"].upper() != "PASS".upper():
-                logger.error('Data has invalid check status')
-                logger.error('Aborting!')
-                return {"StatusCode": 406, "body": f"{status['value']} have not pass validation"}
+        res = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_RESULT_TABLE_NAME,
+                                               partition_key=partition_key_to_search,
+                                               sort_key_prefix=submission_directory,
+                                               filter=filter_key)
 
-    logger.info('Checking status validation has passed')
+        if res['Count'] > 0:
+            logger.error('Data has FAIL check status:')
+            logger.error(json.dumps(res['Items'], indent=4))
+            logger.error('Aborting!')
+            return {"StatusCode": 406, "body": f"{json.dumps(res['Items'], indent=4)}"}
 
-    # Processing s3 key (moving manifest record, and create move job)
+    # Creating s3 move job
     try:
-        for object_ in object_list:
-            key = object_['Key']
-            logger.info(f'Processing s3_key:{key}')
-            # Check if the following file has a compressed or index file
-            result_data_record = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_RESULT_TABLE_NAME,
-                                                                  partition_key=dynamodb.ResultPartitionKey.DATA.value,
-                                                                  sort_key_prefix=key)
-            logger.info(f'Result data response:')
-            logger.info(json.dumps(result_data_record))
 
-            # Find out source file to transfer
-            output_file_record = find_output_file(result_data_record['Items'])
-            if output_file_record:
-                source_bucket_name = output_file_record["value"][0]["bucket_name"]
-                source_s3_key = output_file_record["value"][0]["s3_key"]
-            else:
-                source_bucket_name = STAGING_BUCKET
-                source_s3_key = key
+        # Grab object list
+        manifest_list_res = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                             partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                                                             sort_key_prefix=submission_directory)
+        manifest_list = manifest_list_res['Items']
 
-            # Create s3 uri
-            source_s3_uri = create_s3_uri_from_bucket_name_and_key(source_bucket_name, source_s3_key)
-            target_s3_uri = create_s3_uri_from_bucket_name_and_key(STORE_BUCKET, source_s3_key)
-            logger.info(f'Generating source and target s3 URI')
-            logger.info(f'source: {source_s3_uri}')
-            logger.info(f'target: {target_s3_uri}')
+        for manifest_record in manifest_list:
+            s3_key = manifest_record['sort_key']
+            logger.info(f'Processing s3_key:{s3_key}')
 
-            # Create and append job to job list
-            create_batch_job = create_mv_s3_object_batch_job(source_s3_uri, target_s3_uri, s3_key)
-            logger.info(f'Batch Job:')
-            logger.info(json.dumps(create_batch_job))
-            batch_job_data.append(create_batch_job)
+            list_to_process = []  # Temp list for creating job
 
-            logger.info(f'Searching manifest record for: {s3_key}')
-            # Dynamodb manifest record construct (manifest exclusion)
-            manifest_response = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                                                 partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
-                                                                 sort_key_prefix=key)
-            # Should only have one response
-            logger.info(f'Manifest response:')
-            logger.info(json.dumps(manifest_response))
-            if manifest_response['Count'] > 0:
-                logger.info(f'Manifest record found on staging table')
-                manifest_file_list = manifest_response['Items']
+            # Job to identify to move from staging (with no transformation) to store
+            is_move_original_file = True
 
-                logger.info(f'Moving manifest record from staging to store')
-                store_manifest_record = dynamodb.ManifestFileRecord(**manifest_file_list[0])
-                store_manifest_record.partition_key = source_s3_key
-                store_manifest_record.filename = s3.get_s3_filename_from_s3_key(source_s3_key)
-                store_manifest_record.filetype = agha.FileType.from_name(store_manifest_record.filename).get_name()
+            for each_tasks in batch.Tasks.tasks_create_file():
 
-                res_write_obj = dynamodb.write_record_from_class(DYNAMODB_STORE_TABLE_NAME, store_manifest_record)
-                logger.info('Write manifest record')
-                print(res_write_obj)
+                data_partition_key = dynamodb.ResultPartitionKey.DATA.value + ':' + each_tasks
+                data_res = dynamodb.get_item_from_exact_pk_and_sk(table_name=DYNAMODB_RESULT_TABLE_NAME,
+                                                                  partition_key=data_partition_key,
+                                                                  sort_key=s3_key)
 
-                archive_record = dynamodb.ArchiveManifestFileRecord.create_archive_manifest_record_from_manifest_record(
-                    store_manifest_record, s3.S3EventType.EVENT_OBJECT_CREATED.value)
-                res_write_archive_obj = dynamodb.write_record_from_class(DYNAMODB_STORE_ARCHIVE_TABLE_NAME,
-                                                                         archive_record)
-                logger.info('Archive write manifest response')
-                print(res_write_archive_obj)
-            else:
-                logger.info(f'{s3_key} does not have manifest record. Skipping ...')
+                logger.info(f'Response of sort_key:\'{s3_key}\', partition_key:\'{data_partition_key}\':')
+                logger.info(json.dumps(data_res, indent=4))
+
+                if data_res['Count'] > 0:
+                    item = data_res['Items'][0]
+                    list_to_process.append(item['value'][0])
+
+                    # For time being if file being compress. Original file is no longer needed
+                    if each_tasks == batch.Tasks.COMPRESS.value:
+                        is_move_original_file = False
+
+            if is_move_original_file:
+                logger.info(f'Do not have data generated in pipeline. Moving file from original state')
+                list_to_process.append({'s3_key': s3_key,
+                                        'checksum': manifest_record['provided_checksum'],
+                                        'bucket_name': STAGING_BUCKET})
+
+            # Process and crate move job
+            for job_info in list_to_process:
+                source_bucket = job_info['bucket_name']
+                source_s3 = job_info['s3_key']
+                checksum = job_info['checksum']
+
+                cli_op = 'mv' # Move Operation for default value
+                print(source_bucket)
+                print('env resultbuck', RESULTS_BUCKET)
+                if source_bucket == RESULTS_BUCKET:
+                    print('Executed')
+                    cli_op = 'cp' # Not deleting anything from result bucket
+
+                batch_job = create_cli_s3_object_batch_job(source_bucket_name=source_bucket,
+                                                           source_s3_key=source_s3,
+                                                           cli_op=cli_op)
+                batch_job_data.append(batch_job)
+                logger.info(f'Creating job for index:')
+                logger.info(json.dumps(batch_job, indent=4))
+
+                # Create Dynamodb from existing and override some value
+                logger.info(f'Create dynamodb manifest record')
+                record = dynamodb.ManifestFileRecord(**manifest_record)
+                record.filename = s3.get_s3_filename_from_s3_key(source_s3)
+                record.date_modified = util.get_datetimestamp()
+                record.filetype = agha.FileType.from_name(record.filename).get_name()
+                record.provided_checksum = checksum
+                record.sort_key = source_s3
+                dynamodb_job.append(record)
 
     except Exception as e:
         logger.error(e)
         logger.error('Aborting!')
         return {"StatusCode": 406, "body": f"Something went wrong on moving manifest records from staging to store.\n"
                                            f",Error: {e}"}
-
+    sys.exit(1)
     # Unlock bucket
     try:
         get_bucket_policy_response = S3_CLIENT.get_bucket_policy(Bucket=STAGING_BUCKET)
@@ -166,12 +166,15 @@ def handler(event, context):
         logger.info('Folder Lock statement')
         logger.info(json.dumps(folder_lock_resource))
 
+        resource = construct_resource_from_s3_key_and_bucket(STAGING_BUCKET, submission_directory) + '*'
+        logger.info(f'Construct resource: {resource}')
+
         if isinstance(folder_lock_resource, list):
-            resource = construct_resource_from_s3_key_and_bucket(STAGING_BUCKET, s3_key)
 
-            logger.info(f'Construct resource: {resource}')
-
-            folder_lock_resource.remove(resource)
+            try:
+                folder_lock_resource.remove(resource)
+            except Exception:
+                raise ValueError('Folder lock resource not found')
 
             bucket_policy_json = json.dumps(bucket_policy)
             logger.info("New bucket policy:")
@@ -179,11 +182,15 @@ def handler(event, context):
 
             response = S3_CLIENT.put_bucket_policy(Bucket=STAGING_BUCKET, Policy=bucket_policy_json)
             logger.info(f"BucketPolicy update response: {response}")
-        elif isinstance(folder_lock_resource, str):
 
-            logger.info(f"Only one bucket policy found. Removing it...")
-            response = S3_CLIENT.delete_bucket_policy(Bucket=STAGING_BUCKET)
-            logger.info(f"Delete bucket policy response: {response}")
+        elif isinstance(folder_lock_resource, str) and folder_lock_resource == resource:
+
+            logger.info(f"Only one resource found in the folder lock policy. Removing it...")
+            bucket_policy['Statement'].remove(folder_lock_statement)
+            bucket_policy_json = json.dumps(bucket_policy)
+            response = S3_CLIENT.put_bucket_policy(Bucket=STAGING_BUCKET, Policy=bucket_policy_json)
+            logger.info(f"BucketPolicy update response: {response}")
+
         else:
             logger.info("Unknown bucket policy. Raising an error")
             raise ValueError('Unknown Bucket policy')
@@ -192,6 +199,15 @@ def handler(event, context):
         logger.error(e)
         logger.error('Aborting!')
         return {"StatusCode": 406, "body": f"Something went wrong on lifting bucket policy.\n Error: {e}"}
+
+
+    # Create DynamoDb in store table
+    logger.info(f'Writing data to dynamodb')
+    dynamodb.batch_write_records(table_name=DYNAMODB_STORE_TABLE_NAME,
+                                 records=dynamodb_job)
+    dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_STORE_TABLE_NAME,
+                                        records=dynamodb_job,
+                                        archive_log=s3.S3EventType.EVENT_OBJECT_CREATED.value)
 
     # Submit Batch jobs
     for job_data in batch_job_data:
@@ -210,7 +226,12 @@ def create_s3_uri_from_bucket_name_and_key(bucket_name, s3_key):
     return f"s3://{bucket_name}/{s3_key}"
 
 
-def create_mv_s3_object_batch_job(source_s3_uri, target_s3_uri, name):
+def create_cli_s3_object_batch_job(source_bucket_name, source_s3_key, cli_op:str='mv'):
+    name = source_s3_key
+
+    source_s3_uri = create_s3_uri_from_bucket_name_and_key(bucket_name=source_bucket_name, s3_key=source_s3_key)
+    target_s3_uri = create_s3_uri_from_bucket_name_and_key(bucket_name=STORE_BUCKET, s3_key=source_s3_key)
+
     name_raw = f'agha_data_transfer_{name}'
     name = JOB_NAME_RE.sub('_', name_raw)
     # Job name must be less than 128 characters. If job name exceeds this length, truncate to the
@@ -218,10 +239,9 @@ def create_mv_s3_object_batch_job(source_s3_uri, target_s3_uri, name):
     if len(name) > 128:
         name = f'{name[:120]}_{uuid.uuid1().hex[:7]}'
 
-    command = ['s3', 'mv', source_s3_uri, target_s3_uri]
+    command = ['s3', cli_op, source_s3_uri, target_s3_uri]
 
     return {"name": name, "command": command}
-
 
 def submit_data_transfer_job(job_data):
     client_batch = util.get_client('batch')
@@ -233,11 +253,9 @@ def submit_data_transfer_job(job_data):
         jobQueue=BATCH_QUEUE_NAME,
         jobDefinition=S3_JOB_DEFINITION_ARN,
         containerOverrides={
-            'memory': 4000,
             'command': command
         }
     )
-
 
 def validate_event_data(event_record):
     # Check for unknown arguments
@@ -255,11 +273,3 @@ def validate_event_data(event_record):
 
 def construct_resource_from_s3_key_and_bucket(bucket_name, s3_key):
     return f'arn:aws:s3:::{bucket_name}/{s3_key}'
-
-
-def find_output_file(result_data_record: list):
-    """ Return a record with output file contain if any. Return void when none"""
-    for data_record in result_data_record:
-        if data_record['sort_key'].endswith(batch.Tasks.INDEX.value) or data_record['sort_key'].endswith(
-                batch.Tasks.COMPRESS.value):
-            return data_record

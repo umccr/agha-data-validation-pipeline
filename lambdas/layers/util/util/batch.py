@@ -56,6 +56,10 @@ class Tasks(enum.Enum):
     def tasks_to_list() -> list:
         return [task.value for task in Tasks]
 
+    @staticmethod
+    def tasks_create_file() -> list:
+        return [Tasks.COMPRESS.value, Tasks.INDEX.value]
+
 def get_tasks_list():
     """
     Trigger which tasks should run

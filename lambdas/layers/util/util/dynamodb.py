@@ -447,6 +447,14 @@ def batch_write_records(table_name: str, records: list):
             batch.put_item(Item=record.__dict__)
 
 
+def batch_write_record_archive(table_name: str, records: list, archive_log: str):
+    tbl = get_resource().Table(table_name)
+    with tbl.batch_writer() as batch:
+        for record in records:
+            object = record.__dict__
+            object["archive_log"] = archive_log
+            batch.put_item(Item=record.__dict__)
+
 def batch_write_objects(table_name: str, object_list: list):
     tbl = get_resource().Table(table_name)
     with tbl.batch_writer() as batch:
@@ -475,18 +483,25 @@ def get_item_from_pk(table_name: str, partition_key: str):
     return response
 
 
-def get_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix: str):
+def get_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix: str, filter: str = None):
     ddb = get_resource()
     tbl = ddb.Table(table_name)
 
-    expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key) & Key(
+    key_expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key) & Key(
         FileRecordAttribute.SORT_KEY.value).begins_with(sort_key_prefix)
 
-    response = tbl.query(
-        KeyConditionExpression=expr
-    )
+    if filter:
+        response = tbl.query(
+            KeyConditionExpression=key_expr,
+            FilterExpression=filter
+        )
+    else:
+        response = tbl.query(
+            KeyConditionExpression=key_expr,
+        )
 
     return response
+
 
 def get_item_from_exact_pk_and_sk(table_name: str, partition_key: str, sort_key: str):
     ddb = get_resource()
@@ -501,8 +516,8 @@ def get_item_from_exact_pk_and_sk(table_name: str, partition_key: str, sort_key:
 
     return response
 
-def get_field_list_from_dynamodb_record(table_name:str, field_name:str, partition_key:str, sort_key_prefix):
 
+def get_field_list_from_dynamodb_record(table_name: str, field_name: str, partition_key: str, sort_key_prefix):
     res = get_item_from_pk_and_sk(table_name=table_name, partition_key=partition_key, sort_key_prefix=sort_key_prefix)
 
     field_list = []

@@ -439,7 +439,7 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
                 'DYNAMODB_STORE_TABLE_NAME': dynamodb_table["store-bucket"],
                 'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
-                'DYNAMODB_STORE_ARCHIVE_TABLE_NAME': dynamodb_table["store-bucket-archive"]
+                'DYNAMODB_ARCHIVE_STORE_TABLE_NAME': dynamodb_table["store-bucket-archive"]
 
             },
             role=data_transfer_manager_lambda_role,
