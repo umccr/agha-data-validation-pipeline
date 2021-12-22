@@ -123,10 +123,7 @@ def handler(event, context):
                 checksum = job_info['checksum']
 
                 cli_op = 'mv' # Move Operation for default value
-                print(source_bucket)
-                print('env resultbuck', RESULTS_BUCKET)
                 if source_bucket == RESULTS_BUCKET:
-                    print('Executed')
                     cli_op = 'cp' # Not deleting anything from result bucket
 
                 batch_job = create_cli_s3_object_batch_job(source_bucket_name=source_bucket,
@@ -151,7 +148,7 @@ def handler(event, context):
         logger.error('Aborting!')
         return {"StatusCode": 406, "body": f"Something went wrong on moving manifest records from staging to store.\n"
                                            f",Error: {e}"}
-    sys.exit(1)
+
     # Unlock bucket
     try:
         get_bucket_policy_response = S3_CLIENT.get_bucket_policy(Bucket=STAGING_BUCKET)
