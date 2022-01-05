@@ -89,6 +89,12 @@ def handler(event, context):
             s3_key = manifest_record['sort_key']
             logger.info(f'Processing s3_key:{s3_key}')
 
+            if agha.FileType.is_index_file(s3_key):
+                logger.info(f'Skipping index file as validation manager produce its own')
+                # Not processing index file from staging bucket
+                # Validation manager produce its own indexing file
+                continue
+
             list_to_process = []  # Temp list for creating job
 
             # Job to identify to move from staging (with no transformation) to store
