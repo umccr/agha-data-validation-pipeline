@@ -9,7 +9,7 @@ sys.path.append(SOURCE_PATH)
 
 
 # Setting up environment variable
-os.environ["BATCH_QUEUE_NAME"] = 'agha-gdr-pipeline-job-queue'
+os.environ["BATCH_QUEUE_NAME"] = '{"small": "agha-gdr-pipeline-job-queue-small", "medium": "agha-gdr-pipeline-job-queue-medium", "large": "agha-gdr-pipeline-job-queue-large", "xlarge": "agha-gdr-pipeline-job-queue-xlarge"}'
 os.environ["DYNAMODB_ARCHIVE_STAGING_TABLE_NAME"] = 'agha-gdr-staging-bucket-archive'
 os.environ["DYNAMODB_RESULT_TABLE_NAME"] = 'agha-gdr-result-bucket'
 os.environ["DYNAMODB_STAGING_TABLE_NAME"] = 'agha-gdr-staging-bucket'

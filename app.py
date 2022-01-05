@@ -40,8 +40,18 @@ stack_props = {
         'sender_email': 'services@umccr.org'
     },
     'batch_environment': {
-        'compute_environment_name': 'agha-gdr-pipeline-compute-environment',
-        'batch_queue_name': 'agha-gdr-pipeline-job-queue',
+        'compute_environment_name':{
+            'small':'agha-gdr-pipeline-compute-environment-small',
+            'medium':'agha-gdr-pipeline-compute-environment-medium',
+            'large':'agha-gdr-pipeline-compute-environment-large',
+            'xlarge':'agha-gdr-pipeline-compute-environment-xlarge'
+        },
+        'batch_queue_name': {
+            'small':'agha-gdr-pipeline-job-queue-small',
+            'medium':'agha-gdr-pipeline-job-queue-medium',
+            'large':'agha-gdr-pipeline-job-queue-large',
+            'xlarge':'agha-gdr-pipeline-job-queue-xlarge'
+        },
         'vpc_id': 'vpc-36fbdf51',
         'file_validation_ecr': {
             'name': 'agha-gdr-validate-file',

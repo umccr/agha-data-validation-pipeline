@@ -108,7 +108,7 @@ def handler(event, context):
         manifest_response = dynamodb.get_item_from_exact_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
                                                                    partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
                                                                    sort_key=sort_key)
-        logger.info('Record Response')
+        logger.info('Manifest Record Response')
         logger.info(json.dumps(manifest_response))
 
         if manifest_response['Count'] != 1:
@@ -130,11 +130,29 @@ def handler(event, context):
         # Replace tasks with those specified by user if available
         tasks_list = batch.get_tasks_list()
 
+        # Grab file size
+        logger.info('Grab existing file record from partition and sort key for filesize')
+        file_record_response = dynamodb.get_item_from_exact_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                                   partition_key=dynamodb.FileRecordPartitionKey.FILE_RECORD.value,
+                                                                   sort_key=sort_key)
+        logger.info('File Record Response File Size:')
+        print(file_record_response)
+
+        if file_record_response['Count'] != 1:
+            message = f'No or more than one S3_key record of \'{sort_key}\' found. Aborting!'
+
+            notification.log_and_store_message(message, 'error')
+            notification.notify_and_exit()
+            return
+
+        file_record_json = file_record_response["Items"][0]
+        filesize = int(file_record_json['size_in_bytes'])
+
         # Create job data
         logger.info(f'Creating batch job for, s3_key:{sort_key}')
         job_data = batch.create_job_data(s3_key=sort_key, partition_key=dynamodb.ResultPartitionKey.FILE.value,
                                          checksum=provided_checksum, tasks_list=tasks_list,
-                                         output_prefix=data.output_prefix)
+                                         output_prefix=data.output_prefix, filesize=filesize)
 
         batch_job_data.append(job_data)
 

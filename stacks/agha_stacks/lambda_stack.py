@@ -1,3 +1,5 @@
+import json
+
 from aws_cdk import (
     aws_lambda as lambda_,
     aws_s3_notifications as s3notification,
@@ -20,6 +22,7 @@ class LambdaStack(core.NestedStack):
         batch_environment = self.node.try_get_context("batch_environment")
         autorun_validation_jobs = self.node.try_get_context("autorun_validation_jobs")
 
+        batch_queue_arn_list = [val.job_queue_arn for key, val in batch.batch_job_queue.items()]
 
         ################################################################################
         # S3 bucket
@@ -166,15 +169,15 @@ class LambdaStack(core.NestedStack):
             ]
         )
 
+        resources = batch_queue_arn_list.copy()
+        resources.append(batch.batch_job_definition.job_definition_arn)
+
         validation_manager_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
                     'batch:SubmitJob'
                 ],
-                resources=[
-                    batch.batch_job_queue.job_queue_arn,
-                    batch.batch_job_definition.job_definition_arn,
-                ]
+                resources=resources
             )
         )
 
@@ -194,7 +197,7 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
                 'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
                 # Batch
-                'BATCH_QUEUE_NAME': batch_environment['batch_queue_name'],
+                'BATCH_QUEUE_NAME': json.dumps(batch_environment['batch_queue_name']),
                 'JOB_DEFINITION_ARN': batch.batch_job_definition.job_definition_arn,
                 # Buckets
                 'RESULTS_BUCKET': bucket_name['results_bucket'],
@@ -408,15 +411,15 @@ class LambdaStack(core.NestedStack):
             )
         )
 
+        resources = batch_queue_arn_list.copy()
+        resources.append(batch.batch_s3_job_definition.job_definition_arn)
+
         data_transfer_manager_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
                     'batch:SubmitJob'
                 ],
-                resources=[
-                    batch.batch_job_queue.job_queue_arn,
-                    batch.batch_s3_job_definition.job_definition_arn,
-                ]
+                resources=resources
             )
         )
         self.data_transfer_manager_lambda = lambda_.Function(
@@ -429,7 +432,7 @@ class LambdaStack(core.NestedStack):
             code=lambda_.Code.from_asset('lambdas/functions/data_transfer_manager'),
             environment={
                 # Batch
-                'BATCH_QUEUE_NAME': batch_environment['batch_queue_name'],
+                'BATCH_QUEUE_NAME': json.dumps(batch_environment['batch_queue_name']),
                 'S3_JOB_DEFINITION_ARN': batch.batch_s3_job_definition.job_definition_arn,
                 # Buckets
                 'STORE_BUCKET': bucket_name['store_bucket'],

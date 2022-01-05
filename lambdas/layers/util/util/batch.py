@@ -4,6 +4,7 @@ import os
 import re
 import textwrap
 import enum
+import json
 
 import util
 
@@ -82,7 +83,7 @@ def get_tasks_list():
     return tasks_list
 
 
-def create_job_data(s3_key:str, partition_key:str, checksum, tasks_list, output_prefix):
+def create_job_data(s3_key:str, partition_key:str, checksum, tasks_list, output_prefix, filesize):
     name_raw = f'agha_validation__{s3_key}__{partition_key}'
     name = JOB_NAME_RE.sub('_', name_raw)
     # Job name must be less than 128 characters. If job name exceeds this length, truncate to the
@@ -103,8 +104,25 @@ def create_job_data(s3_key:str, partition_key:str, checksum, tasks_list, output_
     task_list.extend(tasks_list)
     command.extend(task_list)
 
-    return {'name': name, 'command': command, 'output_prefix': output_prefix}
+    return {'name': name, 'command': command, 'output_prefix': output_prefix, 'filesize': filesize}
 
+def find_suitble_batch_queue_name(filesize:int):
+    '''
+    To define appropriate job queue for the job.
+    :param filesize: The size needed for the job
+    :return:
+    '''
+
+    batch_queue_name_json = json.loads(BATCH_QUEUE_NAME)
+
+    if filesize > 150000000000: # Above 150gb
+        return batch_queue_name_json['xlarge']
+    elif filesize > 100000000000: # Above 100gb
+        return batch_queue_name_json['large']
+    elif filesize > 50000000000: # Above 50 gb
+        return batch_queue_name_json['medium']
+    else:
+        return batch_queue_name_json['small']
 
 def submit_batch_job(job_data):
     client_batch = util.get_client('batch')
@@ -118,7 +136,7 @@ def submit_batch_job(job_data):
     ]
     res = client_batch.submit_job(
         jobName=job_data['name'],
-        jobQueue=BATCH_QUEUE_NAME,
+        jobQueue=find_suitble_batch_queue_name(job_data['filesize']),
         jobDefinition=JOB_DEFINITION_ARN,
         containerOverrides={
             'environment': environment,

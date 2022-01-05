@@ -16,7 +16,7 @@ JOB_NAME_RE = re.compile(r'[.\\/]')
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 RESULTS_BUCKET = os.environ.get('RESULTS_BUCKET')
 STORE_BUCKET = os.environ.get('STORE_BUCKET')
-BATCH_QUEUE_NAME = os.environ.get('BATCH_QUEUE_NAME')
+BATCH_QUEUE_NAME = json.loads(os.environ.get('BATCH_QUEUE_NAME'))
 S3_JOB_DEFINITION_ARN = os.environ.get('S3_JOB_DEFINITION_ARN')
 DYNAMODB_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_RESULT_TABLE_NAME')
 DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
@@ -247,7 +247,7 @@ def submit_data_transfer_job(job_data):
 
     client_batch.submit_job(
         jobName=job_data['name'],
-        jobQueue=BATCH_QUEUE_NAME,
+        jobQueue=BATCH_QUEUE_NAME['small'],
         jobDefinition=S3_JOB_DEFINITION_ARN,
         containerOverrides={
             'command': command

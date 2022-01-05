@@ -34,6 +34,53 @@ class BatchStack(core.NestedStack):
         #   actions=['s3:PutBucketPolicy'],
         #   resources=[f'arn:aws:s3:::{props["staging_bucket"]}/{results_json_dir}']
 
+        instance_types_2_vcpu = [
+            'r4.large',
+            'r5.large',
+            'r5a.large',
+            'r5d.large',
+            'r5n.large',
+        ]
+
+        instance_types_4_vcpu = [
+            'r4.xlarge',
+            'r5.xlarge',
+            'r5a.xlarge',
+            'r5d.xlarge',
+            'r5n.xlarge',
+        ]
+
+        compute_environment_spec_list = [
+            {
+                'type':'small',
+                'queue_name': batch_environment['batch_queue_name']['small'],
+                'compute_environment_name': batch_environment['compute_environment_name']['small'],
+                'instance_type': instance_types_4_vcpu,
+                'ebs_storage_size': 225
+            },
+            {
+                'type': 'medium',
+                'queue_name': batch_environment['batch_queue_name']['medium'],
+                'compute_environment_name': batch_environment['compute_environment_name']['medium'],
+                'instance_type': instance_types_4_vcpu,
+                'ebs_storage_size': 425
+            },
+            {
+                'type': 'large',
+                'queue_name': batch_environment['batch_queue_name']['large'],
+                'compute_environment_name': batch_environment['compute_environment_name']['large'],
+                'instance_type': instance_types_4_vcpu,
+                'ebs_storage_size': 625
+            },
+            {
+                'type': 'xlarge',
+                'queue_name': batch_environment['batch_queue_name']['xlarge'],
+                'compute_environment_name': batch_environment['compute_environment_name']['xlarge'],
+                'instance_type': instance_types_2_vcpu,
+                'ebs_storage_size': 525
+            },
+        ]
+
         batch_instance_role = iam.Role(
             self,
             'BatchInstanceRole',
@@ -71,68 +118,70 @@ class BatchStack(core.NestedStack):
             security_group_name="AGHA validation pipeline"
         )
 
-        block_device_mappings = [
-            ec2.CfnLaunchTemplate.BlockDeviceMappingProperty(
-                device_name='/dev/xvda',
-                ebs=ec2.CfnLaunchTemplate.EbsProperty(
-                    encrypted=True,
-                    volume_size=500,
-                    volume_type='gp2'
-                )
-            ),
-        ]
+        batch_queue_dict = {}
 
-        batch_launch_template = ec2.CfnLaunchTemplate(
-            self,
-            'BatchLaunchTemplate',
-            launch_template_name='agha-validation-launch-template',
-            launch_template_data=ec2.CfnLaunchTemplate.LaunchTemplateDataProperty(
-                block_device_mappings=block_device_mappings,
-            ),
-        )
+        # Defining ebs storage
+        for compute_environment_spec in compute_environment_spec_list:
 
-        batch_launch_template_spec = batch.LaunchTemplateSpecification(
-            launch_template_name=batch_launch_template.launch_template_name,
-            version='$Latest',
-        )
 
-        instance_types = [
-            'r4.large',
-            'r5.large',
-            'r5a.large',
-            'r5d.large',
-            'r5n.large',
-        ]
-
-        batch_compute_environment = batch.ComputeEnvironment(
-            self,
-            'BatchComputeEnvironment',
-            compute_environment_name=batch_environment['compute_environment_name'],
-            compute_resources=batch.ComputeResources(
-                vpc=vpc,
-                allocation_strategy=batch.AllocationStrategy.SPOT_CAPACITY_OPTIMIZED,
-                desiredv_cpus=0,
-                instance_role=batch_instance_profile.attr_arn,
-                instance_types=[ec2.InstanceType(it) for it in instance_types],
-                launch_template=batch_launch_template_spec,
-                maxv_cpus=64,
-                security_groups=[batch_security_group],
-                spot_fleet_role=batch_spot_fleet_role,
-                type=batch.ComputeResourceType.SPOT,
-            )
-        )
-
-        self.batch_job_queue = batch.JobQueue(
-            self,
-            'BatchJobQueue',
-            job_queue_name=batch_environment['batch_queue_name'],
-            compute_environments=[
-                batch.JobQueueComputeEnvironment(
-                    compute_environment=batch_compute_environment,
-                    order=1
-                )
+            block_device_mappings = [
+                ec2.CfnLaunchTemplate.BlockDeviceMappingProperty(
+                    device_name='/dev/xvda',
+                    ebs=ec2.CfnLaunchTemplate.EbsProperty(
+                        encrypted=True,
+                        volume_size=compute_environment_spec['ebs_storage_size'],
+                        volume_type='gp2'
+                    )
+                ),
             ]
-        )
+
+            batch_launch_template = ec2.CfnLaunchTemplate(
+                self,
+                f"BatchLaunchTemplate_{compute_environment_spec['type']}",
+                launch_template_name=f"agha-validation-launch-template{compute_environment_spec['type']}",
+                launch_template_data=ec2.CfnLaunchTemplate.LaunchTemplateDataProperty(
+                    block_device_mappings=block_device_mappings,
+                ),
+            )
+
+            batch_launch_template_spec = batch.LaunchTemplateSpecification(
+                launch_template_name=batch_launch_template.launch_template_name,
+                version='$Latest',
+            )
+
+            batch_compute_environment = batch.ComputeEnvironment(
+                self,
+                f"BatchComputeEnvironment_{compute_environment_spec['compute_environment_name']}",
+                compute_environment_name=compute_environment_spec['compute_environment_name'],
+                compute_resources=batch.ComputeResources(
+                    vpc=vpc,
+                    allocation_strategy=batch.AllocationStrategy.SPOT_CAPACITY_OPTIMIZED,
+                    desiredv_cpus=0,
+                    instance_role=batch_instance_profile.attr_arn,
+                    instance_types=[ec2.InstanceType(it) for it in compute_environment_spec['instance_type']],
+                    launch_template=batch_launch_template_spec,
+                    maxv_cpus=32,
+                    security_groups=[batch_security_group],
+                    spot_fleet_role=batch_spot_fleet_role,
+                    type=batch.ComputeResourceType.SPOT,
+                )
+            )
+
+            batch_job_queue = batch.JobQueue(
+                self,
+                f"BatchJobQueue_{compute_environment_spec['queue_name']}",
+                job_queue_name=compute_environment_spec['queue_name'],
+                compute_environments=[
+                    batch.JobQueueComputeEnvironment(
+                        compute_environment=batch_compute_environment,
+                        order=1
+                    )
+                ]
+            )
+
+            batch_queue_dict[compute_environment_spec['queue_name']] = batch_job_queue
+
+        self.batch_job_queue = batch_queue_dict
 
         ################################################################################################################
         # Definition for batch job
