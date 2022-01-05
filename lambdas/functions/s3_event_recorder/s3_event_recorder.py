@@ -186,6 +186,12 @@ def handler(event, context):
                     dynamodb.batch_write_records(DYNAMODB_RESULT_TABLE_NAME, dynamodb_put_item_list)
                     dynamodb.batch_write_records(DYNAMODB_ARCHIVE_RESULT_TABLE_NAME, dynamodb_archive_put_item_list)
 
+            elif s3_record.event_type == s3.S3EventType.EVENT_OBJECT_REMOVED:
+                delete_standard_file_record(file_record_table_name=DYNAMODB_RESULT_TABLE_NAME,
+                                            archive_file_record_table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
+                                            etag_table_name=DYNAMODB_ETAG_TABLE_NAME,
+                                            file_record=db_record)
+
         else:
             logger.warning(f"Unsupported AGHA bucket: {s3_record.bucket_name}")
 

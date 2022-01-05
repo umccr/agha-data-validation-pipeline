@@ -22,6 +22,7 @@ DYNAMODB_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_RESULT_TABLE_NAME')
 DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 DYNAMODB_STORE_TABLE_NAME = os.environ.get('DYNAMODB_STORE_TABLE_NAME')
 DYNAMODB_ARCHIVE_STORE_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_STORE_TABLE_NAME')
+DYNAMODB_ARCHIVE_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_RESULT_TABLE_NAME')
 # Logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -56,6 +57,7 @@ def handler(event, context):
     # Process each record and prepare Batch commands
     batch_job_data = []
     dynamodb_job = []
+    dynamodb_result_update_job = []
 
     # Checking if all type of test exist for the submission pass
     for each_test in batch.Tasks.tasks_to_list():
@@ -110,6 +112,13 @@ def handler(event, context):
                     if each_tasks == batch.Tasks.COMPRESS.value:
                         is_move_original_file = False
 
+                    # Dynamodb Record result update
+                    updated_result_dynamodb = dynamodb.ResultRecord(**item)
+                    update_value = item['value'][0].copy()
+                    update_value['bucket_name'] = STORE_BUCKET
+                    updated_result_dynamodb.value = update_value
+                    dynamodb_result_update_job.append(updated_result_dynamodb)
+
             if is_move_original_file:
                 logger.info(f'Do not have data generated in pipeline. Moving file from original state')
                 list_to_process.append({'s3_key': s3_key,
@@ -123,12 +132,11 @@ def handler(event, context):
                 checksum = job_info['checksum']
 
                 cli_op = 'mv' # Move Operation for default value
-                if source_bucket == RESULTS_BUCKET:
-                    cli_op = 'cp' # Not deleting anything from result bucket
 
                 batch_job = create_cli_s3_object_batch_job(source_bucket_name=source_bucket,
                                                            source_s3_key=source_s3,
                                                            cli_op=cli_op)
+
                 batch_job_data.append(batch_job)
                 logger.info(f'Creating job for index:')
                 logger.info(json.dumps(batch_job, indent=4))
@@ -197,6 +205,12 @@ def handler(event, context):
         logger.error('Aborting!')
         return {"StatusCode": 406, "body": f"Something went wrong on lifting bucket policy.\n Error: {e}"}
 
+    # Submit Batch jobs
+    for job_data in batch_job_data:
+        logger.info(f'Executing job:{json.dumps(job_data)}')
+        submit_data_transfer_job(job_data)
+
+    logger.info(f'Batch job has executed.')
 
     # Create DynamoDb in store table
     logger.info(f'Writing data to dynamodb')
@@ -206,12 +220,13 @@ def handler(event, context):
                                         records=dynamodb_job,
                                         archive_log=s3.S3EventType.EVENT_OBJECT_CREATED.value)
 
-    # Submit Batch jobs
-    for job_data in batch_job_data:
-        logger.info(f'Executing job:{json.dumps(job_data)}')
-        submit_data_transfer_job(job_data)
+    # Update Dynamodb for changing storage location at result table
+    dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME,
+                                 records=dynamodb_result_update_job)
+    dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
+                                        records=dynamodb_result_update_job,
+                                        archive_log=s3.S3EventType.EVENT_OBJECT_CREATED.value)
 
-    logger.info(f'Batch job has executed.')
     return "Data Transfer Job has started"
 
 
