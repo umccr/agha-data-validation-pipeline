@@ -15,7 +15,7 @@ This stack is used to handle and validate data received as part of the AGHA GDR 
 * [Accessory scripts](#accessory-scripts)
 
 ## Schematic
-<p align="center"><img src="images/schematic.png" width="80%"></p>
+<p align="center"><img src="images/schematic2.0.png" width="80%"></p>
 
 ## Prerequisites
 It is assumed that the necessary VPC, security groups, and S3 buckets are appropriately deployed and configured in the target
@@ -74,12 +74,25 @@ DynamoDB record already exists for an input file, the default behaviour is to cr
 update the existing record with `record_mode` however, only a partial update of fields is performed and probably needs more
 work to be useful.
 
-We currently assume that all input data is in the staging bucket, and output data is always written to the results bucket.
+We currently assume that all input data is in the staging bucket, and output data is always written to the results bucket.  
+The simplest way to invoke via manifest_fp and dynamodb_key_prefix, other way to invoke the function are also shwon below.
+
+#### Invoke: manifest path and dynamodb_key_prefix
+```bash
+aws lambda invoke \
+    --function-name agha-gdr-validation-pipeline-validation-manager \
+    --cli-binary-format raw-in-base64-out \
+    --payload '{
+      "manifest_fp": "cardiac/20210711_170230/manifest.txt",
+      "manifest_dynamodb_key_prefix": "cardiac/20210711_170230/"
+    }' \
+    response.json
+```
 
 #### Invoke: manifest path
 ```bash
 aws lambda invoke \
-    --function-name agha-gdr-validation-pipeline_validation_manager_lambda \
+    --function-name agha-gdr-validation-pipeline-validation-manager \
     --cli-binary-format raw-in-base64-out \
     --payload '{
       "manifest_fp": "cardiac/20210711_170230/manifest.txt",
@@ -96,7 +109,7 @@ aws lambda invoke \
 #### Invoke: file paths
 ```bash
 aws lambda invoke \
-    --function-name agha-gdr-validation-pipeline_validation_manager_lambda \
+    --function-name agha-gdr-validation-pipeline-validation-manager \
     --cli-binary-format raw-in-base64-out \
     --payload '{
       "filepaths": [
@@ -138,33 +151,7 @@ aws lambda invoke \
     }' \
     response.json
 ```
+
 ## More detail
 For time being, more detail can be seen at 
 [AGHA validation pipeline update Pull Request](https://github.com/umccr/agha-data-validation-pipeline/pull/2)
-
-
-
-
-## Accessory scripts
-### `query_database.py`
-The script provides functionality to perform useful database queries. Query space can be limited by submission name or S3
-prefix.
-
-#### Record query
-| Query type                            | Description                                          |
-| ---                                   | ---                                                  |
-| `no_task_run`                         | No tasks run                                         |
-| `any_task_run`                        | ≥1 tasks run                                         |
-| `tasks_incompleted`                   | ≥1 runnable tasks incomplete                         |
-| `tasks_completed`                     | All runnable tasks complete                          |
-| `tasks_completed_not_fully_validated` | All tasks run (incl. non-runnable) with ≥1 failed    |
-| `fully_validated`                     | All tasks successfully complete (incl. non-runnable) |
-
-#### File query
-| Query type   | Description                                                |
-| ---          | ---                                                        |
-| `has_record` | Files *with* any database record                           |
-| `no_record`  | Files *without* any database record                        |
-
-### `dump_database.py`
-Simply dump the given DynamoDB table to disk.

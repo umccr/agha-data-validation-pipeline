@@ -56,28 +56,28 @@ class BatchStack(core.NestedStack):
                 'queue_name': batch_environment['batch_queue_name']['small'],
                 'compute_environment_name': batch_environment['compute_environment_name']['small'],
                 'instance_type': instance_types_4_vcpu,
-                'ebs_storage_size': 225
+                'ebs_storage_size': 250
             },
             {
                 'type': 'medium',
                 'queue_name': batch_environment['batch_queue_name']['medium'],
                 'compute_environment_name': batch_environment['compute_environment_name']['medium'],
                 'instance_type': instance_types_4_vcpu,
-                'ebs_storage_size': 425
+                'ebs_storage_size': 450
             },
             {
                 'type': 'large',
                 'queue_name': batch_environment['batch_queue_name']['large'],
                 'compute_environment_name': batch_environment['compute_environment_name']['large'],
                 'instance_type': instance_types_4_vcpu,
-                'ebs_storage_size': 625
+                'ebs_storage_size': 650
             },
             {
                 'type': 'xlarge',
                 'queue_name': batch_environment['batch_queue_name']['xlarge'],
                 'compute_environment_name': batch_environment['compute_environment_name']['xlarge'],
                 'instance_type': instance_types_2_vcpu,
-                'ebs_storage_size': 525
+                'ebs_storage_size': 500
             },
         ]
 
