@@ -122,7 +122,7 @@ def handler(event, context):
                     updated_result_dynamodb = dynamodb.ResultRecord(**item)
                     update_value = item['value'][0].copy()
                     update_value['bucket_name'] = STORE_BUCKET
-                    updated_result_dynamodb.value = update_value
+                    updated_result_dynamodb.value = [update_value] # Putting back as an array following original output
                     dynamodb_result_update_job.append(updated_result_dynamodb)
 
             if is_move_original_file:
