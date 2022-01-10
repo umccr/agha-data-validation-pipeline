@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import re
-import sys
 import uuid
 import boto3
 from boto3.dynamodb.conditions import Attr
@@ -34,9 +33,17 @@ def handler(event, context):
     """
     The lambda is to invoke s3 file migration batch job
     {
-        submission: "13023_3432423"
-        flagship_code: "ACG"
+        "submission": "13023_3432423",
+        "flagship_code": "ACG"
     }
+
+    Additional optional payload that can be set on the lambda
+    {
+        "skip_unlock_bucket": "true",
+        "skip_submit_batch_job": "true",
+        "skip_update_dynamodb": "true"
+    }
+
     :param event: payload to process and run batchjob
     :param context: not used
     """
@@ -122,7 +129,7 @@ def handler(event, context):
                     updated_result_dynamodb = dynamodb.ResultRecord(**item)
                     update_value = item['value'][0].copy()
                     update_value['bucket_name'] = STORE_BUCKET
-                    updated_result_dynamodb.value = [update_value] # Putting back as an array following original output
+                    updated_result_dynamodb.value = [update_value]  # Putting back as an array following original output
                     dynamodb_result_update_job.append(updated_result_dynamodb)
 
             if is_move_original_file:
@@ -137,7 +144,7 @@ def handler(event, context):
                 source_s3 = job_info['s3_key']
                 checksum = job_info['checksum']
 
-                cli_op = 'mv' # Move Operation for default value
+                cli_op = 'mv'  # Move Operation for default value
 
                 batch_job = create_cli_s3_object_batch_job(source_bucket_name=source_bucket,
                                                            source_s3_key=source_s3,
@@ -164,74 +171,82 @@ def handler(event, context):
                                            f",Error: {e}"}
 
     # Unlock bucket
-    try:
-        get_bucket_policy_response = S3_CLIENT.get_bucket_policy(Bucket=STAGING_BUCKET)
-        logger.info("Received policy response:")
-        logger.info(json.dumps(get_bucket_policy_response))
-        bucket_policy = json.loads(get_bucket_policy_response['Policy'])
+    if event.get("skip_unlock_bucket") == 'true':
+        logger.info('Skip unlock bucket flag is raised. Skipping...')
+    else:
+        try:
+            get_bucket_policy_response = S3_CLIENT.get_bucket_policy(Bucket=STAGING_BUCKET)
+            logger.info("Received policy response:")
+            logger.info(json.dumps(get_bucket_policy_response))
+            bucket_policy = json.loads(get_bucket_policy_response['Policy'])
 
-        logger.info("Grab folder lock statement")
-        folder_lock_statement = s3.find_folder_lock_statement(bucket_policy)
+            logger.info("Grab folder lock statement")
+            folder_lock_statement = s3.find_folder_lock_statement(bucket_policy)
 
-        folder_lock_resource = folder_lock_statement.get('Resource')
-        logger.info('Folder Lock statement')
-        logger.info(json.dumps(folder_lock_resource))
+            folder_lock_resource = folder_lock_statement.get('Resource')
+            logger.info('Folder Lock statement')
+            logger.info(json.dumps(folder_lock_resource))
 
-        resource = construct_resource_from_s3_key_and_bucket(STAGING_BUCKET, submission_directory) + '*'
-        logger.info(f'Construct resource: {resource}')
+            resource = construct_resource_from_s3_key_and_bucket(STAGING_BUCKET, submission_directory) + '*'
+            logger.info(f'Construct resource: {resource}')
 
-        if isinstance(folder_lock_resource, list):
+            if isinstance(folder_lock_resource, list):
 
-            try:
-                folder_lock_resource.remove(resource)
-            except Exception:
-                raise ValueError('Folder lock resource not found')
+                try:
+                    folder_lock_resource.remove(resource)
+                except Exception:
+                    raise ValueError('Folder lock resource not found')
 
-            bucket_policy_json = json.dumps(bucket_policy)
-            logger.info("New bucket policy:")
-            logger.info(bucket_policy_json)
+                bucket_policy_json = json.dumps(bucket_policy)
+                logger.info("New bucket policy:")
+                logger.info(bucket_policy_json)
 
-            response = S3_CLIENT.put_bucket_policy(Bucket=STAGING_BUCKET, Policy=bucket_policy_json)
-            logger.info(f"BucketPolicy update response: {response}")
+                response = S3_CLIENT.put_bucket_policy(Bucket=STAGING_BUCKET, Policy=bucket_policy_json)
+                logger.info(f"BucketPolicy update response: {response}")
 
-        elif isinstance(folder_lock_resource, str) and folder_lock_resource == resource:
+            elif isinstance(folder_lock_resource, str) and folder_lock_resource == resource:
 
-            logger.info(f"Only one resource found in the folder lock policy. Removing it...")
-            bucket_policy['Statement'].remove(folder_lock_statement)
-            bucket_policy_json = json.dumps(bucket_policy)
-            response = S3_CLIENT.put_bucket_policy(Bucket=STAGING_BUCKET, Policy=bucket_policy_json)
-            logger.info(f"BucketPolicy update response: {response}")
+                logger.info(f"Only one resource found in the folder lock policy. Removing it...")
+                bucket_policy['Statement'].remove(folder_lock_statement)
+                bucket_policy_json = json.dumps(bucket_policy)
+                response = S3_CLIENT.put_bucket_policy(Bucket=STAGING_BUCKET, Policy=bucket_policy_json)
+                logger.info(f"BucketPolicy update response: {response}")
 
-        else:
-            logger.info("Unknown bucket policy. Raising an error")
-            raise ValueError('Unknown Bucket policy')
+            else:
+                logger.info("Unknown bucket policy. Raising an error")
+                raise ValueError('Unknown Bucket policy')
 
-    except Exception as e:
-        logger.error(e)
-        logger.error('Aborting!')
-        return {"StatusCode": 406, "body": f"Something went wrong on lifting bucket policy.\n Error: {e}"}
+        except Exception as e:
+            logger.error(e)
+            logger.error('Aborting!')
+            return {"StatusCode": 406, "body": f"Something went wrong on lifting bucket policy.\n Error: {e}"}
 
     # Submit Batch jobs
-    for job_data in batch_job_data:
-        logger.info(f'Executing job:{json.dumps(job_data)}')
-        submit_data_transfer_job(job_data)
-
-    logger.info(f'Batch job has executed.')
+    if event.get("skip_submit_batch_job") == 'true':
+        logger.info('Skip submit batch job flag is raised. Skipping ...')
+    else:
+        for job_data in batch_job_data:
+            logger.info(f'Executing job:{json.dumps(job_data)}')
+            submit_data_transfer_job(job_data)
+        logger.info(f'Batch job has executed.')
 
     # Create DynamoDb in store table
-    logger.info(f'Writing data to dynamodb')
-    dynamodb.batch_write_records(table_name=DYNAMODB_STORE_TABLE_NAME,
-                                 records=dynamodb_job)
-    dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_STORE_TABLE_NAME,
-                                        records=dynamodb_job,
-                                        archive_log=s3.S3EventType.EVENT_OBJECT_CREATED.value)
+    if event.get("skip_update_dynamodb") == 'true':
+        logger.info('Skip update dynamodb flag is raised. Skipping ...')
+    else:
+        logger.info(f'Writing data to dynamodb')
+        dynamodb.batch_write_records(table_name=DYNAMODB_STORE_TABLE_NAME,
+                                     records=dynamodb_job)
+        dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_STORE_TABLE_NAME,
+                                            records=dynamodb_job,
+                                            archive_log=s3.S3EventType.EVENT_OBJECT_CREATED.value)
 
-    # Update Dynamodb for changing storage location at result table
-    dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME,
-                                 records=dynamodb_result_update_job)
-    dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
-                                        records=dynamodb_result_update_job,
-                                        archive_log=s3.S3EventType.EVENT_OBJECT_CREATED.value)
+        # Update Dynamodb for changing storage location at result table
+        dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME,
+                                     records=dynamodb_result_update_job)
+        dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
+                                            records=dynamodb_result_update_job,
+                                            archive_log=s3.S3EventType.EVENT_OBJECT_CREATED.value)
 
     return "Data Transfer Job has started"
 
@@ -244,7 +259,7 @@ def create_s3_uri_from_bucket_name_and_key(bucket_name, s3_key):
     return f"s3://{bucket_name}/{s3_key}"
 
 
-def create_cli_s3_object_batch_job(source_bucket_name, source_s3_key, cli_op:str='mv'):
+def create_cli_s3_object_batch_job(source_bucket_name, source_s3_key, cli_op: str = 'mv'):
     name = source_s3_key
 
     source_s3_uri = create_s3_uri_from_bucket_name_and_key(bucket_name=source_bucket_name, s3_key=source_s3_key)
@@ -261,6 +276,7 @@ def create_cli_s3_object_batch_job(source_bucket_name, source_s3_key, cli_op:str
 
     return {"name": name, "command": command}
 
+
 def submit_data_transfer_job(job_data):
     client_batch = util.get_client('batch')
 
@@ -274,6 +290,7 @@ def submit_data_transfer_job(job_data):
             'command': command
         }
     )
+
 
 def validate_event_data(event_record):
     # Check for unknown arguments
