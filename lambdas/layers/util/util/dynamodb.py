@@ -298,7 +298,7 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
 #       Explanation defined at the docstring class
 
 class ResultPartitionKey(Enum):
-    FILE = "FILE"
+    FILE = "TYPE:FILE"
     STATUS = "STATUS"
     DATA = "DATA"
 
