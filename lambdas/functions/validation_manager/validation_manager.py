@@ -29,12 +29,9 @@ def handler(event, context):
 
     Structure #1:
     {
-      "manifest_fp": "cardiac/20210711_170230/manifest.txt",
+      "manifest_fp": "cardiac/2019-09-11/manifest.txt",
       "include_fns": [
-        "19W001053.bam",
-        "19W001053.individual.norm.vcf.gz",
-        "19W001056.bam",
-        "19W001056.individual.norm.vcf.gz"
+        "180316_NB501544_0318_ML180402_18W000101_STAR-20180228_SSQXTCRE.merge.dedup.realign.recal.bam"
       ]
     }
 

@@ -173,7 +173,7 @@ def handler(event, context):
             # Invoke validation manager for automation
             client_lambda = util.get_client('lambda')
 
-            # Cosntruct payload. Expected payload
+            # Construct to an expected payload:
             # {
             #     "manifest_fp": "[S3_KEY]",
             #     "include_fns": [
@@ -193,7 +193,7 @@ def handler(event, context):
                 Payload=json.dumps(validation_payload)
             )
             logger.info(f'Invoke lambda validation manager. Response:')
-            logger.info(json.dumps(lambda_res))
+            print(lambda_res)
 
 
 def validate_event_data(event_record):

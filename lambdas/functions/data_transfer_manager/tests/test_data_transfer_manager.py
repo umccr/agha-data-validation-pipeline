@@ -17,8 +17,9 @@ from data_transfer_manager import handler
 
 def create_manifest_record_payload():
     return     {
-        "flagship_code": "ACG",
-        "submission": "20210722_090101"
+        "flagship_code": "EE",
+        "submission": "2019-09-11",
+        "validation_check_only": "true"
     }
 
 

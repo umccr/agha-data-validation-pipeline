@@ -1,0 +1,143 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for Cardiac
+Moving flagship name from CARDIAC to Cardiac
+Number of submission checked for Cardiac: 23
+
+Submission: CARDIAC/2019-11-21/
+Total number of file from old store: 44
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 37
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2019-12-11/
+Total number of file from old store: 10
+Total number of file skipped (Skipping index and/or manifest files) : 3
+Total number of file checked: 7
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-01-22/
+Total number of file from old store: 169
+Total number of file skipped (Skipping index and/or manifest files) : 19
+Total number of file checked: 150
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-01-23/
+Total number of file from old store: 34
+Total number of file skipped (Skipping index and/or manifest files) : 6
+Total number of file checked: 28
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-03-03/
+Total number of file from old store: 92
+Total number of file skipped (Skipping index and/or manifest files) : 30
+Total number of file checked: 62
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-03-14/
+Total number of file from old store: 160
+Total number of file skipped (Skipping index and/or manifest files) : 42
+Total number of file checked: 118
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-03-21/
+Total number of file from old store: 26
+Total number of file skipped (Skipping index and/or manifest files) : 14
+Total number of file checked: 12
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-03-22/
+Total number of file from old store: 34
+Total number of file skipped (Skipping index and/or manifest files) : 18
+Total number of file checked: 16
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-03-23/
+Total number of file from old store: 42
+Total number of file skipped (Skipping index and/or manifest files) : 22
+Total number of file checked: 20
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-03-24/
+Total number of file from old store: 34
+Total number of file skipped (Skipping index and/or manifest files) : 18
+Total number of file checked: 16
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-03-25/
+Total number of file from old store: 34
+Total number of file skipped (Skipping index and/or manifest files) : 18
+Total number of file checked: 16
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-03-31/
+Total number of file from old store: 146
+Total number of file skipped (Skipping index and/or manifest files) : 42
+Total number of file checked: 104
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-04-22/
+Total number of file from old store: 94
+Total number of file skipped (Skipping index and/or manifest files) : 26
+Total number of file checked: 68
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-04-23/
+Total number of file from old store: 124
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 122
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-05-01/
+Total number of file from old store: 148
+Total number of file skipped (Skipping index and/or manifest files) : 42
+Total number of file checked: 106
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-05-08/
+Total number of file from old store: 114
+Total number of file skipped (Skipping index and/or manifest files) : 32
+Total number of file checked: 82
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-06-01/
+Total number of file from old store: 7
+Total number of file skipped (Skipping index and/or manifest files) : 3
+Total number of file checked: 4
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-07-07/
+Total number of file from old store: 150
+Total number of file skipped (Skipping index and/or manifest files) : 36
+Total number of file checked: 114
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-07-17/
+Total number of file from old store: 68
+Total number of file skipped (Skipping index and/or manifest files) : 24
+Total number of file checked: 44
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-08-01/
+Total number of file from old store: 34
+Total number of file skipped (Skipping index and/or manifest files) : 10
+Total number of file checked: 24
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-09-02/
+Total number of file from old store: 138
+Total number of file skipped (Skipping index and/or manifest files) : 40
+Total number of file checked: 98
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-10-01/
+Total number of file from old store: 107
+Total number of file skipped (Skipping index and/or manifest files) : 19
+Total number of file checked: 88
+Total number of mismatch file: 0
+
+Submission: CARDIAC/2020-10-02/
+Total number of file from old store: 7
+Total number of file skipped (Skipping index and/or manifest files) : 3
+Total number of file checked: 4
+Total number of mismatch file: 0

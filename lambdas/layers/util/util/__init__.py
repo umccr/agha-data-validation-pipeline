@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import decimal
+import datetime
 
 import boto3
 
@@ -154,6 +155,14 @@ class DecimalEncoder(json.JSONEncoder):
         if isinstance(o, decimal.Decimal):
             return str(o)
         return super(DecimalEncoder, self).default(o)
+
+def json_serial(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, (datetime.datetime, datetime.date)):
+        return obj.isoformat()
+
+    raise TypeError ("Type %s not serializable" % type(obj))
 
 def replace_record_decimal_object(record):
     for k in record:

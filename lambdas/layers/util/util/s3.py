@@ -130,6 +130,27 @@ def get_s3_object_metadata(bucket_name: str, directory_prefix: str):
 
     return results
 
+def aws_s3_ls(bucket_name:str, prefix:str)->list:
+    '''
+    The same method of 'aws s3 ls' without --recursive flag
+
+    :param bucket_name:
+    :param prefix: Prefix to search in the bucket
+    :return: A list of prefix in the directory
+    '''
+
+    s3 = util.get_client('s3')
+    paginator = s3.get_paginator('list_objects_v2')
+
+    ls_list = []
+
+    for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix, Delimiter="/"):
+        # CommonPrefixes and Contents might not be included in a page if there
+        # are no items, so use .get() to return an empty list in that case
+        for cur in page.get("CommonPrefixes", []):
+            ls_list.append(cur["Prefix"])
+
+    return ls_list
 
 def get_object_from_bucket_name_and_s3_key(bucket_name, s3_key):
     client_s3 = util.get_client('s3')

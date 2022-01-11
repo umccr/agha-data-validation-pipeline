@@ -22,7 +22,7 @@ class BatchStack(core.NestedStack):
         vpc = ec2.Vpc.from_lookup(
             self,
             'MainVPC',
-            vpc_id=batch_environment['vpc_id'],
+            vpc_id=batch_environment['vpc_id']
         )
 
         # NOTE(SW): may want to restrict as ro with write perms to specific directory for

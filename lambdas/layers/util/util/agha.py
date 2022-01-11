@@ -53,7 +53,7 @@ FEXT_BAM = ['.bam']
 FEXT_BAM_INDEX = ['.bai']
 FEXT_VCF = ['vcf.gz', 'vcf']
 FEXT_VCF_INDEX = ['.tbi']
-FEXT_MANIFEST = ['manifest.txt', '.manifest']
+FEXT_MANIFEST = ['manifest.txt', '.manifest', 'manifest.txt.md5']
 
 
 class FileType(Enum):
@@ -99,5 +99,11 @@ class FileType(Enum):
     def is_index_file(filename:str)->bool:
         INDEX_FILE = [FileType.BAM_INDEX, FileType.VCF_INDEX]
         if FileType.from_name(filename) in INDEX_FILE:
+            return True
+        return False
+
+    @staticmethod
+    def is_compress_file(filename:str)->bool:
+        if filename.endswith('.gz'):
             return True
         return False

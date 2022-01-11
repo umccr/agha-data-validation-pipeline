@@ -1,0 +1,988 @@
+Moving Staging to Store bucket Report
+
+Report for Cardiac
+Number of submission checked for Cardiac: 43
+
+Submission: Cardiac/2019-11-21/
+Existing file at Cardiac/2019-11-21/
+Total number of files in staging bucket:6
+Total number of manifest file: 1
+Total number of index file: 5
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2019-12-11/
+Existing file at Cardiac/2019-12-11/
+Total number of files in staging bucket:2
+Total number of manifest file: 1
+Total number of index file: 1
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-01-22/
+Existing file at Cardiac/2020-01-22/
+Total number of files in staging bucket:18
+Total number of manifest file: 1
+Total number of index file: 17
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-01-23/
+Existing file at Cardiac/2020-01-23/
+Total number of files in staging bucket:5
+Total number of manifest file: 1
+Total number of index file: 4
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-03-03/
+Existing file at Cardiac/2020-03-03/
+Total number of files in staging bucket:29
+Total number of manifest file: 1
+Total number of index file: 28
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-03-14/
+Existing file at Cardiac/2020-03-14/
+Total number of files in staging bucket:41
+Total number of manifest file: 1
+Total number of index file: 40
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-03-21/
+Existing file at Cardiac/2020-03-21/
+Total number of files in staging bucket:13
+Total number of manifest file: 1
+Total number of index file: 12
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-03-22/
+Existing file at Cardiac/2020-03-22/
+Total number of files in staging bucket:33
+Total number of manifest file: 1
+Total number of index file: 16
+Total number of compress file: 8
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 16
+Total number of compressible and indexable file: 0
+If s3 transfer have initiated, 16 number of file should not exist.
+
+Submission: Cardiac/2020-03-23/
+Existing file at Cardiac/2020-03-23/
+Total number of files in staging bucket:21
+Total number of manifest file: 1
+Total number of index file: 20
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-03-24/
+Existing file at Cardiac/2020-03-24/
+Total number of files in staging bucket:17
+Total number of manifest file: 1
+Total number of index file: 16
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-03-25/
+Existing file at Cardiac/2020-03-25/
+Total number of files in staging bucket:33
+Total number of manifest file: 1
+Total number of index file: 16
+Total number of compress file: 8
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 16
+Total number of compressible and indexable file: 0
+If s3 transfer have initiated, 16 number of file should not exist.
+
+Submission: Cardiac/2020-03-31/
+Existing file at Cardiac/2020-03-31/
+Total number of files in staging bucket:41
+Total number of manifest file: 1
+Total number of index file: 40
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-04-22/
+Existing file at Cardiac/2020-04-22/
+Total number of files in staging bucket:25
+Total number of manifest file: 1
+Total number of index file: 24
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-04-23/
+Existing file at Cardiac/2020-04-23/
+Total number of files in staging bucket:123
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 122
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+If s3 transfer have initiated, 122 number of file should not exist.
+
+Submission: Cardiac/2020-05-01/
+Existing file at Cardiac/2020-05-01/
+Total number of files in staging bucket:21
+Total number of manifest file: 1
+Total number of index file: 20
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-05-08/
+Existing file at Cardiac/2020-05-08/
+Total number of files in staging bucket:31
+Total number of manifest file: 1
+Total number of index file: 30
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-06-01/
+Existing file at Cardiac/2020-06-01/
+Total number of files in staging bucket:2
+Total number of manifest file: 1
+Total number of index file: 1
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-07-07/
+Existing file at Cardiac/2020-07-07/
+Total number of files in staging bucket:149
+Total number of manifest file: 1
+Total number of index file: 34
+Total number of compress file: 94
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 34
+Total number of compressible and indexable file: 0
+If s3 transfer have initiated, 114 number of file should not exist.
+
+Submission: Cardiac/2020-07-17/
+Existing file at Cardiac/2020-07-17/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-08-01/
+Existing file at Cardiac/2020-08-01/
+Total number of files in staging bucket:5
+Total number of manifest file: 1
+Total number of index file: 4
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-09-02/
+Existing file at Cardiac/2020-09-02/
+Total number of files in staging bucket:19
+Total number of manifest file: 1
+Total number of index file: 18
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-10-01/
+Existing file at Cardiac/2020-10-01/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/2020-10-02/
+Existing file at Cardiac/2020-10-02/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20201103_114803/
+Existing file at Cardiac/20201103_114803/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20201111_211345/
+Existing file at Cardiac/20201111_211345/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20201204_202228/
+Existing file at Cardiac/20201204_202228/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20210202_151733/
+Existing file at Cardiac/20210202_151733/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20210301_182701/
+Existing file at Cardiac/20210301_182701/
+Total number of files in staging bucket:10
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 9
+Total number of indexable file: 9
+Total number of compressible and indexable file: 9
+If s3 transfer have initiated, 9 number of file should not exist.
+
+Submission: Cardiac/20210329_224335/
+Existing file at Cardiac/20210329_224335/
+Total number of files in staging bucket:18
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 17
+Total number of indexable file: 17
+Total number of compressible and indexable file: 17
+If s3 transfer have initiated, 17 number of file should not exist.
+
+Submission: Cardiac/20210402_135418/
+Existing file at Cardiac/20210402_135418/
+Total number of files in staging bucket:10
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 9
+Total number of indexable file: 9
+Total number of compressible and indexable file: 9
+If s3 transfer have initiated, 9 number of file should not exist.
+
+Submission: Cardiac/20210502_072006/
+Existing file at Cardiac/20210502_072006/
+Total number of files in staging bucket:8
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 7
+Total number of indexable file: 7
+Total number of compressible and indexable file: 7
+If s3 transfer have initiated, 7 number of file should not exist.
+
+Submission: Cardiac/20210620_141830/
+Existing file at Cardiac/20210620_141830/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20210711_170230/
+Existing file at Cardiac/20210711_170230/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20210712_090328/
+Existing file at Cardiac/20210712_090328/
+Total number of files in staging bucket:2
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 1
+Total number of indexable file: 1
+Total number of compressible and indexable file: 1
+If s3 transfer have initiated, 1 number of file should not exist.
+
+Submission: Cardiac/20210802_160835/
+Existing file at Cardiac/20210802_160835/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20210804_191352/
+Existing file at Cardiac/20210804_191352/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20210901_165655/
+Existing file at Cardiac/20210901_165655/
+Total number of files in staging bucket:3
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 2
+Total number of indexable file: 2
+Total number of compressible and indexable file: 2
+If s3 transfer have initiated, 2 number of file should not exist.
+
+Submission: Cardiac/20210911_191722/
+Existing file at Cardiac/20210911_191722/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20210921_171920/
+Existing file at Cardiac/20210921_171920/
+Total number of files in staging bucket:2
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 1
+Total number of indexable file: 1
+Total number of compressible and indexable file: 1
+If s3 transfer have initiated, 1 number of file should not exist.
+
+Submission: Cardiac/20210928_212931/
+Existing file at Cardiac/20210928_212931/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20211009_214039/
+Existing file at Cardiac/20211009_214039/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20211128_145352/
+Existing file at Cardiac/20211128_145352/
+Total number of files in staging bucket:1
+Total number of manifest file: 1
+Total number of index file: 0
+Total number of compress file: 0
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 0
+Total number of compressible and indexable file: 0
+
+Submission: Cardiac/20211206_173558/
+Existing file at Cardiac/20211206_173558/
+Total number of files in staging bucket:128
+Total number of manifest file: 1
+Total number of index file: 19
+Total number of compress file: 89
+More information about existing file:
+Total number of compressible file: 0
+Total number of indexable file: 38
+Total number of compressible and indexable file: 0
+If s3 transfer have initiated, 108 number of file should not exist.
+Some file is submitted not in compressed format. In this case, the pipeline will create
+a compression and will only copy the created compression to the store bucket.
+Please check the following if the compression work as intended.
+[
+    {
+        "submission": "Cardiac/2020-03-22/",
+        "no_file_not_transferred_due_to_compressing": 16,
+        "file_not_transferred_due_to_compressing": [
+            "Cardiac/2020-03-22/A1533010.individual.norm.vcf.gz",
+            "Cardiac/2020-03-22/A1533010.bam",
+            "Cardiac/2020-03-22/A1533009.individual.norm.vcf.gz",
+            "Cardiac/2020-03-22/A1533005.individual.norm.vcf.gz",
+            "Cardiac/2020-03-22/A1533004.bam",
+            "Cardiac/2020-03-22/A1533007.bam",
+            "Cardiac/2020-03-22/A1533004.individual.norm.vcf.gz",
+            "Cardiac/2020-03-22/A1533011.bam",
+            "Cardiac/2020-03-22/A1533005.bam",
+            "Cardiac/2020-03-22/A1533009.bam",
+            "Cardiac/2020-03-22/A1533006.individual.norm.vcf.gz",
+            "Cardiac/2020-03-22/A1533007.individual.norm.vcf.gz",
+            "Cardiac/2020-03-22/A1533008.bam",
+            "Cardiac/2020-03-22/A1533011.individual.norm.vcf.gz",
+            "Cardiac/2020-03-22/A1533006.bam",
+            "Cardiac/2020-03-22/A1533008.individual.norm.vcf.gz"
+        ]
+    },
+    {
+        "submission": "Cardiac/2020-03-25/",
+        "no_file_not_transferred_due_to_compressing": 16,
+        "file_not_transferred_due_to_compressing": [
+            "Cardiac/2020-03-25/A2233012.individual.norm.vcf.gz",
+            "Cardiac/2020-03-25/A2233011.bam",
+            "Cardiac/2020-03-25/A2233006.individual.norm.vcf.gz",
+            "Cardiac/2020-03-25/A2233011.individual.norm.vcf.gz",
+            "Cardiac/2020-03-25/A2233008.individual.norm.vcf.gz",
+            "Cardiac/2020-03-25/A2233009.individual.norm.vcf.gz",
+            "Cardiac/2020-03-25/A2333002.bam",
+            "Cardiac/2020-03-25/A2233008.bam",
+            "Cardiac/2020-03-25/A2233012.bam",
+            "Cardiac/2020-03-25/A2333002.individual.norm.vcf.gz",
+            "Cardiac/2020-03-25/A2233010.bam",
+            "Cardiac/2020-03-25/A2233009.bam",
+            "Cardiac/2020-03-25/A2233005.individual.norm.vcf.gz",
+            "Cardiac/2020-03-25/A2233005.bam",
+            "Cardiac/2020-03-25/A2233010.individual.norm.vcf.gz",
+            "Cardiac/2020-03-25/A2233006.bam"
+        ]
+    },
+    {
+        "submission": "Cardiac/2020-04-23/",
+        "no_file_not_transferred_due_to_compressing": 122,
+        "file_not_transferred_due_to_compressing": [
+            "Cardiac/2020-04-23/HYFMNCCXY_6_190515_FD09064058_Homo-sapiens__C_190515_KCCCLI_DNA_M004_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYGL5CCXY_6_190529_FD09066481_Homo-sapiens__C_190529_KCCCLI_DNA_M002_R2.fastq.gz",
+            "Cardiac/2020-04-23/H33WLCCX2_2_190807_FD09067476_Homo-sapiens__C_190807_KCCCLI_DNA_M001_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYFMNCCXY_3_190515_FD09065546_Homo-sapiens__C_190515_KCCCLI_DNA_M001_R2.fastq.gz",
+            "Cardiac/2020-04-23/H357HCCX2_8_190822_FD09067308_Homo-sapiens__C_190822_KCCCLI_DNA_M011_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYMJLCCXY_7_190626_FD09066419_Homo-sapiens__C_190626_KCCCLI_DNA_M008_R2.fastq.gz",
+            "Cardiac/2020-04-23/H2TFFCCX2_7_190528_FD09065969_Homo-sapiens__C_190528_KCCCLI_DNA_M003_R2.fastq.gz",
+            "Cardiac/2020-04-23/H35C7CCX2_8_190808_FD09066339_Homo-sapiens__C_190808_KCCCLI_DNA_M012_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYMMNCCXY_5_190611_FD09065097_Homo-sapiens__C_190611_KCCCLI_DNA_M009_R1.fastq.gz",
+            "Cardiac/2020-04-23/H35C7CCX2_3_190808_FD09067606_Homo-sapiens__C_190808_KCCCLI_DNA_M006_R2.fastq.gz",
+            "Cardiac/2020-04-23/H33LNCCX2_2_190710_FD09066274_Homo-sapiens__C_190710_KCCCLI_DNA_M010_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYFMNCCXY_4_190515_FD09064341_Homo-sapiens__C_190515_KCCCLI_DNA_M002_R1.fastq.gz",
+            "Cardiac/2020-04-23/H352WCCX2_5_190710_FD09066283_Homo-sapiens__C_190710_KCCCLI_DNA_M008_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYMK2CCXY_4_190704_FD09066297_Homo-sapiens__C_190704_KCCCLI_DNA_M004_R2.fastq.gz",
+            "Cardiac/2020-04-23/H33LNCCX2_2_190710_FD09066274_Homo-sapiens__C_190710_KCCCLI_DNA_M010_R2.fastq.gz",
+            "Cardiac/2020-04-23/H33WFCCX2_3_190802_FD09067612_Homo-sapiens__C_190802_KCCCLI_DNA_M006_R1.fastq.gz",
+            "Cardiac/2020-04-23/H2TFFCCX2_6_190528_FD09065167_Homo-sapiens__C_190528_KCCCLI_DNA_M002_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYGL5CCXY_7_190529_FD09063855_Homo-sapiens__C_190529_KCCCLI_DNA_M003_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYMMNCCXY_7_190611_FD09063934_Homo-sapiens__C_190611_KCCCLI_DNA_M011_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYMMNCCXY_4_190611_FD09066456_Homo-sapiens__C_190611_KCCCLI_DNA_M008_R2.fastq.gz",
+            "Cardiac/2020-04-23/H357FCCX2_2_190725_FD09067357_Homo-sapiens__C_190725_KCCCLI_DNA_M007_R2.fastq.gz",
+            "Cardiac/2020-04-23/H3577CCX2_4_190711_FD09067636_Homo-sapiens__C_190711_KCCCLI_DNA_M002_R2.fastq.gz",
+            "Cardiac/2020-04-23/H355LCCX2_4_190725_FD09067526_Homo-sapiens__C_190725_KCCCLI_DNA_M005_R1.fastq.gz",
+            "Cardiac/2020-04-23/H2TFFCCX2_6_190528_FD09065167_Homo-sapiens__C_190528_KCCCLI_DNA_M002_R1.fastq.gz",
+            "Cardiac/2020-04-23/H3577CCX2_4_190711_FD09067636_Homo-sapiens__C_190711_KCCCLI_DNA_M002_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYGL5CCXY_5_190529_FD09066036_Homo-sapiens__C_190529_KCCCLI_DNA_M001_R2.fastq.gz",
+            "Cardiac/2020-04-23/H33LNCCX2_3_190710_FD09065825_Homo-sapiens__C_190710_KCCCLI_DNA_M012_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYNH7CCXY_4_190611_FD09064571_Homo-sapiens__C_190611_KCCCLI_DNA_M001_R2.fastq.gz",
+            "Cardiac/2020-04-23/H357FCCX2_5_190725_FD09065795_Homo-sapiens__C_190725_KCCCLI_DNA_M010_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYFMNCCXY_5_190515_FD09066489_Homo-sapiens__C_190515_KCCCLI_DNA_M003_R1.fastq.gz",
+            "Cardiac/2020-04-23/H33WFCCX2_4_190802_FD09066265_Homo-sapiens__C_190802_KCCCLI_DNA_M007_R1.fastq.gz",
+            "Cardiac/2020-04-23/H2TGGCCX2_1_190605_FD09065392_Homo-sapiens__C_190605_KCCCLI_DNA_M004_R2.fastq.gz",
+            "Cardiac/2020-04-23/H33WLCCX2_8_190819_FD09067453_Homo-sapiens__C_190819_KCCCLI_DNA_M004_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYGL5CCXY_7_190529_FD09063855_Homo-sapiens__C_190529_KCCCLI_DNA_M003_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYMJLCCXY_7_190626_FD09066419_Homo-sapiens__C_190626_KCCCLI_DNA_M008_R1.fastq.gz",
+            "Cardiac/2020-04-23/H352WCCX2_5_190710_FD09066283_Homo-sapiens__C_190710_KCCCLI_DNA_M008_R2.fastq.gz",
+            "Cardiac/2020-04-23/H33LNCCX2_4_190710_FD09067380_Homo-sapiens__C_190710_KCCCLI_DNA_M013_R1.fastq.gz",
+            "Cardiac/2020-04-23/H35FFCCX2_7_190822_FD09067421_Homo-sapiens__C_190822_KCCCLI_DNA_M012_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYGL5CCXY_5_190529_FD09066036_Homo-sapiens__C_190529_KCCCLI_DNA_M001_R1.fastq.gz",
+            "Cardiac/2020-04-23/H353TCCX2_4_190808_FD09066402_Homo-sapiens__C_190808_KCCCLI_DNA_M014_R1.fastq.gz",
+            "Cardiac/2020-04-23/H33LNCCX2_3_190710_FD09065825_Homo-sapiens__C_190710_KCCCLI_DNA_M012_R1.fastq.gz",
+            "Cardiac/2020-04-23/H3533CCX2_4_190802_FD09067428_Homo-sapiens__C_190802_KCCCLI_DNA_M003_R2.fastq.gz",
+            "Cardiac/2020-04-23/H352WCCX2_8_190710_FD09065772_Homo-sapiens__C_190710_KCCCLI_DNA_M006_R2.fastq.gz",
+            "Cardiac/2020-04-23/H3533CCX2_8_190710_FD09067325_Homo-sapiens__C_190710_KCCCLI_DNA_M011_R2.fastq.gz",
+            "Cardiac/2020-04-23/H353TCCX2_3_190808_FD09066275_Homo-sapiens__C_190808_KCCCLI_DNA_M013_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYFMNCCXY_6_190515_FD09064058_Homo-sapiens__C_190515_KCCCLI_DNA_M004_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYNH7CCXY_4_190611_FD09064571_Homo-sapiens__C_190611_KCCCLI_DNA_M001_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYMLLCCXY_3_190618_FD09064114_Homo-sapiens__C_190618_KCCCLI_DNA_M004_R1.fastq.gz",
+            "Cardiac/2020-04-23/H3533CCX2_5_190802_FD09066273_Homo-sapiens__C_190802_KCCCLI_DNA_M004_R1.fastq.gz",
+            "Cardiac/2020-04-23/H33WLCCX2_3_190808_FD09067484_Homo-sapiens__C_190808_KCCCLI_DNA_M008_R1.fastq.gz",
+            "Cardiac/2020-04-23/H355LCCX2_8_190718_FD09067402_Homo-sapiens__C_190718_KCCCLI_DNA_M011_R1.fastq.gz",
+            "Cardiac/2020-04-23/H33LNCCX2_4_190710_FD09067380_Homo-sapiens__C_190710_KCCCLI_DNA_M013_R2.fastq.gz",
+            "Cardiac/2020-04-23/H3533CCX2_6_190711_FD09066291_Homo-sapiens__C_190711_KCCCLI_DNA_M003_R1.fastq.gz",
+            "Cardiac/2020-04-23/H33WFCCX2_2_190802_FD09067197_Homo-sapiens__C_190802_KCCCLI_DNA_M005_R2.fastq.gz",
+            "Cardiac/2020-04-23/H3533CCX2_5_190802_FD09066273_Homo-sapiens__C_190802_KCCCLI_DNA_M004_R2.fastq.gz",
+            "Cardiac/2020-04-23/H2TGGCCX2_2_190605_FD09063854_Homo-sapiens__C_190605_KCCCLI_DNA_M005_R1.fastq.gz",
+            "Cardiac/2020-04-23/H33LNCCX2_8_190710_FD09065826_Homo-sapiens__C_190710_KCCCLI_DNA_M014_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYMLLCCXY_3_190618_FD09064114_Homo-sapiens__C_190618_KCCCLI_DNA_M004_R2.fastq.gz",
+            "Cardiac/2020-04-23/H33WFCCX2_4_190802_FD09066265_Homo-sapiens__C_190802_KCCCLI_DNA_M007_R2.fastq.gz",
+            "Cardiac/2020-04-23/H353TCCX2_3_190808_FD09066275_Homo-sapiens__C_190808_KCCCLI_DNA_M013_R2.fastq.gz",
+            "Cardiac/2020-04-23/H33WLCCX2_7_190802_FD09066313_Homo-sapiens__C_190802_KCCCLI_DNA_M001_R1.fastq.gz",
+            "Cardiac/2020-04-23/H2TGGCCX2_1_190605_FD09065392_Homo-sapiens__C_190605_KCCCLI_DNA_M004_R1.fastq.gz",
+            "Cardiac/2020-04-23/H33WLCCX2_8_190819_FD09067453_Homo-sapiens__C_190819_KCCCLI_DNA_M004_R1.fastq.gz",
+            "Cardiac/2020-04-23/H3533CCX2_3_190802_FD09066251_Homo-sapiens__C_190802_KCCCLI_DNA_M002_R2.fastq.gz",
+            "Cardiac/2020-04-23/H3533CCX2_6_190711_FD09066291_Homo-sapiens__C_190711_KCCCLI_DNA_M003_R2.fastq.gz",
+            "Cardiac/2020-04-23/H35FFCCX2_7_190822_FD09067421_Homo-sapiens__C_190822_KCCCLI_DNA_M012_R2.fastq.gz",
+            "Cardiac/2020-04-23/H357HCCX2_4_190822_FD09067174_Homo-sapiens__C_190822_KCCCLI_DNA_M003_R2.fastq.gz",
+            "Cardiac/2020-04-23/H357HCCX2_7_190822_FD09065640_Homo-sapiens__C_190822_KCCCLI_DNA_M009_R2.fastq.gz",
+            "Cardiac/2020-04-23/H35C7CCX2_4_190808_FD09067180_Homo-sapiens__C_190808_KCCCLI_DNA_M007_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYMJLCCXY_5_190626_FD09067429_Homo-sapiens__C_190626_KCCCLI_DNA_M006_R1.fastq.gz",
+            "Cardiac/2020-04-23/H35C7CCX2_3_190808_FD09067606_Homo-sapiens__C_190808_KCCCLI_DNA_M006_R1.fastq.gz",
+            "Cardiac/2020-04-23/H33LNCCX2_8_190710_FD09065826_Homo-sapiens__C_190710_KCCCLI_DNA_M014_R1.fastq.gz",
+            "Cardiac/2020-04-23/H357HCCX2_5_190822_FD09067332_Homo-sapiens__C_190822_KCCCLI_DNA_M005_R2.fastq.gz",
+            "Cardiac/2020-04-23/H357HCCX2_5_190822_FD09067332_Homo-sapiens__C_190822_KCCCLI_DNA_M005_R1.fastq.gz",
+            "Cardiac/2020-04-23/H357HCCX2_8_190822_FD09067308_Homo-sapiens__C_190822_KCCCLI_DNA_M011_R1.fastq.gz",
+            "Cardiac/2020-04-23/H33WLCCX2_3_190808_FD09067484_Homo-sapiens__C_190808_KCCCLI_DNA_M008_R2.fastq.gz",
+            "Cardiac/2020-04-23/H357FCCX2_3_190725_FD09067413_Homo-sapiens__C_190725_KCCCLI_DNA_M008_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYMJLCCXY_5_190626_FD09067429_Homo-sapiens__C_190626_KCCCLI_DNA_M006_R2.fastq.gz",
+            "Cardiac/2020-04-23/H35C7CCX2_8_190808_FD09066339_Homo-sapiens__C_190808_KCCCLI_DNA_M012_R1.fastq.gz",
+            "Cardiac/2020-04-23/H355LCCX2_8_190718_FD09067402_Homo-sapiens__C_190718_KCCCLI_DNA_M011_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYMK2CCXY_5_190704_FD09065820_Homo-sapiens__C_190704_KCCCLI_DNA_M005_R1.fastq.gz",
+            "Cardiac/2020-04-23/H2TGGCCX2_6_190605_FD09065176_Homo-sapiens__C_190605_KCCCLI_DNA_M010_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYMMNCCXY_5_190611_FD09065097_Homo-sapiens__C_190611_KCCCLI_DNA_M009_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYFMNCCXY_3_190515_FD09065546_Homo-sapiens__C_190515_KCCCLI_DNA_M001_R1.fastq.gz",
+            "Cardiac/2020-04-23/H3533CCX2_4_190802_FD09067428_Homo-sapiens__C_190802_KCCCLI_DNA_M003_R1.fastq.gz",
+            "Cardiac/2020-04-23/H33WLCCX2_2_190807_FD09067476_Homo-sapiens__C_190807_KCCCLI_DNA_M001_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYFMNCCXY_4_190515_FD09064341_Homo-sapiens__C_190515_KCCCLI_DNA_M002_R2.fastq.gz",
+            "Cardiac/2020-04-23/H357HCCX2_6_190822_FD09065819_Homo-sapiens__C_190822_KCCCLI_DNA_M006_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYMMNCCXY_3_190611_FD09065174_Homo-sapiens__C_190611_KCCCLI_DNA_M007_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYFMNCCXY_5_190515_FD09066489_Homo-sapiens__C_190515_KCCCLI_DNA_M003_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYMK2CCXY_4_190704_FD09066297_Homo-sapiens__C_190704_KCCCLI_DNA_M004_R1.fastq.gz",
+            "Cardiac/2020-04-23/H353TCCX2_4_190808_FD09066402_Homo-sapiens__C_190808_KCCCLI_DNA_M014_R2.fastq.gz",
+            "Cardiac/2020-04-23/H355LCCX2_7_190718_FD09067400_Homo-sapiens__C_190718_KCCCLI_DNA_M010_R2.fastq.gz",
+            "Cardiac/2020-04-23/H357FCCX2_2_190725_FD09067357_Homo-sapiens__C_190725_KCCCLI_DNA_M007_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYMMNCCXY_7_190611_FD09063934_Homo-sapiens__C_190611_KCCCLI_DNA_M011_R2.fastq.gz",
+            "Cardiac/2020-04-23/H33WFCCX2_3_190802_FD09067612_Homo-sapiens__C_190802_KCCCLI_DNA_M006_R2.fastq.gz",
+            "Cardiac/2020-04-23/H2TGGCCX2_6_190605_FD09065176_Homo-sapiens__C_190605_KCCCLI_DNA_M010_R2.fastq.gz",
+            "Cardiac/2020-04-23/H3533CCX2_8_190710_FD09067325_Homo-sapiens__C_190710_KCCCLI_DNA_M011_R1.fastq.gz",
+            "Cardiac/2020-04-23/H357FCCX2_1_190725_FD09065802_Homo-sapiens__C_190725_KCCCLI_DNA_M006_R1.fastq.gz",
+            "Cardiac/2020-04-23/H352WCCX2_8_190710_FD09065772_Homo-sapiens__C_190710_KCCCLI_DNA_M006_R1.fastq.gz",
+            "Cardiac/2020-04-23/H2TFFCCX2_7_190528_FD09065969_Homo-sapiens__C_190528_KCCCLI_DNA_M003_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYNH2CCXY_2_190704_FD09067372_Homo-sapiens__C_190704_KCCCLI_DNA_M010_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYMMNCCXY_4_190611_FD09066456_Homo-sapiens__C_190611_KCCCLI_DNA_M008_R1.fastq.gz",
+            "Cardiac/2020-04-23/H2TGGCCX2_2_190605_FD09063854_Homo-sapiens__C_190605_KCCCLI_DNA_M005_R2.fastq.gz",
+            "Cardiac/2020-04-23/H33WLCCX2_7_190802_FD09066313_Homo-sapiens__C_190802_KCCCLI_DNA_M001_R2.fastq.gz",
+            "Cardiac/2020-04-23/H357HCCX2_6_190822_FD09065819_Homo-sapiens__C_190822_KCCCLI_DNA_M006_R1.fastq.gz",
+            "Cardiac/2020-04-23/H357FCCX2_5_190725_FD09065795_Homo-sapiens__C_190725_KCCCLI_DNA_M010_R1.fastq.gz",
+            "Cardiac/2020-04-23/H357HCCX2_7_190822_FD09065640_Homo-sapiens__C_190822_KCCCLI_DNA_M009_R1.fastq.gz",
+            "Cardiac/2020-04-23/H355LCCX2_7_190718_FD09067400_Homo-sapiens__C_190718_KCCCLI_DNA_M010_R1.fastq.gz",
+            "Cardiac/2020-04-23/H357FCCX2_1_190725_FD09065802_Homo-sapiens__C_190725_KCCCLI_DNA_M006_R2.fastq.gz",
+            "Cardiac/2020-04-23/H357HCCX2_4_190822_FD09067174_Homo-sapiens__C_190822_KCCCLI_DNA_M003_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYGL5CCXY_6_190529_FD09066481_Homo-sapiens__C_190529_KCCCLI_DNA_M002_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYMLLCCXY_6_190618_FD09064100_Homo-sapiens__C_190618_KCCCLI_DNA_M007_R2.fastq.gz",
+            "Cardiac/2020-04-23/H33WFCCX2_2_190802_FD09067197_Homo-sapiens__C_190802_KCCCLI_DNA_M005_R1.fastq.gz",
+            "Cardiac/2020-04-23/H357FCCX2_3_190725_FD09067413_Homo-sapiens__C_190725_KCCCLI_DNA_M008_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYMK2CCXY_5_190704_FD09065820_Homo-sapiens__C_190704_KCCCLI_DNA_M005_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYMLLCCXY_6_190618_FD09064100_Homo-sapiens__C_190618_KCCCLI_DNA_M007_R1.fastq.gz",
+            "Cardiac/2020-04-23/HYNH2CCXY_2_190704_FD09067372_Homo-sapiens__C_190704_KCCCLI_DNA_M010_R2.fastq.gz",
+            "Cardiac/2020-04-23/H3533CCX2_3_190802_FD09066251_Homo-sapiens__C_190802_KCCCLI_DNA_M002_R1.fastq.gz",
+            "Cardiac/2020-04-23/H355LCCX2_4_190725_FD09067526_Homo-sapiens__C_190725_KCCCLI_DNA_M005_R2.fastq.gz",
+            "Cardiac/2020-04-23/HYMMNCCXY_3_190611_FD09065174_Homo-sapiens__C_190611_KCCCLI_DNA_M007_R2.fastq.gz",
+            "Cardiac/2020-04-23/H35C7CCX2_4_190808_FD09067180_Homo-sapiens__C_190808_KCCCLI_DNA_M007_R2.fastq.gz"
+        ]
+    },
+    {
+        "submission": "Cardiac/2020-07-07/",
+        "no_file_not_transferred_due_to_compressing": 114,
+        "file_not_transferred_due_to_compressing": [
+            "Cardiac/2020-07-07/200320_A00692_0076_ML203144_20W000331-FAM000374_MAN-20200320_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000311_20W000245_MAN-20200304_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/200417_A00692_0087_ML203149_20W000296-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/20W000410.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000331_20W000253_MAN-20200304_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/20W000326.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/200212_A00692_0063_ML201958_20W000173_MAN-20200212_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/20W000330-FAM000374.bam",
+            "Cardiac/2020-07-07/200320_A00692_0076_ML203144_20W000331-FAM000374_MAN-20200320_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/200318_A00692_0075_TL2000333_20W000258_MAN-20200305_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200403_A00692_0080_ML203149_20W000296-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200320_A00692_0076_ML203145_20W000329-FAM000374_MAN-20200320_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/20W000291-FAM000375.bam",
+            "Cardiac/2020-07-07/200403_A00692_0080_ML203149_20W000296-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/200419_A00692_0089_ML203585_20W000447_MAN-20200404_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000282.bam",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000331_20W000253_MAN-20200304_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/200417_A00692_0087_ML203151_20W000291-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200222_A00692_0067_TL200159_20W000207_MAN-20200218_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200212_A00692_0063_ML201958_20W000173_MAN-20200212_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200320_A00692_0076_ML203145_20W000329-FAM000374_MAN-20200320_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/20W000258.bam",
+            "Cardiac/2020-07-07/20W000258.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/200404_A00692_0081_ML203580_20W000410_MAN-20200404_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200222_A00692_0067_TL200159_20W000207_MAN-20200218_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200318_A00692_0075_TL2000333_20W000258_MAN-20200305_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/200320_A00692_0076_ML203146_20W000330-FAM000374_MAN-20200320_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200331_A00692_0078_TL2000336_20W000282_MAN-20200303_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000370.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/200403_A00692_0080_ML203150_20W000295-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000242.bam",
+            "Cardiac/2020-07-07/200320_A00692_0076_ML203145_20W000329-FAM000374_MAN-20200320_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000219.bam",
+            "Cardiac/2020-07-07/200303_A00692_0070_TL200159_20W000207_MAN-20200218_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200407_A00692_0083_ML203417_20W000370_MAN-20200331_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/20W000253.bam",
+            "Cardiac/2020-07-07/200419_A00692_0089_ML203585_20W000447_MAN-20200404_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200403_A00692_0080_ML203150_20W000295-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000313_20W000242_MAN-20200304_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000313_20W000242_MAN-20200304_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200320_A00692_0076_ML203145_20W000329-FAM000374_MAN-20200320_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200331_A00692_0078_TL2000336_20W000282_MAN-20200303_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/20W000253.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000311_20W000245_MAN-20200304_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200403_A00692_0080_ML203149_20W000296-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200407_A00692_0083_ML203415_20W000326_MAN-20200331_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000314_20W000219_MAN-20200304_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200403_A00692_0080_ML203151_20W000291-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000313_20W000242_MAN-20200304_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000452.bam",
+            "Cardiac/2020-07-07/200320_A00692_0076_ML203144_20W000331-FAM000374_MAN-20200320_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000314_20W000219_MAN-20200304_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200403_A00692_0080_ML203151_20W000291-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200212_A00692_0063_ML201958_20W000173_MAN-20200212_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/200403_A00692_0080_ML203149_20W000296-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200320_A00692_0076_ML203146_20W000330-FAM000374_MAN-20200320_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200417_A00692_0087_ML203150_20W000295-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/20W000219.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/20W000245.bam",
+            "Cardiac/2020-07-07/20W000207.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/20W000326.bam",
+            "Cardiac/2020-07-07/20W000410.bam",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000311_20W000245_MAN-20200304_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000331-FAM000374.bam",
+            "Cardiac/2020-07-07/200403_A00692_0080_ML203151_20W000291-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/200417_A00692_0087_ML203150_20W000295-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000311_20W000245_MAN-20200304_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200222_A00692_0067_TL200159_20W000207_MAN-20200218_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200407_A00692_0083_ML203417_20W000370_MAN-20200331_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200407_A00692_0083_ML203415_20W000326_MAN-20200331_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200404_A00692_0081_ML203580_20W000410_MAN-20200404_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000282.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/200331_A00692_0078_ML202920_20W000314_MAN-20200315_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000314.bam",
+            "Cardiac/2020-07-07/200421_A00692_0090_ML203887_20W000452_MAN-20200414_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200212_A00692_0063_ML201958_20W000173_MAN-20200212_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200320_A00692_0076_ML203146_20W000330-FAM000374_MAN-20200320_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000295-FAM000375.bam",
+            "Cardiac/2020-07-07/20W000447.bam",
+            "Cardiac/2020-07-07/200222_A00692_0067_TL200159_20W000207_MAN-20200218_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/200331_A00692_0078_ML202920_20W000314_MAN-20200315_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200318_A00692_0075_TL2000333_20W000258_MAN-20200305_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/20W000173.bam",
+            "Cardiac/2020-07-07/200419_A00692_0089_ML203585_20W000447_MAN-20200404_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200331_A00692_0078_ML202920_20W000314_MAN-20200315_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200331_A00692_0078_ML202920_20W000314_MAN-20200315_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/200417_A00692_0087_ML203149_20W000296-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200421_A00692_0090_ML203887_20W000452_MAN-20200414_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200320_A00692_0076_ML203144_20W000331-FAM000374_MAN-20200320_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/20W000296-FAM000375.bam",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000314_20W000219_MAN-20200304_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000242.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/20W000447.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/200331_A00692_0078_TL2000336_20W000282_MAN-20200303_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200419_A00692_0089_ML203585_20W000447_MAN-20200404_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/200403_A00692_0080_ML203151_20W000291-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000314.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/200303_A00692_0070_TL200159_20W000207_MAN-20200218_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/200320_A00692_0076_ML203146_20W000330-FAM000374_MAN-20200320_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200403_A00692_0080_ML203150_20W000295-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000313_20W000242_MAN-20200304_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/20W000370.bam",
+            "Cardiac/2020-07-07/20W000173.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/200417_A00692_0087_ML203151_20W000291-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000314_20W000219_MAN-20200304_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000452.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/20W000207.bam",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000331_20W000253_MAN-20200304_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000245.individual.norm.vcf.gz",
+            "Cardiac/2020-07-07/200313_A00692_0074_TL2000331_20W000253_MAN-20200304_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/2020-07-07/200331_A00692_0078_TL2000336_20W000282_MAN-20200303_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/2020-07-07/20W000329-FAM000374.bam",
+            "Cardiac/2020-07-07/200403_A00692_0080_ML203150_20W000295-FAM000375_MAN-20200320_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/2020-07-07/200318_A00692_0075_TL2000333_20W000258_MAN-20200305_NEXTERAFLEXWGS_L001_R1.fastq.gz"
+        ]
+    },
+    {
+        "submission": "Cardiac/20210301_182701/",
+        "no_file_not_transferred_due_to_compressing": 9,
+        "file_not_transferred_due_to_compressing": [
+            "Cardiac/20210301_182701/20W001052-FAM000550.trio.norm.soi.vcf",
+            "Cardiac/20210301_182701/20W001912.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210301_182701/20W001713.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210301_182701/20W001610.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210301_182701/20W001598.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210301_182701/20W001664.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210301_182701/20W001611.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210301_182701/20W002065.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210301_182701/20W001858.individual.norm.vep.post_filter.vcf"
+        ]
+    },
+    {
+        "submission": "Cardiac/20210329_224335/",
+        "no_file_not_transferred_due_to_compressing": 17,
+        "file_not_transferred_due_to_compressing": [
+            "Cardiac/20210329_224335/20W001678.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001579.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W002048.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001701.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001867.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001838.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001446.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001513.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001544.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001450.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001803.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001960.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W002064.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W002142.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001679.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001696.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210329_224335/20W001447.individual.norm.vep.post_filter.vcf"
+        ]
+    },
+    {
+        "submission": "Cardiac/20210402_135418/",
+        "no_file_not_transferred_due_to_compressing": 9,
+        "file_not_transferred_due_to_compressing": [
+            "Cardiac/20210402_135418/20W000102.trio.norm.soi.vcf",
+            "Cardiac/20210402_135418/20W001247.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210402_135418/20W001392.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210402_135418/19W001290.trio.norm.soi.vcf",
+            "Cardiac/20210402_135418/20W001073-FAM000714.trio.norm.soi.vcf",
+            "Cardiac/20210402_135418/20W001258.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210402_135418/20W001338.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210402_135418/20W001358.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210402_135418/20W001494.individual.norm.vep.post_filter.vcf"
+        ]
+    },
+    {
+        "submission": "Cardiac/20210502_072006/",
+        "no_file_not_transferred_due_to_compressing": 7,
+        "file_not_transferred_due_to_compressing": [
+            "Cardiac/20210502_072006/20W000423.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210502_072006/20W000293.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210502_072006/20W000539.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210502_072006/20W002085.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210502_072006/21W000341-FAM001165.trio.norm.soi.vcf",
+            "Cardiac/20210502_072006/19W001403.individual.norm.vep.post_filter.vcf",
+            "Cardiac/20210502_072006/20W000372.individual.norm.vep.post_filter.vcf"
+        ]
+    },
+    {
+        "submission": "Cardiac/20210712_090328/",
+        "no_file_not_transferred_due_to_compressing": 1,
+        "file_not_transferred_due_to_compressing": [
+            "Cardiac/20210712_090328/19W001487.individual.norm.vep.post_filter.vcf"
+        ]
+    },
+    {
+        "submission": "Cardiac/20210901_165655/",
+        "no_file_not_transferred_due_to_compressing": 2,
+        "file_not_transferred_due_to_compressing": [
+            "Cardiac/20210901_165655/21W000801-FAM001378.trio.norm.soi.vcf",
+            "Cardiac/20210901_165655/21W000741-FAM001304.trio.norm.soi.vcf"
+        ]
+    },
+    {
+        "submission": "Cardiac/20210921_171920/",
+        "no_file_not_transferred_due_to_compressing": 1,
+        "file_not_transferred_due_to_compressing": [
+            "Cardiac/20210921_171920/19W001389.individual.norm.vep.post_filter.vcf"
+        ]
+    },
+    {
+        "submission": "Cardiac/20211206_173558/",
+        "no_file_not_transferred_due_to_compressing": 108,
+        "file_not_transferred_due_to_compressing": [
+            "Cardiac/20211206_173558/210207_A01221_0023_ML210877_21W000092_MAN-20210207_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/210716_A00692_0223_ML213614_21W001415_MAN-20210716_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/21W001415.bam",
+            "Cardiac/20211206_173558/21W001314.bam",
+            "Cardiac/20211206_173558/20W002180.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210115_A01221_0015_TL2008412_20W002180_MAN-20201223_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/211112_A01221_0080_ML215148_21W002351_MAN-20211023_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/210115_A01221_0015_TL2008412_20W002180_MAN-20201223_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/210716_A01221_0054_ML213173_21W001285_MAN-20210622_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/210820_A00692_0229_ML213875_21W001700_MAN-20210731_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/210903_A01221_0065_ML214269_21W001837_MAN-20210822_NEXTERAFLEXWGS_L004_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W001700.bam",
+            "Cardiac/20211206_173558/210622_A01221_0049_ML213171_21W001279_MAN-20210622_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/210716_A01221_0054_ML213176_21W001314_MAN-20210622_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/21W001415.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210119_A01221_0016_ML210528_20W002326_MAN-20210118_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/210207_A01221_0023_ML210877_21W000092_MAN-20210207_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/210702_A00692_0221_ML213172_21W001284_MAN-20210622_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W000081.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210207_A01221_0023_ML210874_21W000081_MAN-20210207_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/21W001755.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210710_A01221_0053_ML213172_21W001284_MAN-20210622_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/20W002326.bam",
+            "Cardiac/20211206_173558/21W001279.bam",
+            "Cardiac/20211206_173558/210710_A01221_0053_ML213172_21W001284_MAN-20210622_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/210803_A01221_0058_ML213766_21W001532_MAN-20210728_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/210803_A01221_0058_ML213622_21W001482_MAN-20210716_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/210716_A01221_0054_ML213173_21W001285_MAN-20210622_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/21W002121.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210820_A00692_0229_ML213875_21W001700_MAN-20210731_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W001482.bam",
+            "Cardiac/20211206_173558/210118_A00692_0180_TL2008415_20W002269_MAN-20201223_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/210716_A00692_0223_ML213614_21W001415_MAN-20210716_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/210118_A00692_0180_TL2008415_20W002269_MAN-20201223_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W000154.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210828_A01221_0064_ML213957_21W001755_MAN-20210810_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W001837.bam",
+            "Cardiac/20211206_173558/210828_A01221_0064_ML213957_21W001755_MAN-20210810_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/210207_A01221_0023_ML210877_21W000092_MAN-20210207_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/210826_A01221_0063_ML213957_21W001755_MAN-20210810_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W000154.bam",
+            "Cardiac/20211206_173558/21W001700.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/21W002121.bam",
+            "Cardiac/20211206_173558/210622_A01221_0049_ML213171_21W001279_MAN-20210622_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W001532.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/211019_A00692_0244_ML214760_21W002121_MAN-20210930_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/210828_A01221_0064_ML213957_21W001755_MAN-20210810_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/210210_A00692_0184_ML210879_21W000154_MAN-20210202_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/21W001314.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210803_A01221_0058_ML213622_21W001482_MAN-20210716_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/20W002269.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210803_A01221_0058_ML213766_21W001532_MAN-20210728_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/210207_A01221_0023_ML210874_21W000081_MAN-20210207_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/210118_A00692_0180_TL2008415_20W002269_MAN-20201223_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/21W001482.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210716_A00692_0223_ML213614_21W001415_MAN-20210716_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/211112_A01221_0080_ML215148_21W002351_MAN-20211023_NEXTERAFLEXWGS_L004_R1.fastq.gz",
+            "Cardiac/20211206_173558/210119_A01221_0016_ML210528_20W002326_MAN-20210118_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/210207_A01221_0023_ML210874_21W000081_MAN-20210207_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/210727_A01221_0056_ML213766_21W001532_MAN-20210728_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/210118_A00692_0180_TL2008415_20W002269_MAN-20201223_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/210710_A01221_0053_ML213172_21W001284_MAN-20210622_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/210622_A01221_0049_ML213171_21W001279_MAN-20210622_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/210710_A01221_0053_ML213172_21W001284_MAN-20210622_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/21W002351.bam",
+            "Cardiac/20211206_173558/210826_A01221_0063_ML213957_21W001755_MAN-20210810_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/210207_A01221_0023_ML210877_21W000092_MAN-20210207_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/210622_A01221_0049_ML213171_21W001279_MAN-20210622_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/211019_A00692_0244_ML214760_21W002121_MAN-20210930_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/20W002326.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210115_A01221_0015_TL2008412_20W002180_MAN-20201223_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W001279.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210826_A01221_0063_ML213957_21W001755_MAN-20210810_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/21W001589.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210826_A01221_0063_ML213957_21W001755_MAN-20210810_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/210803_A01221_0058_ML213766_21W001532_MAN-20210728_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/20W002269.bam",
+            "Cardiac/20211206_173558/210207_A01221_0023_ML210874_21W000081_MAN-20210207_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W001284.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210803_A01221_0058_ML213622_21W001482_MAN-20210716_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/210820_A00692_0229_ML213914_21W001589_MAN-20210805_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/210210_A00692_0184_ML210879_21W000154_MAN-20210202_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W001532.bam",
+            "Cardiac/20211206_173558/210119_A01221_0016_ML210528_20W002326_MAN-20210118_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/21W001837.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/211112_A01221_0080_ML215148_21W002351_MAN-20211023_NEXTERAFLEXWGS_L004_R2.fastq.gz",
+            "Cardiac/20211206_173558/210716_A00692_0223_ML213614_21W001415_MAN-20210716_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/210903_A01221_0065_ML214269_21W001837_MAN-20210822_NEXTERAFLEXWGS_L004_R2.fastq.gz",
+            "Cardiac/20211206_173558/21W001284.bam",
+            "Cardiac/20211206_173558/21W001589.bam",
+            "Cardiac/20211206_173558/210702_A00692_0221_ML213172_21W001284_MAN-20210622_NEXTERAFLEXWGS_L001_R2.fastq.gz",
+            "Cardiac/20211206_173558/21W000092.bam",
+            "Cardiac/20211206_173558/20W002180.bam",
+            "Cardiac/20211206_173558/21W001285.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/210119_A01221_0016_ML210528_20W002326_MAN-20210118_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/210803_A01221_0058_ML213766_21W001532_MAN-20210728_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/210727_A01221_0056_ML213766_21W001532_MAN-20210728_NEXTERAFLEXWGS_L002_R2.fastq.gz",
+            "Cardiac/20211206_173558/210828_A01221_0064_ML213957_21W001755_MAN-20210810_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W001285.bam",
+            "Cardiac/20211206_173558/210803_A01221_0058_ML213622_21W001482_MAN-20210716_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/210115_A01221_0015_TL2008412_20W002180_MAN-20201223_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/210820_A00692_0229_ML213914_21W001589_MAN-20210805_NEXTERAFLEXWGS_L002_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W000092.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/21W001755.bam",
+            "Cardiac/20211206_173558/210716_A01221_0054_ML213176_21W001314_MAN-20210622_NEXTERAFLEXWGS_L001_R1.fastq.gz",
+            "Cardiac/20211206_173558/21W002351.individual.norm.vcf.gz",
+            "Cardiac/20211206_173558/21W000081.bam",
+            "Cardiac/20211206_173558/211112_A01221_0080_ML215148_21W002351_MAN-20211023_NEXTERAFLEXWGS_L002_R1.fastq.gz"
+        ]
+    }
+]

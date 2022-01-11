@@ -41,7 +41,8 @@ def handler(event, context):
     {
         "skip_unlock_bucket": "true",
         "skip_submit_batch_job": "true",
-        "skip_update_dynamodb": "true"
+        "skip_update_dynamodb": "true",
+        "validation_check_only": "true"
     }
 
     :param event: payload to process and run batchjob
@@ -81,9 +82,10 @@ def handler(event, context):
 
         return {
             "reason": reason,
-            "fail_batch_job_s3_key": json.dumps(fail_batch_key, indent=4),
-            "fail_validation_result_s3_key": json.dumps(fail_status_result_key, indent=4)
+            "fail_batch_job_s3_key": json.dumps(fail_batch_key),
+            "fail_validation_result_s3_key": json.dumps(fail_status_result_key)
         }
+
 
     # Creating s3 move job
     try:

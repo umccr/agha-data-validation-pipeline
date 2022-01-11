@@ -30,7 +30,7 @@ stack_props = {
         "store-bucket-archive": 'agha-gdr-store-bucket-archive',
         "e-tag": 'agha-gdr-e-tag'
     },
-    'autorun_validation_jobs': 'no', # TODO: Change to yes
+    'autorun_validation_jobs': 'yes',
     'notification': {
         'slack_notify': 'no', # TODO: change to yes
         'email_notify': 'yes',

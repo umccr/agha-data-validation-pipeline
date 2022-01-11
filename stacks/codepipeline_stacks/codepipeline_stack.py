@@ -9,7 +9,7 @@ from aws_cdk import (
     aws_iam as iam,
     pipelines as pipelines,
 )
-from stacks.agha_stacks.agha_stack import AghaStack
+from stacks.agha_stacks.agha_stack import  AghaStack
 
 class AGHAValidationPipelineStage(cdk.Stage):
     def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
