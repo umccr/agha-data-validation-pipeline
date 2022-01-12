@@ -1,0 +1,10 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for Mito
+Moving flagship name from mitochondrial_disease to Mito
+
+Submission: mitochondrial_disease
+Total number of file from old store: 831
+Total number of file skipped (Skipping index and/or manifest files) : 104
+Total number of file checked: 727
+Total number of mismatch file: 0

@@ -1,0 +1,77 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for HIDDEN
+Moving flagship name from HIDDEN to HIDDEN
+Number of submission checked for HIDDEN: 12
+
+Submission: HIDDEN/2019-09-19/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 7
+Total number of mismatch file: 0
+
+Submission: HIDDEN/2019-09-20/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 7
+Total number of mismatch file: 0
+
+Submission: HIDDEN/2019-09-21/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 7
+Total number of mismatch file: 0
+
+Submission: HIDDEN/2019-09-22/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 7
+Total number of mismatch file: 0
+
+Submission: HIDDEN/2019-09-23/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 7
+Total number of mismatch file: 0
+
+Submission: HIDDEN/2019-09-24/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 7
+Total number of mismatch file: 0
+
+Submission: HIDDEN/2019-09-25/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 7
+Total number of mismatch file: 0
+
+Submission: HIDDEN/2019-09-26/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 7
+Total number of mismatch file: 0
+
+Submission: HIDDEN/2019-09-27/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 7
+Total number of mismatch file: 0
+
+Submission: HIDDEN/2019-09-28/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 7
+Total number of mismatch file: 0
+
+Submission: HIDDEN/2019-09-29/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 7
+Total number of mismatch file: 0
+
+Submission: HIDDEN/2019-09-30/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 7
+Total number of file checked: 7
+Total number of mismatch file: 0

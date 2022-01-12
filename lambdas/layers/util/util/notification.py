@@ -126,5 +126,11 @@ def set_submitter_information_from_s3_event(event_record):
         SUBMITTER_INFO.name, SUBMITTER_INFO.email = get_name_email_from_principalid(principal_id)
         SUBMITTER_INFO.submission_prefix=os.path.dirname(event_record['s3']['object']['key'])
         logger.info(f'Extracted name and email from record: {SUBMITTER_INFO.name} <{SUBMITTER_INFO.email}>')
+    elif 'email_report_to' in event_record:
+        email = event_record['email_report_to']
+        SUBMITTER_INFO.name = email.split('@')[0]
+        SUBMITTER_INFO.email = email
+        SUBMITTER_INFO.submission_prefix = os.path.dirname(event_record['s3']['object']['key'])
+        logger.info(f'Extracted name and email from record: {SUBMITTER_INFO.name} <{SUBMITTER_INFO.email}>')
     else:
         logger.warning(f'Could not extract name and email: unsuitable event type/data')

@@ -1,0 +1,10 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for Leuko
+Moving flagship name from leukodystrophies to Leuko
+
+Submission: leukodystrophies
+Total number of file from old store: 98
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 96
+Total number of mismatch file: 0

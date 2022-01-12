@@ -1,0 +1,10 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for BM
+Moving flagship name from brain_malformations to BM
+
+Submission: brain_malformations
+Total number of file from old store: 512
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 510
+Total number of mismatch file: 0

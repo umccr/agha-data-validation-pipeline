@@ -1,0 +1,23 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for BM
+Moving flagship name from BM to BM
+Number of submission checked for BM: 3
+
+Submission: BM/2020-08-29/
+Total number of file from old store: 7
+Total number of file skipped (Skipping index and/or manifest files) : 3
+Total number of file checked: 4
+Total number of mismatch file: 0
+
+Submission: BM/2021-01-16/
+Total number of file from old store: 93
+Total number of file skipped (Skipping index and/or manifest files) : 19
+Total number of file checked: 74
+Total number of mismatch file: 0
+
+Submission: BM/2021-05-31/
+Total number of file from old store: 6
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 4
+Total number of mismatch file: 0

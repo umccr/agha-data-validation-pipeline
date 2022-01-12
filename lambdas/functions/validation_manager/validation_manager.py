@@ -55,6 +55,11 @@ def handler(event, context):
     :param event: payload to process and run batchjob
     :param context: not used
     """
+
+    # Reset notification variable (in case value cached between lambda)
+    notification.MESSAGE_STORE = list()
+    notification.SUBMITTER_INFO = notification.SubmitterInfo()
+
     logger.info('Processing event at validation manager lambda:')
     logger.info(json.dumps(event))
 
@@ -85,7 +90,7 @@ def handler(event, context):
     # submission later, and are available through data.files_accepted.
     if 'manifest_fp' in event:
         notification.SUBMITTER_INFO.submission_prefix = os.path.dirname(event['manifest_fp'])
-        data = handle_input_manifest(data, event, event['strict_mode'])
+        data = handle_input_manifest(data, event)
     elif 'filepaths' in event:
         notification.SUBMITTER_INFO.submission_prefix = os.path.dirname(event['filepaths'][0])
         data = handle_input_filepaths(data, event)
@@ -175,7 +180,6 @@ def validate_event_data(event_record):
         'email_address',
         'email_name',
         'tasks',
-        'strict_mode',
         'manifest_dynamodb_key_prefix'
     }
     args_unknown = [arg for arg in event_record if arg not in args_known]
@@ -241,20 +245,6 @@ def validate_event_data(event_record):
     else:
         event_record['record_mode'] = 'create'
 
-    # Process strict mode, must be bool
-    if 'strict_mode' in event_record:
-        strict_mode_str = event_record.get('strict_mode')
-        if strict_mode_str.lower() == 'true':
-            event_record['strict_mode'] = True
-        elif strict_mode_str.lower() == 'false':
-            event_record['strict_mode'] = False
-        else:
-            msg = f'expected \'True\' or \'False\' for strict_mode but got {strict_mode_str}'
-            logger.critical(msg)
-            raise ValueError
-    else:
-        event_record['strict_mode'] = True
-
     # Set remaining defaults
     if 'exclude_fns' not in event_record:
         event_record['exclude_fns'] = list()
@@ -262,18 +252,18 @@ def validate_event_data(event_record):
         event_record['include_fns'] = list()
 
 
-def handle_input_manifest(data: submission_data.SubmissionData, event, strict_mode):
+def handle_input_manifest(data: submission_data.SubmissionData, event):
     data.manifest_key = event['manifest_fp']
     data.submission_prefix = os.path.dirname(data.manifest_key)
     data.file_metadata = s3.get_s3_object_metadata(data.bucket_name, data.submission_prefix)
     data.manifest_data = submission_data.retrieve_manifest_data(bucket_name=data.bucket_name,
                                                                 manifest_key=data.manifest_key)
-
-    file_list, data.files_extra = submission_data.validate_manifest(
-        data,
-        strict_mode,
-        False
-    )
+    try:
+        file_list, data.files_extra = submission_data.validate_manifest(data)
+    except ValueError as e:
+        logger.error(f'Incorrect/Wrong manifest file: {e}')
+        logger.error(f'Terminating')
+        raise ValueError
 
     logger.info(f'File list to process:')
     print(file_list)

@@ -1,0 +1,89 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for ICCon
+Moving flagship name from ICCON to ICCon
+Number of submission checked for ICCon: 14
+
+Submission: ICCON/2019-09-24/
+Total number of file from old store: 109
+Total number of file skipped (Skipping index and/or manifest files) : 1
+Total number of file checked: 108
+Total number of mismatch file: 0
+
+Submission: ICCON/2019-09-25/
+Total number of file from old store: 16
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 14
+Total number of mismatch file: 0
+
+Submission: ICCON/2019-09-26/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 12
+Total number of mismatch file: 0
+
+Submission: ICCON/2019-09-27/
+Total number of file from old store: 18
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 16
+Total number of mismatch file: 0
+
+Submission: ICCON/2019-09-28/
+Total number of file from old store: 26
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 24
+Total number of mismatch file: 0
+
+Submission: ICCON/2019-12-13/
+Total number of file from old store: 12
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 10
+Total number of mismatch file: 0
+
+Submission: ICCON/2020-01-20/
+Total number of file from old store: 42
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 40
+Total number of mismatch file: 0
+
+Submission: ICCON/2020-07-06/
+Total number of file from old store: 12
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 10
+Total number of mismatch file: 0
+
+Submission: ICCON/2020-07-13/
+Total number of file from old store: 32
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 30
+Total number of mismatch file: 0
+
+Submission: ICCON/2020-07-14/
+Total number of file from old store: 12
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 10
+Total number of mismatch file: 0
+
+Submission: ICCON/2020-10-16/
+Total number of file from old store: 25
+Total number of file skipped (Skipping index and/or manifest files) : 1
+Total number of file checked: 24
+Total number of mismatch file: 0
+
+Submission: ICCON/2020-11-27/
+Total number of file from old store: 75
+Total number of file skipped (Skipping index and/or manifest files) : 1
+Total number of file checked: 74
+Total number of mismatch file: 0
+
+Submission: ICCON/2020-12-16/
+Total number of file from old store: 11
+Total number of file skipped (Skipping index and/or manifest files) : 1
+Total number of file checked: 10
+Total number of mismatch file: 0
+
+Submission: ICCON/2020-12-21/
+Total number of file from old store: 17
+Total number of file skipped (Skipping index and/or manifest files) : 1
+Total number of file checked: 16
+Total number of mismatch file: 0

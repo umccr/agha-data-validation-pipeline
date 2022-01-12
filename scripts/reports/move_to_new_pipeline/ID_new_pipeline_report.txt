@@ -1,0 +1,29 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for ID
+Moving flagship name from ID to ID
+Number of submission checked for ID: 4
+
+Submission: ID/2019-09-05/
+Total number of file from old store: 22
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 20
+Total number of mismatch file: 0
+
+Submission: ID/2019-09-11/
+Total number of file from old store: 56
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 54
+Total number of mismatch file: 0
+
+Submission: ID/2019-09-16/
+Total number of file from old store: 30
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 28
+Total number of mismatch file: 0
+
+Submission: ID/2020-08-22/
+Total number of file from old store: 489
+Total number of file skipped (Skipping index and/or manifest files) : 83
+Total number of file checked: 406
+Total number of mismatch file: 0

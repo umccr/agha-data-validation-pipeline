@@ -1,0 +1,29 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for Mito
+Moving flagship name from MITO to Mito
+Number of submission checked for Mito: 4
+
+Submission: MITO/2019-08-14/
+Total number of file from old store: 6
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 4
+Total number of mismatch file: 0
+
+Submission: MITO/2019-09-11/
+Total number of file from old store: 52
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 50
+Total number of mismatch file: 0
+
+Submission: MITO/2019-09-16/
+Total number of file from old store: 66
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 64
+Total number of mismatch file: 0
+
+Submission: MITO/2020-08-16/
+Total number of file from old store: 115
+Total number of file skipped (Skipping index and/or manifest files) : 23
+Total number of file checked: 92
+Total number of mismatch file: 0

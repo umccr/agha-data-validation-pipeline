@@ -4,6 +4,8 @@ import logging
 import os
 
 # From layers
+import sys
+
 import util
 from util import dynamodb, submission_data, notification, s3, agha
 
@@ -61,12 +63,39 @@ def handler(event, context):
         ]
     }
 
+    structure#2
+    For manual re-trigger
+    {
+        "bucket_name": "somebucketname",
+        "manifest_fp": "FLAGSHIP/SUBMISSION/manifest.txt",
+        "email_report_to": "john.doe@email.com"
+    }
+
     :param event: S3 event
     :param context: not used
     """
 
+    # Reset notification variable (in case value cached between lambda)
+    notification.MESSAGE_STORE = list()
+    notification.SUBMITTER_INFO = notification.SubmitterInfo()
+
     logger.info(f"Start processing S3 event:")
     logger.info(json.dumps(event))
+
+    # If trigger manually, construct the same s3 format
+    if event.get('manifest_fp') != None:
+        event['Records'] = [
+            {
+                "s3": {
+                    "bucket": {
+                        "name": event.get('bucket_name'),
+                    },
+                    "object": {
+                        "key": event.get('manifest_fp')
+                    }
+                }
+            }
+        ]
 
     s3_records = event.get('Records')
     if not s3_records:
@@ -94,9 +123,16 @@ def handler(event, context):
         # Collect manifest data and then validate
         logger.info('Retrieve manifest metadata')
         data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_s3_key)
-        file_list, data.files_extra = submission_data.validate_manifest(data)
+        try:
+            file_list, data.files_extra = submission_data.validate_manifest(data)
+        except ValueError as e:
+            notification.notify_and_exit()
+            raise ValueError(e)
+
         logger.info(f'Processing {len(file_list)} number of file_list, and {len(data.files_extra)} \
                     number of files_extra')
+
+        notification.log_and_store_message('<br>Below, additional information on duplicate files, if any.<br>')
 
         for filename in file_list:
 
@@ -168,6 +204,9 @@ def handler(event, context):
             write_res = dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, archive_manifest_record)
             logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} table response:')
             logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
+
+        # Send notification to submitter for the submission
+        notification.send_notifications()
 
         if AUTORUN_VALIDATION_JOBS == 'yes':
             # Invoke validation manager for automation

@@ -87,7 +87,7 @@ def retrieve_manifest_data(bucket_name: str, manifest_key: str):
     return manifest_data
 
 
-def validate_manifest(data: SubmissionData, strict_mode: bool = True, notify: bool = True):
+def validate_manifest(data: SubmissionData):
     # Check manifest columns
     columns_present = set(data.manifest_data.columns.tolist())
     columns_missing = MANIFEST_REQUIRED_COLUMNS.difference(columns_present)
@@ -180,20 +180,13 @@ def validate_manifest(data: SubmissionData, strict_mode: bool = True, notify: bo
         errors = '\r\t'.join(messages_error)
         message_base = f'Manifest failed validation with the following {plurality}'
         message = f'{message_base}:\r\t{errors}'
-        if strict_mode:
-            notification.log_and_store_message(message, level='critical')
-            if notify:
-                notification.notify_and_exit()
-            else:
-                raise ValueError()
-        else:
-            notification.log_and_store_message(message, level='warning')
+        notification.log_and_store_message(message, level='critical')
+        raise ValueError(message)
 
     # Notify with success message
     message = f'Manifest successfully validated, continuing with file validation'
     notification.log_and_store_message(message)
-    if notify:
-        notification.send_notifications()
+
     # NOTE(SW): returning files that are on S3 and (1) in manifest, and (2) not in manifest. This
     # will allow flexibility in the future for any refactor if we decide to modify handling of
     # missing files

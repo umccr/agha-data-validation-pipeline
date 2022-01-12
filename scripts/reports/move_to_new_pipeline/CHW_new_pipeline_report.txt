@@ -1,0 +1,35 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for chILDRANZ
+Moving flagship name from CHW to chILDRANZ
+Number of submission checked for chILDRANZ: 5
+
+Submission: CHW/2020-10-20/
+Total number of file from old store: 68
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 66
+Total number of mismatch file: 0
+
+Submission: CHW/2021-02-15/
+Total number of file from old store: 96
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 94
+Total number of mismatch file: 0
+
+Submission: CHW/2021-02-22/
+Total number of file from old store: 8
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 6
+Total number of mismatch file: 0
+
+Submission: CHW/2021-03-26/
+Total number of file from old store: 26
+Total number of file skipped (Skipping index and/or manifest files) : 14
+Total number of file checked: 12
+Total number of mismatch file: 0
+
+Submission: CHW/2021-04-16/
+Total number of file from old store: 14
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 12
+Total number of mismatch file: 0

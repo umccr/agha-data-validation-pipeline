@@ -1,0 +1,29 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for KidGen
+Moving flagship name from KidGen to KidGen
+Number of submission checked for KidGen: 4
+
+Submission: KidGen/2020-03-03/
+Total number of file from old store: 283
+Total number of file skipped (Skipping index and/or manifest files) : 49
+Total number of file checked: 234
+Total number of mismatch file: 0
+
+Submission: KidGen/2020-03-04/
+Total number of file from old store: 257
+Total number of file skipped (Skipping index and/or manifest files) : 47
+Total number of file checked: 210
+Total number of mismatch file: 0
+
+Submission: KidGen/2020-03-05/
+Total number of file from old store: 330
+Total number of file skipped (Skipping index and/or manifest files) : 58
+Total number of file checked: 272
+Total number of mismatch file: 0
+
+Submission: KidGen/2020-03-06/
+Total number of file from old store: 350
+Total number of file skipped (Skipping index and/or manifest files) : 60
+Total number of file checked: 290
+Total number of mismatch file: 0

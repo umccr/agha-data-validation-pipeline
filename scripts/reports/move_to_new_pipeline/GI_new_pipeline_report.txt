@@ -1,0 +1,35 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for GI
+Moving flagship name from GI to GI
+Number of submission checked for GI: 5
+
+Submission: GI/2019-08-27/
+Total number of file from old store: 855
+Total number of file skipped (Skipping index and/or manifest files) : 398
+Total number of file checked: 457
+Total number of mismatch file: 0
+
+Submission: GI/2019-09-19/
+Total number of file from old store: 5
+Total number of file skipped (Skipping index and/or manifest files) : 3
+Total number of file checked: 2
+Total number of mismatch file: 0
+
+Submission: GI/2020-06-04/
+Total number of file from old store: 412
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 410
+Total number of mismatch file: 0
+
+Submission: GI/2021-04-13/
+Total number of file from old store: 236
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 234
+Total number of mismatch file: 0
+
+Submission: GI/2021-05-19/
+Total number of file from old store: 132
+Total number of file skipped (Skipping index and/or manifest files) : 2
+Total number of file checked: 130
+Total number of mismatch file: 0

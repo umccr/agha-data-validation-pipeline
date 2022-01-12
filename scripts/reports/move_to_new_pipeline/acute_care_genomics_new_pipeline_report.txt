@@ -1,0 +1,24 @@
+Moving Old Pipeline to New Pipeline Report
+
+Moving report for AC
+Moving flagship name from acute_care_genomics to AC
+
+Submission: acute_care_genomics
+Total number of file from old store: 2794
+Total number of file skipped (Skipping index and/or manifest files) : 247
+Total number of file checked: 2547
+Total number of mismatch file: 1
+Mismatch file:
+[
+    {
+        "reason": "No key found at new staging/store bucket",
+        "old_bucket_name": "agha-gdr-store",
+        "old_store_s3_key": "acute_care_genomics/manifest.txt.bak",
+        "old_store_etag": "\"43e01c47c50d2ea504e639b3c993988d\"",
+        "old_store_size": 281162,
+        "new_bucket_name": "-",
+        "new_store_s3_key": "-",
+        "new_store_etag": "-",
+        "new_store_size": "-"
+    }
+]
