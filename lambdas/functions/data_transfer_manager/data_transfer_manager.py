@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import re
+import sys
 import uuid
 import boto3
 from boto3.dynamodb.conditions import Attr
@@ -80,12 +81,11 @@ def handler(event, context):
             logger.error('Status check has failed')
             reason = 'The following fail check should not exist'
 
-        return {
+        return json.dumps({
             "reason": reason,
-            "fail_batch_job_s3_key": json.dumps(fail_batch_key),
-            "fail_validation_result_s3_key": json.dumps(fail_status_result_key)
-        }
-
+            "fail_batch_job_s3_key": fail_batch_key,
+            "fail_validation_result_s3_key": fail_status_result_key
+        },indent=4)
 
     # Creating s3 move job
     try:
@@ -342,7 +342,7 @@ def run_batch_check(staging_directory_prefix: str) -> list:
         # Check if validation had succeed via dynamodb
         sort_key = s3_key + '__results.json'
         dy_res = dynamodb.get_item_from_exact_pk_and_sk(table_name=DYNAMODB_RESULT_TABLE_NAME,
-                                                        partition_key=dynamodb.ResultPartitionKey.FILE.value,
+                                                        partition_key=dynamodb.FileRecordPartitionKey.FILE_RECORD.value,
                                                         sort_key=sort_key)
 
         if dy_res['Count'] < 1:

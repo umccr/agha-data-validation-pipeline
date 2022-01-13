@@ -15,8 +15,8 @@ from validation_manager import handler
 
 def create_payload():
     return {
-    "manifest_fp": "ACG/20210722_090101/manifest.txt",
-    "manifest_dynamodb_key_prefix":"ACG/20210722_090101/"
+    "manifest_fp": "BM/2019-09-05/manifest.txt",
+    "manifest_dynamodb_key_prefix":"BM/2019-09-05/"
 }
 
 

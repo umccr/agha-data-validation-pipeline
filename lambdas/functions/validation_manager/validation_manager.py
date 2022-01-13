@@ -261,7 +261,7 @@ def handle_input_manifest(data: submission_data.SubmissionData, event):
     try:
         file_list, data.files_extra = submission_data.validate_manifest(data)
     except ValueError as e:
-        logger.error(f'Incorrect/Wrong manifest file: {e}')
+        logger.error(f'Incorrect/Wrong manifest file: {str(e)}')
         logger.error(f'Terminating')
         raise ValueError
 

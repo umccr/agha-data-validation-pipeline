@@ -97,9 +97,9 @@ def validate_manifest(data: SubmissionData):
         cmissing_str = '\r\t'.join(columns_missing)
         cfound_str = '\r\t'.join(columns_present)
         message_base = f'required {plurality} missing from manifest:'
-        notification.log_and_store_message(
-            f'{message_base}\r\t{cmissing_str}\rGot:\r\t{cfound_str}', level='critical')
-        notification.notify_and_exit()
+        message_str = f'{message_base}\r\t{cmissing_str}\rGot:\r\t{cfound_str}'
+        notification.log_and_store_message(message_str, level='critical')
+        raise ValueError(message_str)
 
     # File discovery
     # Entry count

@@ -78,9 +78,42 @@ class ManifestFileRecordAttribute(Enum):
 class FileRecordPartitionKey(Enum):
     FILE_RECORD = 'TYPE:FILE'
     MANIFEST_FILE_RECORD = 'TYPE:MANIFEST'
+    STATUS_MANIFEST = 'STATUS:MANIFEST'
 
     def __str__(self):
         return self.value
+
+
+class ManifestStatusCheckValue(Enum):
+    FAIL = 'FAIL'
+    PASS = 'PASS'
+    NOT_COMPLETED = 'NOT_COMPLETED'
+
+    def __str__(self):
+        return self.value
+
+
+class ManifestStatusCheckRecord:
+
+    def __init__(self,
+                 partition_key=FileRecordPartitionKey.STATUS_MANIFEST.value,
+                 sort_key="",
+                 status=ManifestStatusCheckValue.NOT_COMPLETED.value,
+                 additional_information="",
+                 date_modified=util.get_datetimestamp()):
+        self.partition_key = partition_key
+        self.sort_key = sort_key
+        self.status = status
+        self.additional_information = additional_information
+        self.date_modified = date_modified
+
+    def create_archive_dictionary(self, archive_log: str):
+        archive_dict = self.__dict__.copy()
+        new_sort_key = archive_dict['sort_key'] + ':' + util.get_datetimestamp()
+        archive_dict['sort_key'] = new_sort_key
+        archive_dict['archive_log'] = archive_log
+
+        return archive_dict
 
 
 # Record Attribute for STAGING and STORE bucket
@@ -439,6 +472,13 @@ def write_record_from_class(table_name, record) -> dict:
     resp = dynamodb_table.put_item(Item=record.__dict__, ReturnValues='ALL_OLD')
     return resp
 
+def write_record_from_dict(table_name, record_dict) -> dict:
+    dynamodb_resource = get_resource()
+    dynamodb_table = dynamodb_resource.Table(table_name)
+
+    resp = dynamodb_table.put_item(Item=record_dict, ReturnValues='ALL_OLD')
+    return resp
+
 
 def batch_write_records(table_name: str, records: list):
     tbl = get_resource().Table(table_name)
@@ -454,6 +494,7 @@ def batch_write_record_archive(table_name: str, records: list, archive_log: str)
             object = record.__dict__
             object["archive_log"] = archive_log
             batch.put_item(Item=record.__dict__)
+
 
 def batch_write_objects(table_name: str, object_list: list):
     tbl = get_resource().Table(table_name)

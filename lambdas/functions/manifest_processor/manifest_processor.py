@@ -68,7 +68,9 @@ def handler(event, context):
     {
         "bucket_name": "somebucketname",
         "manifest_fp": "FLAGSHIP/SUBMISSION/manifest.txt",
-        "email_report_to": "john.doe@email.com"
+        "email_report_to": "john.doe@email.com",
+        "skip_update_dynamodb": "true",
+        "skip_send_notification": "true"
     }
 
     :param event: S3 event
@@ -104,6 +106,11 @@ def handler(event, context):
 
     for event_record in s3_records:
 
+        # DynamoDB manifest ist
+        staging_dynamodb_batch_write_list = []
+        archive_staging_dynamodb_batch_write_list = []
+        duplicate_etag_list = []
+
         # Validate the event structure
         validate_event_data(event_record)
 
@@ -125,9 +132,30 @@ def handler(event, context):
         data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_s3_key)
         try:
             file_list, data.files_extra = submission_data.validate_manifest(data)
+
         except ValueError as e:
+
+            # Update DynamoDb regarding manifest checks status
+            manifest_status_record = dynamodb.ManifestStatusCheckRecord(
+                sort_key=data.manifest_s3_key,
+                status=dynamodb.ManifestStatusCheckValue.FAIL.value,
+                additional_information=str(e)
+            )
+
+            dynamodb.write_record_from_class(DYNAMODB_STAGING_TABLE_NAME, manifest_status_record)
+            manifest_status_record_archive = manifest_status_record.create_archive_dictionary('ObjectCreated/Update')
+            dynamodb.write_record_from_dict(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, manifest_status_record_archive)
+
             notification.notify_and_exit()
             raise ValueError(e)
+            # Update DynamoDb regarding manifest checks status
+
+        # Create status pass when no error raised
+        manifest_status_record = dynamodb.ManifestStatusCheckRecord(
+            sort_key=data.manifest_s3_key,
+            status=dynamodb.ManifestStatusCheckValue.PASS.value,
+        )
+
 
         logger.info(f'Processing {len(file_list)} number of file_list, and {len(data.files_extra)} \
                     number of files_extra')
@@ -176,6 +204,9 @@ def handler(event, context):
 
                     notification.log_and_store_message(f"bucket_name: {bucket_name}, s3_key: {s3_key}", 'warning')
 
+                duplicate_etag_list.append(etag_response['Items'])
+
+
             # Create Manifest type record
             manifest_record = dynamodb.ManifestFileRecord(
                 partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
@@ -192,21 +223,31 @@ def handler(event, context):
             )
 
             # Update item at the record
-            logger.info(f'Updating {DYNAMODB_STAGING_TABLE_NAME} DynamoDB table')
-            write_res = dynamodb.write_record_from_class(DYNAMODB_STAGING_TABLE_NAME, manifest_record)
-            logger.info(f'Updating {DYNAMODB_STAGING_TABLE_NAME} table response:')
-            logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
-
-            # Updating archive record
-            logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} DynamoDB table')
+            staging_dynamodb_batch_write_list.append(manifest_record.__dict__)
             archive_manifest_record = dynamodb.ArchiveManifestFileRecord. \
                 create_archive_manifest_record_from_manifest_record(manifest_record, 'CREATE')
-            write_res = dynamodb.write_record_from_class(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, archive_manifest_record)
-            logger.info(f'Updating {DYNAMODB_ARCHIVE_STAGING_TABLE_NAME} table response:')
-            logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
+            archive_staging_dynamodb_batch_write_list.append(archive_manifest_record.__dict__)
 
-        # Send notification to submitter for the submission
-        notification.send_notifications()
+        if len(duplicate_etag_list) > 0:
+            manifest_status_record.additional_information = {
+                "topic":"Duplicate files found in this submission with other submissions",
+                "data":duplicate_etag_list
+            }
+
+        staging_dynamodb_batch_write_list.append(manifest_status_record.__dict__)
+        archive_staging_dynamodb_batch_write_list.append(manifest_status_record.create_archive_dictionary('Create/Update'))
+
+        # Update dynamodb batch if not skipped
+        if not event.get('skip_update_dynamodb') == 'yes':
+
+            dynamodb.batch_write_objects(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                         object_list=staging_dynamodb_batch_write_list)
+            dynamodb.batch_write_objects(table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
+                                         object_list=archive_staging_dynamodb_batch_write_list)
+
+        # Send notification to submitter for the submission if not skipped
+        if not event.get("skip_send_notification") == 'yes':
+            notification.send_notifications()
 
         if AUTORUN_VALIDATION_JOBS == 'yes':
             # Invoke validation manager for automation
