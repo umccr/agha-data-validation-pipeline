@@ -327,6 +327,9 @@ class LambdaStack(core.NestedStack):
         result_bucket.add_object_created_notification(
             s3notification.LambdaDestination(self.s3_event_recorder_lambda)
         )
+        result_bucket.add_object_removed_notification(
+            s3notification.LambdaDestination(self.s3_event_recorder_lambda)
+        )
         store_bucket.add_object_created_notification(
             s3notification.LambdaDestination(self.s3_event_recorder_lambda)
         )

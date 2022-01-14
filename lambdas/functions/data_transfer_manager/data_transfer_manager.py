@@ -83,10 +83,10 @@ def handler(event, context):
 
         return json.dumps({
             "reason": reason,
+            "submission": submission_directory,
             "fail_batch_job_s3_key": fail_batch_key,
             "fail_validation_result_s3_key": fail_status_result_key
-        },indent=4)
-
+        }, indent=4)
     # Creating s3 move job
     try:
 

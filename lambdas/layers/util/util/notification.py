@@ -77,6 +77,14 @@ def log_and_store_message(message, level='info'):
         message = f'ERROR: {message}'
     MESSAGE_STORE.append(message)
 
+def log_and_store_list_message(list_messages, level='info'):
+
+    message_log = '\r\t'.join(list_messages)
+    level_number = logging.getLevelName(level.upper())
+    logger.log(level_number, message_log)
+
+    MESSAGE_STORE.extend(list_messages)
+
 
 def notify_and_exit():
     if SUBMITTER_INFO.email:

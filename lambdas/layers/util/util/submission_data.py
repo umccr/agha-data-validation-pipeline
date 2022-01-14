@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import io
+import json
 
 import botocore
 import pandas as pd
@@ -178,10 +179,10 @@ def validate_manifest(data: SubmissionData):
     if messages_error:
         plurality = 'message' if len(messages_error) == 1 else 'messages'
         errors = '\r\t'.join(messages_error)
-        message_base = f'Manifest failed validation with the following {plurality}'
-        message = f'{message_base}:\r\t{errors}'
-        notification.log_and_store_message(message, level='critical')
-        raise ValueError(message)
+        message_base = f'Manifest failed validation with the following {plurality}:'
+        messages_error.insert(0, message_base)
+        notification.log_and_store_list_message(messages_error, level='critical')
+        raise ValueError(json.dumps(messages_error, indent=4))
 
     # Notify with success message
     message = f'Manifest successfully validated, continuing with file validation'

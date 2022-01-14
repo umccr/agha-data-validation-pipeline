@@ -139,7 +139,7 @@ def handler(event, context):
             manifest_status_record = dynamodb.ManifestStatusCheckRecord(
                 sort_key=data.manifest_s3_key,
                 status=dynamodb.ManifestStatusCheckValue.FAIL.value,
-                additional_information=str(e)
+                additional_information=json.loads(str(e))
             )
 
             dynamodb.write_record_from_class(DYNAMODB_STAGING_TABLE_NAME, manifest_status_record)
@@ -255,16 +255,13 @@ def handler(event, context):
 
             # Construct to an expected payload:
             # {
-            #     "manifest_fp": "[S3_KEY]",
-            #     "include_fns": [
-            #         "[FILENAME]",
-            #         "[FILENAME]"
-            #     ]
+            #     "manifest_fp": "cardiac/20210711_170230/manifest.txt",
+            #     "manifest_dynamodb_key_prefix": "cardiac/20210711_170230/"
             # }
 
             validation_payload = {
                 "manifest_fp": event_record['s3']['object']['key'],
-                "include_fns": file_list
+                "manifest_dynamodb_key_prefix": data.submission_prefix
             }
 
             lambda_res = client_lambda.invoke(
