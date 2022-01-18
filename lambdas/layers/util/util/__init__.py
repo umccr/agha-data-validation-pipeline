@@ -149,13 +149,23 @@ def execute_command(command):
     )
     return process_result
 
+class JsonSerialEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return str(o)
+
+        if isinstance(o, (datetime.datetime, datetime.date)):
+            return o.isoformat()
+
+        return super(JsonSerialEncoder, self).default(o)
+
+# TODO: Replace DecimalEncoder and json_serial (below) with the JsonSerialEncoder class (above)
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, decimal.Decimal):
             return str(o)
         return super(DecimalEncoder, self).default(o)
-
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
 
@@ -163,6 +173,7 @@ def json_serial(obj):
         return obj.isoformat()
 
     raise TypeError ("Type %s not serializable" % type(obj))
+
 
 def replace_record_decimal_object(record):
     for k in record:

@@ -53,7 +53,7 @@ FEXT_BAM = ['.bam']
 FEXT_BAM_INDEX = ['.bai']
 FEXT_VCF = ['vcf.gz', 'vcf']
 FEXT_VCF_INDEX = ['.tbi']
-FEXT_MANIFEST = ['manifest.txt', '.manifest', 'manifest.txt.md5']
+FEXT_MANIFEST = ['manifest.txt', '.manifest']
 
 
 class FileType(Enum):
@@ -107,3 +107,16 @@ class FileType(Enum):
         if filename.endswith('.gz'):
             return True
         return False
+
+    @staticmethod
+    def is_manifest_file(filename:str)->bool:
+        if FileType.from_name(filename) == FileType.MANIFEST:
+            return True
+        return False
+
+    @staticmethod
+    def is_md5_file(filename:str)->bool:
+        if filename.endswith('.md5'):
+            return True
+        else:
+            return False

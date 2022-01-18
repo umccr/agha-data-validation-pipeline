@@ -27,6 +27,7 @@ RESULTS_BUCKET = os.environ.get('RESULTS_BUCKET')
 class StatusBatchResult(enum.Enum):
     SUCCEED='SUCCEED'
     FAIL='FAIL'
+    RUNNING='RUNNING'
 
 class BatchJobResult:
 
@@ -83,7 +84,7 @@ def get_tasks_list():
     return tasks_list
 
 
-def create_job_data(s3_key:str, partition_key:str, checksum, tasks_list, output_prefix, filesize):
+def create_job_data(s3_key:str, partition_key:str, tasks_list, output_prefix, filesize, checksum=None):
     name_raw = f'agha_validation__{s3_key}__{partition_key}'
     name = JOB_NAME_RE.sub('_', name_raw)
     # Job name must be less than 128 characters. If job name exceeds this length, truncate to the
@@ -97,7 +98,8 @@ def create_job_data(s3_key:str, partition_key:str, checksum, tasks_list, output_
     command.extend(["--s3_key", s3_key])
 
     # append checksum args
-    command.extend(["--checksum", checksum])
+    if checksum !=None:
+        command.extend(["--checksum", checksum])
 
     # append task lists args
     task_list = ["--tasks"]
@@ -143,9 +145,13 @@ def submit_batch_job(job_data):
             'command': command,
             'resourceRequirements': [
                 {
-                    'value': '4000',
+                    'value': '7000',
                     'type': 'MEMORY'
                 },
+                {
+                    'value': '2',
+                    'type': 'VCPU'
+                }
             ]
         }
     )

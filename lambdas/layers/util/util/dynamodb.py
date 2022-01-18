@@ -464,6 +464,18 @@ def delete_record_from_record_class(table_name: str, record):
         return ValueError(f"partition_key: {record.partition_key}, sort_key: {record.sort_key}\
          has not been successfully deleted from table '{table_name}'")
 
+def write_main_and_archive_record_from_class(main_table_name:str, archive_table_name:str, record_class, archive_log:str):
+    dynamodb_resource = get_resource()
+
+    dynamodb_table = dynamodb_resource.Table(main_table_name)
+    record_dict = record_class.__dict__
+    resp = dynamodb_table.put_item(Item=record_dict, ReturnValues='ALL_OLD')
+
+    archive_dynamodb_table = dynamodb_resource.Table(archive_table_name)
+    record_dict['archive_log'] = archive_log
+    resp = archive_dynamodb_table.put_item(Item=record_dict, ReturnValues='ALL_OLD')
+
+    return resp
 
 def write_record_from_class(table_name, record) -> dict:
     dynamodb_resource = get_resource()

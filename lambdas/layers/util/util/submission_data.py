@@ -88,7 +88,7 @@ def retrieve_manifest_data(bucket_name: str, manifest_key: str):
     return manifest_data
 
 
-def validate_manifest(data: SubmissionData):
+def validate_manifest(data: SubmissionData, exception_list:list):
     # Check manifest columns
     columns_present = set(data.manifest_data.columns.tolist())
     columns_missing = MANIFEST_REQUIRED_COLUMNS.difference(columns_present)
@@ -145,13 +145,13 @@ def validate_manifest(data: SubmissionData):
     # Record error messages for extra files (other than manifest.txt, *.tbi, *.bai) or missing files
     remove_list = []
     for missing_filename in files_missing_from_manifest:
-        if missing_filename.endswith('manifest.txt') or \
-                missing_filename.endswith('.tbi') or \
-                missing_filename.endswith('.bai'):
-
+        if agha.FileType.is_manifest_file(missing_filename) or \
+                agha.FileType.is_index_file(missing_filename) or \
+                agha.FileType.is_md5_file(missing_filename) or \
+                missing_filename in exception_list:
             remove_list.append(missing_filename)
             logger.info(f'{missing_filename} is in the exclusion filetype list. '
-                                               f'Adding it for removal')
+                        f'Adding it for removal')
 
     # Removing it
     for remove_item in remove_list:
@@ -164,8 +164,15 @@ def validate_manifest(data: SubmissionData):
     if files_missing_from_manifest:
         messages_error.append('files found on S3 absent from manifest.tsv')
 
-    # Field validation
+    # Field validation in the manifest file
     for row in data.manifest_data.itertuples():
+
+        if agha.FileType.is_manifest_file(row.filename) or \
+                agha.FileType.is_index_file(row.filename) or \
+                agha.FileType.is_md5_file(row.filename) or \
+                row.filename in exception_list:
+            continue
+
         # Study ID
         if not AGHA_ID_RE.match(row.agha_study_id):
             message = f'got malformed AGHA study ID for {row.filename} ({row.agha_study_id})'
