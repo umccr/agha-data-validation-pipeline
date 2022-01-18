@@ -72,7 +72,7 @@ def handler(event, context):
         )
 
         logger.info('Email response:')
-        logger.info(json.dumps(email_response, cls=util.DecimalEncoder))
+        logger.info(json.dumps(email_response, cls=util.JsonSerialEncoder))
 
     if SLACK_NOTIFY == 'yes':
         logger.info(f'Sending notification to {SLACK_CHANNEL}')

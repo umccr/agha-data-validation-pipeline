@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 
+import util
 import util.dynamodb as dynamodb
 import util.submission_data as submission_data
 import util.notification as notification
@@ -13,6 +14,8 @@ import util.agha as agha
 
 DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 DYNAMODB_ARCHIVE_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_STAGING_TABLE_NAME')
+DYNAMODB_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_RESULT_TABLE_NAME')
+DYNAMODB_ARCHIVE_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_RESULT_TABLE_NAME')
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 RESULTS_BUCKET = os.environ.get('RESULTS_BUCKET')
 
@@ -52,6 +55,12 @@ def handler(event, context):
       "manifest_dynamodb_key_prefix": "cardiac/20210711_170230/"
     }
 
+    Additional exception from manifest file
+    {
+        "exception_postfix_filename": ["metadata.txt", ".md5", etc.]
+        "skip_update_dynamodb": "true",
+    }
+
     :param event: payload to process and run batchjob
     :param context: not used
     """
@@ -59,6 +68,7 @@ def handler(event, context):
     # Reset notification variable (in case value cached between lambda)
     notification.MESSAGE_STORE = list()
     notification.SUBMITTER_INFO = notification.SubmitterInfo()
+    dynamodb_result_update = list()
 
     logger.info('Processing event at validation manager lambda:')
     logger.info(json.dumps(event))
@@ -130,13 +140,16 @@ def handler(event, context):
         provided_checksum = manifest_record_json['provided_checksum']
 
         # Replace tasks with those specified by user if available
-        tasks_list = batch.get_tasks_list()
+        if event.get('tasks') == None:
+            tasks_list = batch.get_tasks_list()
+        else:
+            tasks_list = event.get('tasks')
 
         # Grab file size
         logger.info('Grab existing file record from partition and sort key for filesize')
         file_record_response = dynamodb.get_item_from_exact_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                                                   partition_key=dynamodb.FileRecordPartitionKey.FILE_RECORD.value,
-                                                                   sort_key=sort_key)
+                                                                      partition_key=dynamodb.FileRecordPartitionKey.FILE_RECORD.value,
+                                                                      sort_key=sort_key)
         logger.info('File Record Response File Size:')
         print(file_record_response)
 
@@ -158,14 +171,34 @@ def handler(event, context):
 
         batch_job_data.append(job_data)
 
+        # Create dydb record
+        for task_type in tasks_list:
+            # STATUS record
+            partition_key = dynamodb.ResultPartitionKey.create_partition_key_with_result_prefix(
+                data_type=dynamodb.ResultPartitionKey.STATUS.value,
+                check_type=task_type)
+            running_status = dynamodb.ResultRecord(sort_key=sort_key, partition_key=partition_key,
+                                                   value=batch.StatusBatchResult.RUNNING.value)
+            dynamodb_result_update.append(running_status)
+
     # Submit Batch jobs
     logger.info(f'Submitting job to batch. Processing {len(batch_job_data)} number of job')
     for job_data in batch_job_data:
         logger.info('Job submitted')
         logger.info(json.dumps(job_data))
 
+        # Submit job to batch
         batch_res = batch.submit_batch_job(job_data)
-        print(batch_res)
+
+        # Update DynamoDb status to running
+        logger.info(json.dumps(batch_res, indent=4, cls=util.JsonSerialEncoder))
+
+    # Update status of dynamodb to RUNNING
+    if not event.get('skip_update_dynamodb') == 'yes':
+        dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME, records=dynamodb_result_update)
+        dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
+                                            records=dynamodb_result_update,
+                                            archive_log='ObjectCreated')
 
 
 def validate_event_data(event_record):
@@ -180,7 +213,9 @@ def validate_event_data(event_record):
         'email_address',
         'email_name',
         'tasks',
-        'manifest_dynamodb_key_prefix'
+        'manifest_dynamodb_key_prefix',
+        'exception_postfix_filename',
+        'skip_update_dynamodb'
     }
     args_unknown = [arg for arg in event_record if arg not in args_known]
     if args_unknown:
@@ -227,6 +262,11 @@ def validate_event_data(event_record):
             logger.critical('you cannot specify \'include_fps\' with \'filepaths\'')
             raise ValueError
 
+        filepath_list = event_record.get('filepaths')
+        if len([filename for filename in filepath_list if agha.FileType.is_index_file(filename)]) > 0:
+            logger.critical('Not expecting any indexing file to be included')
+            raise ValueError
+
     # Check tasks are valid if provided
     tasks_list = event_record.get('tasks', list())
     tasks_unknown = [task for task in tasks_list if not batch.Tasks.is_valid(task)]
@@ -258,8 +298,14 @@ def handle_input_manifest(data: submission_data.SubmissionData, event):
     data.file_metadata = s3.get_s3_object_metadata(data.bucket_name, data.submission_prefix)
     data.manifest_data = submission_data.retrieve_manifest_data(bucket_name=data.bucket_name,
                                                                 manifest_key=data.manifest_key)
+
+    if event.get('exception_postfix_filename') != None:
+        exception_filename = event.get('exception_postfix_filename')
+    else:
+        exception_filename = []
+
     try:
-        file_list, data.files_extra = submission_data.validate_manifest(data)
+        file_list, data.files_extra = submission_data.validate_manifest(data, exception_filename)
     except ValueError as e:
         logger.error(f'Incorrect/Wrong manifest file: {str(e)}')
         logger.error(f'Terminating')

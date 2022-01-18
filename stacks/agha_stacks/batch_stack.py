@@ -35,19 +35,8 @@ class BatchStack(core.NestedStack):
         #   resources=[f'arn:aws:s3:::{props["staging_bucket"]}/{results_json_dir}']
 
         instance_types_2_vcpu = [
-            'r4.large',
-            'r5.large',
-            'r5a.large',
-            'r5d.large',
-            'r5n.large',
-        ]
-
-        instance_types_4_vcpu = [
-            'r4.xlarge',
-            'r5.xlarge',
-            'r5a.xlarge',
-            'r5d.xlarge',
-            'r5n.xlarge',
+            'm4.large',
+            'm5.large'
         ]
 
         compute_environment_spec_list = [
@@ -55,22 +44,22 @@ class BatchStack(core.NestedStack):
                 'type':'small',
                 'queue_name': batch_environment['batch_queue_name']['small'],
                 'compute_environment_name': batch_environment['compute_environment_name']['small'],
-                'instance_type': instance_types_4_vcpu,
-                'ebs_storage_size': 250
+                'instance_type': instance_types_2_vcpu,
+                'ebs_storage_size': 60
             },
             {
                 'type': 'medium',
                 'queue_name': batch_environment['batch_queue_name']['medium'],
                 'compute_environment_name': batch_environment['compute_environment_name']['medium'],
-                'instance_type': instance_types_4_vcpu,
-                'ebs_storage_size': 450
+                'instance_type': instance_types_2_vcpu,
+                'ebs_storage_size': 250
             },
             {
                 'type': 'large',
                 'queue_name': batch_environment['batch_queue_name']['large'],
                 'compute_environment_name': batch_environment['compute_environment_name']['large'],
-                'instance_type': instance_types_4_vcpu,
-                'ebs_storage_size': 650
+                'instance_type': instance_types_2_vcpu,
+                'ebs_storage_size': 350
             },
             {
                 'type': 'xlarge',
@@ -201,8 +190,8 @@ class BatchStack(core.NestedStack):
                     tag=batch_environment["file_validation_ecr"]["tag"]
                 ),
                 command=['true'],
-                memory_limit_mib=1000,
-                vcpus=1,
+                memory_limit_mib=4000,
+                vcpus=2,
             ),
             retry_attempts=2
         )
@@ -215,7 +204,7 @@ class BatchStack(core.NestedStack):
             container=batch.JobDefinitionContainer(
                 image=ecs.ContainerImage.from_registry('amazon/aws-cli:latest'),
                 command=['true'],
-                memory_limit_mib=1000,
+                memory_limit_mib=2000,
                 vcpus=1,
             ),
             retry_attempts=2

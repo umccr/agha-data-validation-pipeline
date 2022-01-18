@@ -70,7 +70,8 @@ def handler(event, context):
         "manifest_fp": "FLAGSHIP/SUBMISSION/manifest.txt",
         "email_report_to": "john.doe@email.com",
         "skip_update_dynamodb": "true",
-        "skip_send_notification": "true"
+        "skip_send_notification": "true",
+        "exception_postfix_filename": ["metadata.txt", ".md5", etc.]
     }
 
     :param event: S3 event
@@ -98,6 +99,11 @@ def handler(event, context):
                 }
             }
         ]
+
+    if event.get('exception_postfix_filename') != None:
+        exception_filename = event.get('exception_postfix_filename')
+    else:
+        exception_filename = []
 
     s3_records = event.get('Records')
     if not s3_records:
@@ -131,7 +137,7 @@ def handler(event, context):
         logger.info('Retrieve manifest metadata')
         data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_s3_key)
         try:
-            file_list, data.files_extra = submission_data.validate_manifest(data)
+            file_list, data.files_extra = submission_data.validate_manifest(data, exception_filename)
 
         except ValueError as e:
 
@@ -263,6 +269,9 @@ def handler(event, context):
                 "manifest_fp": event_record['s3']['object']['key'],
                 "manifest_dynamodb_key_prefix": data.submission_prefix
             }
+
+            if len(exception_filename) > 0:
+                validation_payload['exception_postfix_filename'] = exception_filename
 
             lambda_res = client_lambda.invoke(
                 FunctionName=VALIDATION_MANAGER_LAMBDA_ARN,

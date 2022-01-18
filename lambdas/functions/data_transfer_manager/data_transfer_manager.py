@@ -87,6 +87,7 @@ def handler(event, context):
             "fail_batch_job_s3_key": fail_batch_key,
             "fail_validation_result_s3_key": fail_status_result_key
         }, indent=4)
+
     # Creating s3 move job
     try:
 
@@ -347,9 +348,12 @@ def run_batch_check(staging_directory_prefix: str) -> list:
 
         if dy_res['Count'] < 1:
             # Means no data generated for s3 key
-
             logger.warning(f'Batch job for \'{s3_key}\' key has not succeed.')
             fail_batch_job_key.append(s3_key)
+
+    if len(fail_batch_job_key) > 0:
+        logger.error('Batch Job list tha has not succeed:')
+        logger.error(json.dumps(fail_batch_job_key, indent=4))
 
     return fail_batch_job_key
 
@@ -377,7 +381,6 @@ def run_status_result_check(submission_directory: str) -> list:
         if res['Count'] > 0:
             logger.error('Data has FAIL check status:')
             logger.error(json.dumps(res['Items'], indent=4))
-            logger.error('Aborting!')
             fail_s3_key.extend(res['Items'])
 
     return fail_s3_key
