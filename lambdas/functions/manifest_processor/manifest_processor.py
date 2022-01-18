@@ -7,7 +7,7 @@ import os
 import sys
 
 import util
-from util import dynamodb, submission_data, notification, s3, agha
+from util import dynamodb, submission_data, notification, s3, agha, batch
 
 DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 DYNAMODB_ARCHIVE_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_STAGING_TABLE_NAME')
@@ -69,9 +69,11 @@ def handler(event, context):
         "bucket_name": "somebucketname",
         "manifest_fp": "FLAGSHIP/SUBMISSION/manifest.txt",
         "email_report_to": "john.doe@email.com",
+        "skip_auto_validation": "true",
         "skip_update_dynamodb": "true",
         "skip_send_notification": "true",
-        "exception_postfix_filename": ["metadata.txt", ".md5", etc.]
+        "skip_checksum_validation": "true",
+        "exception_postfix_filename": ["metadata.txt", ".md5", etc.],
     }
 
     :param event: S3 event
@@ -83,7 +85,7 @@ def handler(event, context):
     notification.SUBMITTER_INFO = notification.SubmitterInfo()
 
     logger.info(f"Start processing S3 event:")
-    logger.info(json.dumps(event))
+    logger.info(json.dumps(event, indent=4, cls=util.JsonSerialEncoder))
 
     # If trigger manually, construct the same s3 format
     if event.get('manifest_fp') != None:
@@ -96,7 +98,8 @@ def handler(event, context):
                     "object": {
                         "key": event.get('manifest_fp')
                     }
-                }
+                },
+                "email_report_to": event.get("email_report_to")
             }
         ]
 
@@ -104,6 +107,11 @@ def handler(event, context):
         exception_filename = event.get('exception_postfix_filename')
     else:
         exception_filename = []
+
+    if event.get('skip_checksum_validation') == 'true':
+        skip_checksum_validation = True
+    else:
+        skip_checksum_validation = False
 
     s3_records = event.get('Records')
     if not s3_records:
@@ -136,8 +144,10 @@ def handler(event, context):
         # Collect manifest data and then validate
         logger.info('Retrieve manifest metadata')
         data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_s3_key)
+
         try:
-            file_list, data.files_extra = submission_data.validate_manifest(data, exception_filename)
+            file_list, data.files_extra = submission_data.validate_manifest(data, exception_filename,
+                                                                            skip_checksum_check=skip_checksum_validation)
 
         except ValueError as e:
 
@@ -162,7 +172,6 @@ def handler(event, context):
             status=dynamodb.ManifestStatusCheckValue.PASS.value,
         )
 
-
         logger.info(f'Processing {len(file_list)} number of file_list, and {len(data.files_extra)} \
                     number of files_extra')
 
@@ -185,7 +194,7 @@ def handler(event, context):
                                                                     partition_key=dynamodb.FileRecordPartitionKey.FILE_RECORD.value,
                                                                     sort_key_prefix=sort_key)
             logger.info('file_record_response')
-            logger.info(json.dumps(file_record_response, cls=util.DecimalEncoder))
+            logger.info(json.dumps(file_record_response, indent=4, cls=util.JsonSerialEncoder))
 
             # If no File record found database. Warn and exit the application
             if file_record_response['Count'] == 0:
@@ -199,7 +208,7 @@ def handler(event, context):
             logger.info('Check if the same Etag has exist in the database')
             etag_response = dynamodb.get_item_from_pk(DYNAMODB_ETAG_TABLE_NAME, file_record_json["etag"])
             logger.info('eTag query response:')
-            logger.info(json.dumps(etag_response, cls=util.DecimalEncoder))
+            logger.info(json.dumps(etag_response, indent=4, cls=util.JsonSerialEncoder))
 
             if etag_response['Count'] > 1:
                 notification.log_and_store_message("File with the same eTag appear at multiple location", 'warning')
@@ -211,7 +220,6 @@ def handler(event, context):
                     notification.log_and_store_message(f"bucket_name: {bucket_name}, s3_key: {s3_key}", 'warning')
 
                 duplicate_etag_list.append(etag_response['Items'])
-
 
             # Create Manifest type record
             manifest_record = dynamodb.ManifestFileRecord(
@@ -236,26 +244,32 @@ def handler(event, context):
 
         if len(duplicate_etag_list) > 0:
             manifest_status_record.additional_information = {
-                "topic":"Duplicate files found in this submission with other submissions",
-                "data":duplicate_etag_list
+                "topic": "Duplicate files found in this submission with other submissions",
+                "data": duplicate_etag_list
             }
 
         staging_dynamodb_batch_write_list.append(manifest_status_record.__dict__)
-        archive_staging_dynamodb_batch_write_list.append(manifest_status_record.create_archive_dictionary('Create/Update'))
+        archive_staging_dynamodb_batch_write_list.append(
+            manifest_status_record.create_archive_dictionary('Create/Update'))
 
         # Update dynamodb batch if not skipped
-        if not event.get('skip_update_dynamodb') == 'yes':
-
+        if not event.get('skip_update_dynamodb') == 'true':
             dynamodb.batch_write_objects(table_name=DYNAMODB_STAGING_TABLE_NAME,
                                          object_list=staging_dynamodb_batch_write_list)
             dynamodb.batch_write_objects(table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
                                          object_list=archive_staging_dynamodb_batch_write_list)
 
         # Send notification to submitter for the submission if not skipped
-        if not event.get("skip_send_notification") == 'yes':
+        if not event.get("skip_send_notification") == 'true':
             notification.send_notifications()
 
-        if AUTORUN_VALIDATION_JOBS == 'yes':
+        if event.get("skip_auto_validation") == 'true':
+            skip_auto_validation = True
+        else:
+            skip_auto_validation = False
+
+        if AUTORUN_VALIDATION_JOBS == 'yes' and not skip_auto_validation:
+
             # Invoke validation manager for automation
             client_lambda = util.get_client('lambda')
 
@@ -273,13 +287,16 @@ def handler(event, context):
             if len(exception_filename) > 0:
                 validation_payload['exception_postfix_filename'] = exception_filename
 
+            if skip_checksum_validation:
+                validation_payload['tasks_skipped'] = [batch.Tasks.CHECKSUM_VALIDATION.value]
+
             lambda_res = client_lambda.invoke(
                 FunctionName=VALIDATION_MANAGER_LAMBDA_ARN,
                 InvocationType='Event',
                 Payload=json.dumps(validation_payload)
             )
             logger.info(f'Invoke lambda validation manager. Response:')
-            print(lambda_res)
+            logger.info(json.dumps(lambda_res, indent=4, cls=util.JsonSerialEncoder))
 
 
 def validate_event_data(event_record):

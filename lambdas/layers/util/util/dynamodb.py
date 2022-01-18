@@ -505,7 +505,8 @@ def batch_write_record_archive(table_name: str, records: list, archive_log: str)
         for record in records:
             object = record.__dict__
             object["archive_log"] = archive_log
-            batch.put_item(Item=record.__dict__)
+            object['sort_key'] = object['sort_key'] + ':' + util.get_datetimestamp()
+            batch.put_item(Item=object)
 
 
 def batch_write_objects(table_name: str, object_list: list):

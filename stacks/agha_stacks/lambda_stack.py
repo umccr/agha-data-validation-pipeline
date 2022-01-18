@@ -199,6 +199,7 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
                 'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
                 'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
+                'DYNAMODB_ARCHIVE_RESULT_TABLE_NAME': dynamodb_table["result-bucket-archive"],
                 # Batch
                 'BATCH_QUEUE_NAME': json.dumps(batch_environment['batch_queue_name']),
                 'JOB_DEFINITION_ARN': batch.batch_job_definition.job_definition_arn,

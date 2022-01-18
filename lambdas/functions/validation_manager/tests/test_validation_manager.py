@@ -15,9 +15,11 @@ from validation_manager import handler
 
 def create_payload():
     return {
-    "manifest_fp": "BM/2019-09-05/manifest.txt",
-    "manifest_dynamodb_key_prefix":"BM/2019-09-05/"
-}
+            "manifest_fp": f"AC/2019-05-16/manifest.txt",
+            "manifest_dynamodb_key_prefix": 'AC/2019-05-16/',
+            "tasks_skipped": ['CHECKSUM_VALIDATION'],
+            "skip_checksum_validation": "true"
+        }
 
 
 

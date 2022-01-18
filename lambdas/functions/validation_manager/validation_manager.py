@@ -59,6 +59,7 @@ def handler(event, context):
     {
         "exception_postfix_filename": ["metadata.txt", ".md5", etc.]
         "skip_update_dynamodb": "true",
+        "tasks_skipped":['CHECKSUM_VALIDATION'],
     }
 
     :param event: payload to process and run batchjob
@@ -124,7 +125,7 @@ def handler(event, context):
         logger.info(json.dumps(manifest_response))
 
         if manifest_response['Count'] != 1:
-            message = f'No or more than one S3_key record of \'{sort_key}\' found. Aborting!'
+            message = f'No or more than one manifest record found for \'{sort_key}\'. Aborting!'
 
             notification.log_and_store_message(message, 'error')
             notification.notify_and_exit()
@@ -145,16 +146,19 @@ def handler(event, context):
         else:
             tasks_list = event.get('tasks')
 
+        if event.get('tasks_skipped') != None:
+            tasks_list = list(set(tasks_list) - set(event.get('tasks_skipped')))
+
         # Grab file size
         logger.info('Grab existing file record from partition and sort key for filesize')
         file_record_response = dynamodb.get_item_from_exact_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
                                                                       partition_key=dynamodb.FileRecordPartitionKey.FILE_RECORD.value,
                                                                       sort_key=sort_key)
         logger.info('File Record Response File Size:')
-        print(file_record_response)
+        logger.info(json.dumps(file_record_response, indent=4, cls=util.JsonSerialEncoder))
 
         if file_record_response['Count'] != 1:
-            message = f'No or more than one S3_key record of \'{sort_key}\' found. Aborting!'
+            message = f'No or more than one file record found for \'{sort_key}\'. Aborting!'
 
             notification.log_and_store_message(message, 'error')
             notification.notify_and_exit()
@@ -194,7 +198,7 @@ def handler(event, context):
         logger.info(json.dumps(batch_res, indent=4, cls=util.JsonSerialEncoder))
 
     # Update status of dynamodb to RUNNING
-    if not event.get('skip_update_dynamodb') == 'yes':
+    if not event.get('skip_update_dynamodb') == 'true':
         dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME, records=dynamodb_result_update)
         dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
                                             records=dynamodb_result_update,
@@ -213,9 +217,11 @@ def validate_event_data(event_record):
         'email_address',
         'email_name',
         'tasks',
+        'tasks_skipped',
         'manifest_dynamodb_key_prefix',
         'exception_postfix_filename',
-        'skip_update_dynamodb'
+        'skip_update_dynamodb',
+        'skip_checksum_validation',
     }
     args_unknown = [arg for arg in event_record if arg not in args_known]
     if args_unknown:
@@ -269,6 +275,7 @@ def validate_event_data(event_record):
 
     # Check tasks are valid if provided
     tasks_list = event_record.get('tasks', list())
+    tasks_list.extend(event_record.get('skipped_tasks', list()))
     tasks_unknown = [task for task in tasks_list if not batch.Tasks.is_valid(task)]
     if tasks_unknown:
         tasks_str = '\r\t'.join(tasks_unknown)
@@ -304,15 +311,21 @@ def handle_input_manifest(data: submission_data.SubmissionData, event):
     else:
         exception_filename = []
 
+    if event.get('skip_checksum_validation') == 'true':
+        skip_checksum_validation = True
+    else:
+        skip_checksum_validation = False
+
     try:
-        file_list, data.files_extra = submission_data.validate_manifest(data, exception_filename)
+        file_list, data.files_extra = submission_data.validate_manifest(data, exception_filename,
+                                                                        skip_checksum_check=skip_checksum_validation)
     except ValueError as e:
         logger.error(f'Incorrect/Wrong manifest file: {str(e)}')
         logger.error(f'Terminating')
         raise ValueError
 
     logger.info(f'File list to process:')
-    print(file_list)
+    logger.info(json.dumps(file_list, indent=4, cls=util.JsonSerialEncoder))
 
     files_included, data.files_rejected = filter_filelist(
         file_list,

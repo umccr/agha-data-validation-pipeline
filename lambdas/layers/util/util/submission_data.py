@@ -88,7 +88,7 @@ def retrieve_manifest_data(bucket_name: str, manifest_key: str):
     return manifest_data
 
 
-def validate_manifest(data: SubmissionData, exception_list:list):
+def validate_manifest(data: SubmissionData, exception_list:list, skip_checksum_check:bool=False):
     # Check manifest columns
     columns_present = set(data.manifest_data.columns.tolist())
     columns_missing = MANIFEST_REQUIRED_COLUMNS.difference(columns_present)
@@ -178,7 +178,7 @@ def validate_manifest(data: SubmissionData, exception_list:list):
             message = f'got malformed AGHA study ID for {row.filename} ({row.agha_study_id})'
             messages_error.append(message)
         # Checksum
-        if not MD5_RE.match(row.checksum):
+        if not MD5_RE.match(row.checksum) and not skip_checksum_check:
             message = f'got malformed MD5 checksum for {row.filename} ({row.checksum})'
             messages_error.append(message)
 
