@@ -197,12 +197,12 @@ def handler(event, context):
         # Update DynamoDb status to running
         logger.info(json.dumps(batch_res, indent=4, cls=util.JsonSerialEncoder))
 
-    # Update status of dynamodb to RUNNING
-    if not event.get('skip_update_dynamodb') == 'true':
-        dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME, records=dynamodb_result_update)
-        dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
-                                            records=dynamodb_result_update,
-                                            archive_log='ObjectCreated')
+    # # Update status of dynamodb to RUNNING
+    # if not event.get('skip_update_dynamodb') == 'true':
+    #     dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME, records=dynamodb_result_update)
+    #     dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
+    #                                         records=dynamodb_result_update,
+    #                                         archive_log='ObjectCreated')
 
 
 def validate_event_data(event_record):

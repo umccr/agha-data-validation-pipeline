@@ -55,10 +55,12 @@ def create_manifest_record_payload():
     #     ]
     # }
     return {
-        "bucket_name": "somebucketname",
-        "manifest_fp": "FLAGSHIP/SUBMISSION/manifest.txt",
-        "email_report_to": "john.doe@email.com"
-    }
+            "bucket_name": "agha-gdr-staging-2.0",
+            "manifest_fp": f"AC/2019-05-16/manifest.txt",
+            "email_report_to": "william.intan@unimelb.edu.au",
+            "skip_checksum_validation": "true",
+            "skip_auto_validation":"true"
+        }
 
 
 

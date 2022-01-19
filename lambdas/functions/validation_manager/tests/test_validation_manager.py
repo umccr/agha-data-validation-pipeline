@@ -18,7 +18,8 @@ def create_payload():
             "manifest_fp": f"AC/2019-05-16/manifest.txt",
             "manifest_dynamodb_key_prefix": 'AC/2019-05-16/',
             "tasks_skipped": ['CHECKSUM_VALIDATION'],
-            "skip_checksum_validation": "true"
+            "skip_checksum_validation": "true",
+            "skip_update_dynamodb":"true",
         }
 
 

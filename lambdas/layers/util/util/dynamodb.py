@@ -1,3 +1,4 @@
+import json
 import os.path
 import logging
 import boto3
@@ -464,6 +465,32 @@ def delete_record_from_record_class(table_name: str, record):
         return ValueError(f"partition_key: {record.partition_key}, sort_key: {record.sort_key}\
          has not been successfully deleted from table '{table_name}'")
 
+def delete_record_from_dictionary(table_name: str, dictionary:dict):
+    """
+    This will delete record from dynamodb with given table_name and record class.
+    Record class MUST have 'partition_key' and 'sort_key' as their property as deletetion are based on those
+    :param table_name: DynamoDb table name
+    :param record: A class that contain 'partition_key' and 'sort_key' which will be deleted based on.
+    :return:
+    """
+
+    ddb = get_resource()
+    tbl = ddb.Table(table_name)
+
+    delete_res = tbl.delete_item(
+        Key={
+            'partition_key': dictionary['partition_key'],
+            'sort_key': dictionary['sort_key']
+        },
+        ReturnValues='ALL_OLD'
+    )
+
+    if 'Attributes' in delete_res:
+        return delete_res['Attributes']
+    else:
+        return ValueError(f"partition_key: { dictionary['partition_key'],}, sort_key: {dictionary['sort_key']}\
+         has not been successfully deleted from table '{table_name}'")
+
 def write_main_and_archive_record_from_class(main_table_name:str, archive_table_name:str, record_class, archive_log:str):
     dynamodb_resource = get_resource()
 
@@ -472,6 +499,7 @@ def write_main_and_archive_record_from_class(main_table_name:str, archive_table_
     resp = dynamodb_table.put_item(Item=record_dict, ReturnValues='ALL_OLD')
 
     archive_dynamodb_table = dynamodb_resource.Table(archive_table_name)
+    record_dict['sort_key'] = record_dict['sort_key'] + ':' + util.get_datetimestamp()
     record_dict['archive_log'] = archive_log
     resp = archive_dynamodb_table.put_item(Item=record_dict, ReturnValues='ALL_OLD')
 

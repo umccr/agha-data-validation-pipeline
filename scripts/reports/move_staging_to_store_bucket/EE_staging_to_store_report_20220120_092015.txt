@@ -1,0 +1,24 @@
+Moving Staging to Store bucket Report
+
+Report for EE
+Number of submission checked for EE: 7
+
+Submission: EE/2019-08-12/
+
+Submission: EE/2019-09-05/
+
+Submission: EE/2019-09-11/
+
+Submission: EE/2019-09-16/
+
+Submission: EE/2019-10-19/
+
+Submission: EE/2021-01-16/
+
+Submission: EE/2021-02-09/
+
+Some file is submitted not in compressed format. In this case, the pipeline will create
+a compression and will only copy the created compression to the store bucket.
+Please check the following if the compression work as intended.
+
+[]

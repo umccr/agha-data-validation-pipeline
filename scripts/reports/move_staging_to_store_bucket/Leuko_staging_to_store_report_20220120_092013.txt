@@ -1,0 +1,72 @@
+Moving Staging to Store bucket Report
+
+Report for Leuko
+Number of submission checked for Leuko: 10
+
+Submission: Leuko/2019-08-12/
+
+Submission: Leuko/2019-09-05/
+
+Submission: Leuko/2019-09-11/
+
+Submission: Leuko/2019-09-16/
+
+Submission: Leuko/2020-08-29/
+
+Submission: Leuko/2020-08-31/
+
+Submission: Leuko/2020-11-05/
+
+Submission: Leuko/2021-01-19/
+If s3 transfer have initiated, 26 number of file should not exist.
+
+Submission: Leuko/2021-02-26/
+
+Submission: Leuko/2021-03-29/
+
+Some file is submitted not in compressed format. In this case, the pipeline will create
+a compression and will only copy the created compression to the store bucket.
+Please check the following if the compression work as intended.
+
+[
+    {
+        "submission": "Leuko/2021-01-19/",
+        "no_file_not_transferred_due_to_compressing": 26,
+        "file_not_transferred_due_to_compressing": [
+            "Leuko/2021-01-19/18W000372.individual.genotype.norm.vcf",
+            "Leuko/2021-01-19/18W001553.individual.genotype.soi.vep.post_filter.vcfanno.cann.vcf",
+            "Leuko/2021-01-19/19W000238.individual.genotype.soi.vep.post_filter.vcfanno.cann.vcf",
+            "Leuko/2021-01-19/19W000380.individual.genotype.soi.vep.post_filter.vcfanno.cann.vcf",
+            "Leuko/2021-01-19/19W000501.individual.genotype.soi.vep.post_filter.vcfanno.cann.vcf",
+            "Leuko/2021-01-19/19W000688.individual.genotype.soi.vep.post_filter.vcfanno.cann.vcf"
+        ],
+        "file_should_be_transferred": [
+            "Leuko/2021-01-19/19W000688.merge.dedup.realign.recal.bam",
+            "Leuko/2021-01-19/190119_NS500541_1829_TL1900130_18W001553_MAN-20190103_SSQXTCREV2_L003_R2.fastq.gz",
+            "Leuko/2021-01-19/190119_NS500541_1829_TL1900130_18W001553_MAN-20190103_SSQXTCREV2_L004_R1.fastq.gz",
+            "Leuko/2021-01-19/190729_A00692_0022_TL1906736_19W000688_MAN-20190719_SSQXTCREV2_L004_R1.fastq.gz",
+            "Leuko/2021-01-19/190426_A00692_0014_TL1903050_19W000380_STAR-20190416_SSQXTCREV2_L001_R1.fastq.gz",
+            "Leuko/2021-01-19/190119_NS500541_1829_TL1900130_18W001553_MAN-20190103_SSQXTCREV2_L001_R2.fastq.gz",
+            "Leuko/2021-01-19/190729_A00692_0022_TL1906736_19W000688_MAN-20190719_SSQXTCREV2_L004_R2.fastq.gz",
+            "Leuko/2021-01-19/18W001553.merge.dedup.realign.recal.bam",
+            "Leuko/2021-01-19/19W000238.merge.dedup.realign.recal.bam",
+            "Leuko/2021-01-19/190119_NS500541_1829_TL1900130_18W001553_MAN-20190103_SSQXTCREV2_L001_R1.fastq.gz",
+            "Leuko/2021-01-19/190524_A00692_0017_TL1903050_19W000380_STAR-20190416_SSQXTCREV2_L002_R1.fastq.gz",
+            "Leuko/2021-01-19/19W000380.merge.dedup.realign.recal.bam",
+            "Leuko/2021-01-19/190322_A00692_0010_TL1902040_19W000238_STAR-20190319_SSQXTCREV2_L002_R2.fastq.gz",
+            "Leuko/2021-01-19/190426_A00692_0014_TL1903050_19W000380_STAR-20190416_SSQXTCREV2_L001_R2.fastq.gz",
+            "Leuko/2021-01-19/19W000501.merge.dedup.realign.recal.bam",
+            "Leuko/2021-01-19/190119_NS500541_1829_TL1900130_18W001553_MAN-20190103_SSQXTCREV2_L003_R1.fastq.gz",
+            "Leuko/2021-01-19/190322_A00692_0010_TL1902040_19W000238_STAR-20190319_SSQXTCREV2_L002_R1.fastq.gz",
+            "Leuko/2021-01-19/190119_NS500541_1829_TL1900130_18W001553_MAN-20190103_SSQXTCREV2_L002_R1.fastq.gz",
+            "Leuko/2021-01-19/190524_A00692_0017_TL1903050_19W000380_STAR-20190416_SSQXTCREV2_L002_R2.fastq.gz",
+            "Leuko/2021-01-19/18W000372.merge.dedup.realign.recal.bam",
+            "Leuko/2021-01-19/190119_NS500541_1829_TL1900130_18W001553_MAN-20190103_SSQXTCREV2_L002_R2.fastq.gz",
+            "Leuko/2021-01-19/190119_NS500541_1829_TL1900130_18W001553_MAN-20190103_SSQXTCREV2_L004_R2.fastq.gz",
+            "Leuko/2021-01-19/181008_K00164_0167_ML185087_18W000372_STAR-20181002_SSQXTCRE_L005_R1.fastq.gz",
+            "Leuko/2021-01-19/190611_A00692_0018_TL1904795_19W000501_MAN-20190606_SSQXTCREV2_L004_R1.fastq.gz",
+            "Leuko/2021-01-19/190611_A00692_0018_TL1904795_19W000501_MAN-20190606_SSQXTCREV2_L004_R2.fastq.gz",
+            "Leuko/2021-01-19/181008_K00164_0167_ML185087_18W000372_STAR-20181002_SSQXTCRE_L005_R2.fastq.gz"
+        ]
+    }
+]

@@ -99,6 +99,11 @@ def handler(event, context):
                                             manifest_record_archive_table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
                                             db_record=db_record)
 
+                # Delete STATUS_MANIFEST if exist
+                if db_record.sort_key.endswith('manifest.txt'):
+                    delete_manifest_status_record(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                  archive_table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
+                                                  db_record=db_record)
             else:
                 logger.warning(
                     f"Unsupported S3 event type {s3_record.event_type} for {s3_record}")
@@ -322,9 +327,37 @@ def delete_manifest_file_record(manifest_record_table_name, manifest_record_arch
                                                                 s3.S3EventType.EVENT_OBJECT_REMOVED.value)
         logger.info(f'Updating records at {manifest_record_archive_table_name}')
         write_res = dynamodb.write_record_from_class(manifest_record_archive_table_name, db_record_archive)
-        dynamodb.write_record_from_class(manifest_record_archive_table_name, db_record_archive)
         logger.info(f'Updating {manifest_record_archive_table_name} table response:')
-        logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
+        logger.info(json.dumps(write_res, indent=4, cls=util.JsonSerialEncoder))
+
+
+def delete_manifest_status_record(table_name, archive_table_name, db_record):
+    # Delete MANIFEST file record
+    # Grab from existing record for archive record
+    logger.info('Grab Manifest data before deletion')
+    status_manifest_res = dynamodb.get_item_from_pk_and_sk(table_name=table_name,
+                                                           partition_key=dynamodb.FileRecordPartitionKey.STATUS_MANIFEST.value,
+                                                           sort_key_prefix=db_record.sort_key)
+
+    logger.info(f'Get manifest record response:')
+    logger.info(json.dumps(status_manifest_res, indent=4, cls=util.JsonSerialEncoder))
+
+    if status_manifest_res["Count"] == 1:
+        logger.info(f'Deleting {status_manifest_res["Count"]} number of records')
+
+        # Delete from record
+        delete_item = dynamodb.delete_record_from_dictionary(table_name, status_manifest_res)
+        logger.info(f'Delete the following record from {table_name} table')
+        logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))
+
+        # Archive database
+        logger.info(f'Updating records at {archive_table_name}')
+        archive_dict = status_manifest_res.copy()
+        archive_dict['archive_log'] = 'ObjectDeleted'
+        archive_dict['sort_key'] = archive_dict['sort_key'] + ':' + util.get_datetimestamp()
+        write_res = dynamodb.write_record_from_dict(archive_table_name, archive_dict)
+        logger.info(f'Updating {archive_table_name} table response:')
+        logger.info(json.dumps(write_res, indent=4, cls=util.JsonSerialEncoder))
 
 
 def validate_batch_job_result(batch_result: dict):

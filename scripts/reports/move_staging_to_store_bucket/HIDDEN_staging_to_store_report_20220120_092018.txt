@@ -1,0 +1,32 @@
+Moving Staging to Store bucket Report
+
+Report for HIDDEN
+Number of submission checked for HIDDEN: 12
+
+Submission: HIDDEN/2019-09-19/
+
+Submission: HIDDEN/2019-09-20/
+
+Submission: HIDDEN/2019-09-21/
+
+Submission: HIDDEN/2019-09-22/
+
+Submission: HIDDEN/2019-09-23/
+
+Submission: HIDDEN/2019-09-24/
+
+Submission: HIDDEN/2019-09-25/
+
+Submission: HIDDEN/2019-09-26/
+
+Submission: HIDDEN/2019-09-28/
+
+Submission: HIDDEN/2019-09-29/
+
+Submission: HIDDEN/2019-09-30/
+
+Some file is submitted not in compressed format. In this case, the pipeline will create
+a compression and will only copy the created compression to the store bucket.
+Please check the following if the compression work as intended.
+
+[]
