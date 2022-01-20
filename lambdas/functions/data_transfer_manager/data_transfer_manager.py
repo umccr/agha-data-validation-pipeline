@@ -223,13 +223,12 @@ def handler(event, context):
                 logger.info(f"BucketPolicy update response: {response}")
 
             else:
-                logger.info("Unknown bucket policy. Raising an error")
+                logger.critical("Unknown bucket policy. Raising an error")
                 raise ValueError('Unknown Bucket policy')
 
         except Exception as e:
-            logger.error(e)
-            logger.error('Aborting!')
-            return {"StatusCode": 406, "body": f"Something went wrong on lifting bucket policy.\n Error: {e}"}
+            logger.critical(e)
+            logger.critical('Continue with the risk of fail to delete files in the staging bucket.')
 
     # Submit Batch jobs
     if event.get("skip_submit_batch_job") == 'true':
@@ -238,7 +237,7 @@ def handler(event, context):
         for job_data in batch_job_data:
             logger.info(f'Executing job:{json.dumps(job_data)}')
             submit_data_transfer_job(job_data)
-        logger.info(f'Batch job has executed.')
+        logger.info(f'Batch job has executed. Submit {len(batch_job_data)} number of job')
 
     # Create DynamoDb in store table
     if event.get("skip_update_dynamodb") == 'true':
@@ -311,12 +310,13 @@ def validate_event_data(event_record):
         'skip_update_dynamodb',
         'skip_submit_batch_job',
         'skip_unlock_bucket',
-        'validation_check_only'
+        'validation_check_only',
+        "exception_postfix_filename"
     }
 
     for arg in event_record:
         if arg not in args_known:
-            logger.error(f'must contain {arg} of the payload')
+            logger.error(f'\'{arg}\' is not in the allowed payload.')
             return False
     return True
 

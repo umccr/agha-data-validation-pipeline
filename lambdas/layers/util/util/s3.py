@@ -115,7 +115,8 @@ def get_s3_object_metadata(bucket_name: str, directory_prefix: str):
     )
 
     if not (object_metadata := response.get('Contents')):
-        return False
+        raise ValueError(
+            f'Something went wrong. List response: {json.dumps(response, indent=4, cls=util.JsonSerialEncoder)}')
     else:
         results.extend(object_metadata)
 
@@ -130,7 +131,8 @@ def get_s3_object_metadata(bucket_name: str, directory_prefix: str):
 
     return results
 
-def aws_s3_ls(bucket_name:str, prefix:str)->list:
+
+def aws_s3_ls(bucket_name: str, prefix: str) -> list:
     '''
     The same method of 'aws s3 ls' without --recursive flag
 
@@ -151,6 +153,7 @@ def aws_s3_ls(bucket_name:str, prefix:str)->list:
             ls_list.append(cur["Prefix"])
 
     return ls_list
+
 
 def get_object_from_bucket_name_and_s3_key(bucket_name, s3_key):
     client_s3 = util.get_client('s3')

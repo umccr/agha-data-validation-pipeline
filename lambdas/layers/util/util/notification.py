@@ -73,8 +73,11 @@ def log_and_store_message(message, level='info'):
     level_number = logging.getLevelName(level.upper())
     logger.log(level_number, message)
     # Prefix message with 'ERROR' for display in notifications
-    if level in {'error', 'critical'}:
+    if level== 'error':
         message = f'ERROR: {message}'
+    elif level == 'critical':
+        message = f'IMPORTANT: {message}'
+
     MESSAGE_STORE.append(message)
 
 def log_and_store_list_message(list_messages, level='info'):

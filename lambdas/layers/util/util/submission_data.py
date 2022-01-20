@@ -4,6 +4,7 @@ import os
 import re
 import io
 import json
+import sys
 
 import botocore
 import pandas as pd
@@ -88,7 +89,7 @@ def retrieve_manifest_data(bucket_name: str, manifest_key: str):
     return manifest_data
 
 
-def validate_manifest(data: SubmissionData, exception_list:list, skip_checksum_check:bool=False):
+def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_checksum_check: bool = False):
     # Check manifest columns
     columns_present = set(data.manifest_data.columns.tolist())
     columns_missing = MANIFEST_REQUIRED_COLUMNS.difference(columns_present)
@@ -113,17 +114,17 @@ def validate_manifest(data: SubmissionData, exception_list:list, skip_checksum_c
 
     # Files missing from S3
     files_manifest = set(data.manifest_data['filename'].to_list())
-    files_missing_from_s3 = files_manifest.difference(files_s3)
+    files_missing_from_s3 = list(files_manifest.difference(files_s3))
     message_text = f'Entries in manifest, but not on S3'
     notification.log_and_store_file_message(message_text, files_missing_from_s3)
 
     # Extra files present on S3
-    files_missing_from_manifest = files_s3.difference(files_manifest)
+    files_missing_from_manifest = list(files_s3.difference(files_manifest))
     message_text = f'Entries on S3, but not in manifest'
     notification.log_and_store_file_message(message_text, files_missing_from_manifest)
 
     # Files present in manifest *and* S3
-    files_matched = files_manifest.intersection(files_s3)
+    files_matched = list(files_manifest.intersection(files_s3))
     message_text = f'Entries matched in manifest and S3'
     notification.log_and_store_file_message(message_text, files_matched)
 
@@ -132,6 +133,10 @@ def validate_manifest(data: SubmissionData, exception_list:list, skip_checksum_c
     files_matched_accepted = list()
 
     for filename in files_matched:
+        # Do not processed skipped file
+        if is_file_skipped(filename, postfix_exception_list):
+            continue
+
         if agha.FileType.from_name(filename) != agha.FileType.UNSUPPORTED:
             files_matched_accepted.append(filename)
         else:
@@ -145,10 +150,7 @@ def validate_manifest(data: SubmissionData, exception_list:list, skip_checksum_c
     # Record error messages for extra files (other than manifest.txt, *.tbi, *.bai) or missing files
     remove_list = []
     for missing_filename in files_missing_from_manifest:
-        if agha.FileType.is_manifest_file(missing_filename) or \
-                agha.FileType.is_index_file(missing_filename) or \
-                agha.FileType.is_md5_file(missing_filename) or \
-                missing_filename in exception_list:
+        if is_file_skipped(missing_filename, postfix_exception_list):
             remove_list.append(missing_filename)
             logger.info(f'{missing_filename} is in the exclusion filetype list. '
                         f'Adding it for removal')
@@ -160,17 +162,26 @@ def validate_manifest(data: SubmissionData, exception_list:list, skip_checksum_c
 
     messages_error = list()
     if files_missing_from_s3:
-        messages_error.append('files listed in manifest were absent from S3')
+        messages_error.append('Files listed in manifest were absent from S3.')
+        messages_error.append(
+            f'Files missing from s3: {json.dumps(files_missing_from_s3, indent=4, cls=util.JsonSerialEncoder)}')
+
     if files_missing_from_manifest:
-        messages_error.append('files found on S3 absent from manifest.tsv')
+        # File exist in s3 but not in the manifest, would just consider on file in the manifest.
+        # This would give warning without any termination
+        notification.MESSAGE_STORE.append('') # New line to separate warning in email
+        notification.log_and_store_message(
+            f'Files in s3, but not in manifest: {json.dumps(files_missing_from_manifest, indent=4, cls=util.JsonSerialEncoder)}',
+            level='critical')
+        notification.log_and_store_message('Submission contain file that is not in the manifest. '
+                                           'Proceeding with only file in the manifest.',
+                                           level='critical')
 
     # Field validation in the manifest file
     for row in data.manifest_data.itertuples():
 
-        if agha.FileType.is_manifest_file(row.filename) or \
-                agha.FileType.is_index_file(row.filename) or \
-                agha.FileType.is_md5_file(row.filename) or \
-                row.filename in exception_list:
+        # Skipping check on manifest for skipped name
+        if is_file_skipped(row.filename, postfix_exception_list):
             continue
 
         # Study ID
@@ -209,3 +220,20 @@ def find_study_id_from_manifest_df_and_filename(manifest_df, filename):
 def find_checksum_from_manifest_df_and_filename(manifest_df, filename):
     file_info = manifest_df.loc[manifest_df['filename'] == filename].iloc[0]
     return file_info['checksum']
+
+def is_file_skipped(filename:str, postfix_exception_list:list=None) -> bool:
+    """
+    Should filename be accepted for validation.
+    :param filename:
+    :param postfix_exception_list:
+    :return:
+    """
+    if postfix_exception_list == None:
+        postfix_exception_list = []
+
+    if agha.FileType.is_manifest_file(filename) or \
+            agha.FileType.is_index_file(filename) or \
+            agha.FileType.is_md5_file(filename) or \
+            len([filename for postfix in postfix_exception_list if filename.endswith(postfix)]) > 0:
+        return True
+    return False

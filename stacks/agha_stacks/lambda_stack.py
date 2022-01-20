@@ -441,6 +441,7 @@ class LambdaStack(core.NestedStack):
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(300),
             retry_attempts=0,
+            reserved_concurrent_executions=1,
             code=lambda_.Code.from_asset('lambdas/functions/data_transfer_manager'),
             environment={
                 # Batch

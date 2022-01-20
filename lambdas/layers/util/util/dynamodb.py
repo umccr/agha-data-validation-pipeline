@@ -465,7 +465,8 @@ def delete_record_from_record_class(table_name: str, record):
         return ValueError(f"partition_key: {record.partition_key}, sort_key: {record.sort_key}\
          has not been successfully deleted from table '{table_name}'")
 
-def delete_record_from_dictionary(table_name: str, dictionary:dict):
+
+def delete_record_from_dictionary(table_name: str, dictionary: dict):
     """
     This will delete record from dynamodb with given table_name and record class.
     Record class MUST have 'partition_key' and 'sort_key' as their property as deletetion are based on those
@@ -488,10 +489,12 @@ def delete_record_from_dictionary(table_name: str, dictionary:dict):
     if 'Attributes' in delete_res:
         return delete_res['Attributes']
     else:
-        return ValueError(f"partition_key: { dictionary['partition_key'],}, sort_key: {dictionary['sort_key']}\
+        return ValueError(f"partition_key: {dictionary['partition_key'],}, sort_key: {dictionary['sort_key']}\
          has not been successfully deleted from table '{table_name}'")
 
-def write_main_and_archive_record_from_class(main_table_name:str, archive_table_name:str, record_class, archive_log:str):
+
+def write_main_and_archive_record_from_class(main_table_name: str, archive_table_name: str, record_class,
+                                             archive_log: str):
     dynamodb_resource = get_resource()
 
     dynamodb_table = dynamodb_resource.Table(main_table_name)
@@ -505,12 +508,14 @@ def write_main_and_archive_record_from_class(main_table_name:str, archive_table_
 
     return resp
 
+
 def write_record_from_class(table_name, record) -> dict:
     dynamodb_resource = get_resource()
     dynamodb_table = dynamodb_resource.Table(table_name)
 
     resp = dynamodb_table.put_item(Item=record.__dict__, ReturnValues='ALL_OLD')
     return resp
+
 
 def write_record_from_dict(table_name, record_dict) -> dict:
     dynamodb_resource = get_resource()
@@ -572,15 +577,14 @@ def get_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix
     key_expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key) & Key(
         FileRecordAttribute.SORT_KEY.value).begins_with(sort_key_prefix)
 
+    func_parameter = {
+        "KeyConditionExpression": key_expr
+    }
+
     if filter:
-        response = tbl.query(
-            KeyConditionExpression=key_expr,
-            FilterExpression=filter
-        )
-    else:
-        response = tbl.query(
-            KeyConditionExpression=key_expr,
-        )
+        func_parameter["FilterExpression"] = filter
+
+    response = tbl.query(**func_parameter)
 
     return response
 

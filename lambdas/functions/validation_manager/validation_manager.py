@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+import pandas as pd
 
 import util
 import util.dynamodb as dynamodb
@@ -186,7 +187,6 @@ def handler(event, context):
             dynamodb_result_update.append(running_status)
 
     # Submit Batch jobs
-    logger.info(f'Submitting job to batch. Processing {len(batch_job_data)} number of job')
     for job_data in batch_job_data:
         logger.info('Job submitted')
         logger.info(json.dumps(job_data))
@@ -196,8 +196,9 @@ def handler(event, context):
 
         # Update DynamoDb status to running
         logger.info(json.dumps(batch_res, indent=4, cls=util.JsonSerialEncoder))
+    logger.info(f'Batch job has executed. Submit {len(batch_job_data)} number of job')
 
-    # # Update status of dynamodb to RUNNING
+    # # Update status of dynamodb to RUNNING (Need to configure which task to set to running)
     # if not event.get('skip_update_dynamodb') == 'true':
     #     dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME, records=dynamodb_result_update)
     #     dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
@@ -223,10 +224,17 @@ def validate_event_data(event_record):
         'skip_update_dynamodb',
         'skip_checksum_validation',
     }
+
     args_unknown = [arg for arg in event_record if arg not in args_known]
     if args_unknown:
         args_unknown_str = '\r\t'.join(args_unknown)
         logger.critical(f'got {len(args_unknown)} unknown arguments:\r\t{args_unknown_str}')
+        raise ValueError
+
+    # Check if 'exception_postfix_filename' is a list
+    if 'exception_postfix_filename' in event_record and \
+            not isinstance(event_record.get('exception_postfix_filename'), list):
+        logger.critical('\'exception_postfix_filename\' must be a list')
         raise ValueError
 
     # Only allow either manifest_fp or filepaths
