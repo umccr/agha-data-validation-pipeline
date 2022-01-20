@@ -146,6 +146,13 @@ def handler(event, context):
 
                 # Read content for result file
                 if "__results.json" in s3_record.object_key:
+
+                    # There is a chance result is being replaced from the old one. Making sure result in dynamodb
+                    # is cleared out before reading the new one
+                    sort_key = s3_record.object_key.strip('__result.json')
+                    delete_status_and_data_from_result_table(sort_key)
+
+                    # Reading new result
                     result_list = s3.get_object_from_bucket_name_and_s3_key(s3_key=s3_record.object_key,
                                                                             bucket_name=s3_record.bucket_name)
                     logger.info(f'Grab data from result file')
@@ -198,17 +205,11 @@ def handler(event, context):
                                             archive_file_record_table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
                                             etag_table_name=DYNAMODB_ETAG_TABLE_NAME,
                                             file_record=db_record)
-
                 if "__results.json" in s3_record.object_key:
+
                     sort_key = s3_record.object_key.strip('__result.json')
-
-                    array_to_delete = find_status_and_data_record(sort_key)
-
-                    dynamodb.batch_delete_from_dictionary(table_name=DYNAMODB_RESULT_TABLE_NAME,
-                                                          dictionary_list=array_to_delete)
-                    dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
-                                                        records=array_to_delete,
-                                                        archive_log=s3.S3EventType.EVENT_OBJECT_REMOVED.value)
+                    # Deleting
+                    delete_status_and_data_from_result_table(sort_key)
         else:
             logger.warning(f"Unsupported AGHA bucket: {s3_record.bucket_name}")
 
@@ -452,3 +453,16 @@ def find_status_and_data_record(sort_key: str):
             record_found.extend(get_res['Items'])
 
     return record_found
+
+
+def delete_status_and_data_from_result_table(sort_key:str):
+    array_to_delete = find_status_and_data_record(sort_key)
+    if array_to_delete:
+        logger.info(f'Item to delete from dynamodb result table: ')
+        logger.info(json.dumps(array_to_delete, indent=4, cls=util.JsonSerialEncoder))
+
+        # dynamodb.batch_delete_from_dictionary(table_name=DYNAMODB_RESULT_TABLE_NAME,
+        #                                       dictionary_list=array_to_delete)
+        dynamodb.batch_write_objects_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
+                                             object_list=array_to_delete,
+                                             archive_log=s3.S3EventType.EVENT_OBJECT_REMOVED.value)

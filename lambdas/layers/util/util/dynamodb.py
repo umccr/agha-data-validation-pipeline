@@ -563,7 +563,11 @@ def batch_write_objects_archive(table_name: str, object_list: list, archive_log:
     tbl = get_resource().Table(table_name)
     with tbl.batch_writer() as batch:
         for object in object_list:
+            object['sort_key'] = object['sort_key'] + ':' + util.get_datetimestamp()
             object["archive_log"] = archive_log
+
+            print(json.dumps(object, indent=4))
+            continue
             batch.put_item(Item=object)
 
 
