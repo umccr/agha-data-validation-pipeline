@@ -21,7 +21,7 @@ def create_payload():
             "eventSource": "aws:s3",
             "awsRegion": "ap-southeast-2",
             "eventTime": "2021-12-16T11:03:25.663Z",
-            "eventName": "ObjectCreated:Put",
+            "eventName": "ObjectRemoved:Put",
             "userIdentity": {
                 "principalId": ""
             },

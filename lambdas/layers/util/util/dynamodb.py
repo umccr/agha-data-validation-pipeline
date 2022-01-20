@@ -492,6 +492,16 @@ def delete_record_from_dictionary(table_name: str, dictionary: dict):
         return ValueError(f"partition_key: {dictionary['partition_key'],}, sort_key: {dictionary['sort_key']}\
          has not been successfully deleted from table '{table_name}'")
 
+def batch_delete_from_dictionary(table_name: str, dictionary_list: list):
+
+    tbl = get_resource().Table(table_name)
+    with tbl.batch_writer() as batch:
+        for record in dictionary_list:
+            key = {
+                "partition_key":record['partition_key'],
+                "sort_key":record['sort_key'],
+            }
+            batch.delete_item(Key=key)
 
 def write_main_and_archive_record_from_class(main_table_name: str, archive_table_name: str, record_class,
                                              archive_log: str):

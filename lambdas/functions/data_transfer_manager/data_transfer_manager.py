@@ -90,7 +90,6 @@ def handler(event, context):
         }, indent=4)
 
         logger.error(message)
-
         return message
 
     # Creating s3 move job

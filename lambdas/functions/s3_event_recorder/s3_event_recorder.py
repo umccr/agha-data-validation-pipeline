@@ -3,6 +3,7 @@ from typing import List
 import logging
 import json
 import os
+import sys
 import decimal
 
 import util
@@ -192,11 +193,22 @@ def handler(event, context):
                     dynamodb.batch_write_records(DYNAMODB_ARCHIVE_RESULT_TABLE_NAME, dynamodb_archive_put_item_list)
 
             elif s3_record.event_type == s3.S3EventType.EVENT_OBJECT_REMOVED:
+
                 delete_standard_file_record(file_record_table_name=DYNAMODB_RESULT_TABLE_NAME,
                                             archive_file_record_table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
                                             etag_table_name=DYNAMODB_ETAG_TABLE_NAME,
                                             file_record=db_record)
 
+                if "__results.json" in s3_record.object_key:
+                    sort_key = s3_record.object_key.strip('__result.json')
+
+                    array_to_delete = find_status_and_data_record(sort_key)
+
+                    dynamodb.batch_delete_from_dictionary(table_name=DYNAMODB_RESULT_TABLE_NAME,
+                                                          dictionary_list=array_to_delete)
+                    dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
+                                                        records=array_to_delete,
+                                                        archive_log=s3.S3EventType.EVENT_OBJECT_REMOVED.value)
         else:
             logger.warning(f"Unsupported AGHA bucket: {s3_record.bucket_name}")
 
@@ -414,3 +426,29 @@ def create_result_data_record_from_batch_result(batch_result: dict):
                                      sort_key=s3_key,
                                      date_modified=util.get_datetimestamp(),
                                      value=value)
+
+
+def find_status_and_data_record(sort_key: str):
+    record_found = []
+
+    for task in batch.Tasks.tasks_to_list():
+
+        # Status record
+        pk = dynamodb.ResultPartitionKey.create_partition_key_with_result_prefix(
+            data_type=dynamodb.ResultPartitionKey.STATUS.value,
+            check_type=task
+        )
+        get_res = dynamodb.get_item_from_exact_pk_and_sk(DYNAMODB_RESULT_TABLE_NAME, pk, sort_key)
+        if get_res['Count'] > 0:
+            record_found.extend(get_res['Items'])
+
+        # DATA record
+        pk = dynamodb.ResultPartitionKey.create_partition_key_with_result_prefix(
+            data_type=dynamodb.ResultPartitionKey.DATA.value,
+            check_type=task
+        )
+        get_res = dynamodb.get_item_from_exact_pk_and_sk(DYNAMODB_RESULT_TABLE_NAME, pk, sort_key)
+        if get_res['Count'] > 0:
+            record_found.extend(get_res['Items'])
+
+    return record_found
