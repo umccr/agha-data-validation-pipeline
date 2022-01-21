@@ -206,7 +206,6 @@ def handler(event, context):
                                             etag_table_name=DYNAMODB_ETAG_TABLE_NAME,
                                             file_record=db_record)
                 if "__results.json" in s3_record.object_key:
-
                     sort_key = s3_record.object_key.strip('__result.json')
                     # Deleting
                     delete_status_and_data_from_result_table(sort_key)
@@ -434,35 +433,29 @@ def find_status_and_data_record(sort_key: str):
 
     for task in batch.Tasks.tasks_to_list():
 
-        # Status record
-        pk = dynamodb.ResultPartitionKey.create_partition_key_with_result_prefix(
-            data_type=dynamodb.ResultPartitionKey.STATUS.value,
-            check_type=task
-        )
-        get_res = dynamodb.get_item_from_exact_pk_and_sk(DYNAMODB_RESULT_TABLE_NAME, pk, sort_key)
-        if get_res['Count'] > 0:
-            record_found.extend(get_res['Items'])
+        for pk_type in [dynamodb.ResultPartitionKey.STATUS.value, dynamodb.ResultPartitionKey.DATA.value]:
 
-        # DATA record
-        pk = dynamodb.ResultPartitionKey.create_partition_key_with_result_prefix(
-            data_type=dynamodb.ResultPartitionKey.DATA.value,
-            check_type=task
-        )
-        get_res = dynamodb.get_item_from_exact_pk_and_sk(DYNAMODB_RESULT_TABLE_NAME, pk, sort_key)
-        if get_res['Count'] > 0:
-            record_found.extend(get_res['Items'])
+            pk = dynamodb.ResultPartitionKey.create_partition_key_with_result_prefix(
+                data_type=pk_type,
+                check_type=task
+            )
+
+            get_res = dynamodb.get_item_from_exact_pk_and_sk(DYNAMODB_RESULT_TABLE_NAME, pk, sort_key)
+
+            if get_res['Count'] > 0:
+                record_found.extend(get_res['Items'])
 
     return record_found
 
 
-def delete_status_and_data_from_result_table(sort_key:str):
+def delete_status_and_data_from_result_table(sort_key: str):
     array_to_delete = find_status_and_data_record(sort_key)
     if array_to_delete:
         logger.info(f'Item to delete from dynamodb result table: ')
         logger.info(json.dumps(array_to_delete, indent=4, cls=util.JsonSerialEncoder))
 
-        # dynamodb.batch_delete_from_dictionary(table_name=DYNAMODB_RESULT_TABLE_NAME,
-        #                                       dictionary_list=array_to_delete)
+        dynamodb.batch_delete_from_dictionary(table_name=DYNAMODB_RESULT_TABLE_NAME,
+                                              dictionary_list=array_to_delete)
         dynamodb.batch_write_objects_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
                                              object_list=array_to_delete,
                                              archive_log=s3.S3EventType.EVENT_OBJECT_REMOVED.value)

@@ -9,7 +9,7 @@ import boto3
 from boto3.dynamodb.conditions import Attr
 
 import util
-from util import dynamodb, s3, batch, agha
+from util import dynamodb, s3, batch, agha, submission_data
 
 JOB_NAME_RE = re.compile(r'[.\\/]')
 
@@ -105,7 +105,7 @@ def handler(event, context):
             s3_key = manifest_record['sort_key']
             logger.info(f'Processing s3_key:{s3_key}')
 
-            if agha.FileType.is_index_file(s3_key):
+            if submission_data.is_file_skipped(s3_key, event.get("exception_postfix_filename")):
                 logger.info(f'Skipping index file as validation manager produce its own')
                 # Not processing index file from staging bucket
                 # Validation manager produce its own indexing file
