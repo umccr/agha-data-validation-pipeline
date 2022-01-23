@@ -101,7 +101,7 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
         message_base = f'required {plurality} missing from manifest:'
         message_str = f'{message_base}\r\t{cmissing_str}\rGot:\r\t{cfound_str}'
         notification.log_and_store_message(message_str, level='critical')
-        raise ValueError(message_str)
+        raise ValueError(json.dumps(message_str, indent=4, cls=util.JsonSerialEncoder))
 
     # File discovery
     # Entry count
