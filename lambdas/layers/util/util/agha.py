@@ -82,40 +82,40 @@ class FileType(Enum):
         return FileType.UNSUPPORTED
 
     @staticmethod
-    def is_indexable(filetype:str)-> bool:
+    def is_indexable(filetype: str) -> bool:
         INDEXABLE_TYPE = [FileType.BAM.get_name(), FileType.VCF.get_name()]
         if filetype in INDEXABLE_TYPE:
             return True
         return False
 
     @staticmethod
-    def is_compressable(filetype:str)-> bool:
+    def is_compressable(filetype: str) -> bool:
         COMPRESSABLE_TYPE = [FileType.VCF.get_name(), FileType.FASTQ.get_name()]
         if filetype in COMPRESSABLE_TYPE:
             return True
         return False
 
     @staticmethod
-    def is_index_file(filename:str)->bool:
+    def is_index_file(filename: str) -> bool:
         INDEX_FILE = [FileType.BAM_INDEX, FileType.VCF_INDEX]
         if FileType.from_name(filename) in INDEX_FILE:
             return True
         return False
 
     @staticmethod
-    def is_compress_file(filename:str)->bool:
+    def is_compress_file(filename: str) -> bool:
         if filename.endswith('.gz'):
             return True
         return False
 
     @staticmethod
-    def is_manifest_file(filename:str)->bool:
+    def is_manifest_file(filename: str) -> bool:
         if FileType.from_name(filename) == FileType.MANIFEST:
             return True
         return False
 
     @staticmethod
-    def is_md5_file(filename:str)->bool:
+    def is_md5_file(filename: str) -> bool:
         if filename.endswith('.md5'):
             return True
         else:

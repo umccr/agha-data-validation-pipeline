@@ -295,8 +295,7 @@ def handler(event, context):
                 InvocationType='Event',
                 Payload=json.dumps(validation_payload)
             )
-            logger.info(f'Invoke lambda validation manager. Response:')
-            logger.info(json.dumps(lambda_res, indent=4, cls=util.JsonSerialEncoder))
+            print(lambda_res)
 
 
 def validate_event_data(event_record):
