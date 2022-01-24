@@ -189,3 +189,7 @@ def find_folder_lock_statement(policy: dict):
             return policy_statement
 
     raise ValueError
+
+
+def create_s3_uri_from_bucket_name_and_key(bucket_name, s3_key):
+    return f"s3://{bucket_name}/{s3_key}"

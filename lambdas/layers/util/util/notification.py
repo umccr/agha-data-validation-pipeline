@@ -72,11 +72,14 @@ def log_and_store_file_message(message_text, files):
 def log_and_store_message(message, level='info'):
     level_number = logging.getLevelName(level.upper())
     logger.log(level_number, message)
-    # Prefix message with 'ERROR' for display in notifications
-    if level== 'error':
+
+    # Prefix message with ERROR/WARNING/CRITICAL for display in notifications
+    if level == 'error':
         message = f'ERROR: {message}'
     elif level == 'critical':
-        message = f'IMPORTANT: {message}'
+        message = f'CRITICAL: {message}'
+    elif level == 'warning':
+        message = f'WARNING: {message}'
 
     MESSAGE_STORE.append(message)
 

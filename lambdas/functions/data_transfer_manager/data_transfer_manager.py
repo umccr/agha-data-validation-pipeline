@@ -263,15 +263,11 @@ def construct_directory_from_flagship_and_submission(flagship, submission):
     return f'{flagship}/{submission}/'
 
 
-def create_s3_uri_from_bucket_name_and_key(bucket_name, s3_key):
-    return f"s3://{bucket_name}/{s3_key}"
-
-
 def create_cli_s3_object_batch_job(source_bucket_name, source_s3_key, cli_op: str = 'mv'):
     name = source_s3_key
 
-    source_s3_uri = create_s3_uri_from_bucket_name_and_key(bucket_name=source_bucket_name, s3_key=source_s3_key)
-    target_s3_uri = create_s3_uri_from_bucket_name_and_key(bucket_name=STORE_BUCKET, s3_key=source_s3_key)
+    source_s3_uri = s3.create_s3_uri_from_bucket_name_and_key(bucket_name=source_bucket_name, s3_key=source_s3_key)
+    target_s3_uri = s3.create_s3_uri_from_bucket_name_and_key(bucket_name=STORE_BUCKET, s3_key=source_s3_key)
 
     name_raw = f'agha_data_transfer_{name}'
     name = JOB_NAME_RE.sub('_', name_raw)

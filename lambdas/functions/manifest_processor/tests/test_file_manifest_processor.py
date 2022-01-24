@@ -15,6 +15,7 @@ from unittest import mock
 
 from manifest_processor import handler
 
+
 def create_manifest_record_payload():
     # return {
     #     "Records": [
@@ -55,13 +56,13 @@ def create_manifest_record_payload():
     #     ]
     # }
     return {
-            "bucket_name": "agha-gdr-staging-2.0",
-            "manifest_fp": f"AC/2019-05-16/manifest.txt",
-            "email_report_to": "william.intan@unimelb.edu.au",
-            "skip_checksum_validation": "true",
-            "skip_auto_validation":"true"
-        }
-
+        "bucket_name": "agha-gdr-staging-2.0",
+        "manifest_fp": f"AC/2019-05-16/manifest.txt",
+        "email_report_to": "william.intan@unimelb.edu.au",
+        "skip_checksum_validation": "true",
+        "skip_auto_validation": "true",
+        "skip_update_dynamodb":"true"
+    }
 
 
 class ManifestProcessorUnitTestCase(unittest.TestCase):
@@ -69,9 +70,7 @@ class ManifestProcessorUnitTestCase(unittest.TestCase):
     def test_manifest_processor(self):
         event_payload = create_manifest_record_payload()
 
-        handler(event_payload,{})
-
-
+        handler(event_payload, {})
 
 
 if __name__ == '__main__':

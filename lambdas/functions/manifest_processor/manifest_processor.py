@@ -88,7 +88,7 @@ def handler(event, context):
     logger.info(json.dumps(event, indent=4, cls=util.JsonSerialEncoder))
 
     # If trigger manually, construct the same s3 format
-    if event.get('manifest_fp') != None:
+    if event.get('manifest_fp') is not None:
         event['Records'] = [
             {
                 "s3": {
@@ -103,7 +103,7 @@ def handler(event, context):
             }
         ]
 
-    if event.get('exception_postfix_filename') != None:
+    if event.get('exception_postfix_filename') is not None:
         exception_filename = event.get('exception_postfix_filename')
     else:
         exception_filename = []
@@ -112,6 +112,12 @@ def handler(event, context):
         skip_checksum_validation = True
     else:
         skip_checksum_validation = False
+
+    # Triggering validation lambda options
+    if event.get("skip_auto_validation") == 'true':
+        skip_auto_validation = True
+    else:
+        skip_auto_validation = False
 
     s3_records = event.get('Records')
     if not s3_records:
@@ -175,8 +181,6 @@ def handler(event, context):
         logger.info(f'Processing {len(file_list)} number of file_list, and {len(data.files_extra)} \
                     number of files_extra')
 
-        notification.log_and_store_message('<br>Below, additional information on duplicate files, if any.<br>')
-
         for filename in file_list:
 
             sort_key = f'{data.submission_prefix}/{filename}'
@@ -211,15 +215,16 @@ def handler(event, context):
             logger.info(json.dumps(etag_response, indent=4, cls=util.JsonSerialEncoder))
 
             if etag_response['Count'] > 1:
-                notification.log_and_store_message("File with the same eTag appear at multiple location", 'warning')
+                s3_duplicate_list = []
                 for each_etag_appearance in etag_response['Items']:
                     # Parsing...
                     s3_key = each_etag_appearance['s3_key']
                     bucket_name = each_etag_appearance['bucket_name']
 
-                    notification.log_and_store_message(f"bucket_name: {bucket_name}, s3_key: {s3_key}", 'warning')
+                    s3_uri = s3.create_s3_uri_from_bucket_name_and_key(bucket_name, s3_key)
+                    s3_duplicate_list.append(s3_uri)
 
-                duplicate_etag_list.append(etag_response['Items'])
+                duplicate_etag_list.append(s3_duplicate_list)
 
             # Create Manifest type record
             manifest_record = dynamodb.ManifestFileRecord(
@@ -242,12 +247,6 @@ def handler(event, context):
                 create_archive_manifest_record_from_manifest_record(manifest_record, 'CREATE')
             archive_staging_dynamodb_batch_write_list.append(archive_manifest_record.__dict__)
 
-        if len(duplicate_etag_list) > 0:
-            manifest_status_record.additional_information = {
-                "topic": "Duplicate files found in this submission with other submissions",
-                "data": duplicate_etag_list
-            }
-
         staging_dynamodb_batch_write_list.append(manifest_status_record.__dict__)
         archive_staging_dynamodb_batch_write_list.append(
             manifest_status_record.create_archive_dictionary('Create/Update'))
@@ -259,36 +258,73 @@ def handler(event, context):
             dynamodb.batch_write_objects(table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
                                          object_list=archive_staging_dynamodb_batch_write_list)
 
+        # Construct to an expected payload:
+        # {
+        #     "manifest_fp": "cardiac/20210711_170230/manifest.txt",
+        #     "manifest_dynamodb_key_prefix": "cardiac/20210711_170230/"
+        # }
+
+        # Construct payload
+        validation_payload = {
+            "manifest_fp": event_record['s3']['object']['key'],
+            "manifest_dynamodb_key_prefix": data.submission_prefix
+        }
+        if len(exception_filename) > 0:
+            validation_payload['exception_postfix_filename'] = exception_filename
+        if skip_checksum_validation:
+            validation_payload['tasks_skipped'] = [batch.Tasks.CHECKSUM_VALIDATION.value]
+
+        number_of_duplicates = len(duplicate_etag_list)
+        notification.log_and_store_message(
+            f'<br>Number of duplicates file found in this submission with other submissions: {number_of_duplicates}')
+
+        # Detecting duplicate payload
+        if number_of_duplicates > 0:
+            manifest_status_record.additional_information = {
+                "topic": "Duplicate files found in this submission with other submissions",
+                "data": duplicate_etag_list
+            }
+
+            notification.log_and_store_message(
+                'Trigger of validation pipeline has been disabled due to duplicate submission has been found.',
+                'critical')
+            notification.log_and_store_message(f'Please check/resubmit submitted file to prevent duplication',
+                                               'critical')
+            notification.log_and_store_message(f'If the duplication file is intended, '
+                                               f'proceed to trigger validation pipeline by invoking the lambda from aws cli, '
+                                               f'with the following command.', 'critical')
+
+            lambda_func_name = VALIDATION_MANAGER_LAMBDA_ARN.split(':')[-1]
+            notification.log_and_store_message(f"<br>"  # New line on email
+                                               f"aws lambda invoke "
+                                               f"--cli-binary-format raw-in-base64-out "
+                                               f"--function-name {lambda_func_name} "
+                                               f"--invocation-type Event "
+                                               f"--payload '{json.dumps(validation_payload)}' "
+                                               f"response.json"
+                                               f"<br>"  # New line on email
+                                               )
+
+            notification.log_and_store_message(
+                f"NOTE: If 'aws --version' is in version 1 (aws-cli/1.X.XX), '--cli-binary-format raw-in-base64-out' flag may not be necessary.<br>")
+
+            # List all duplicates file
+            notification.log_and_store_message(
+                "The following list are files with the same eTag at multiple location.<br>")
+            list_of_duplicate_files_email_format = json.dumps(duplicate_etag_list, indent=4, sort_keys=True).replace(
+                ' ', '&nbsp;').replace('\n', '<br>')
+            notification.log_and_store_message(list_of_duplicate_files_email_format)
+
+            # Skip the auto validation
+            skip_auto_validation = True
+
         # Send notification to submitter for the submission if not skipped
         if not event.get("skip_send_notification") == 'true':
             notification.send_notifications()
 
-        if event.get("skip_auto_validation") == 'true':
-            skip_auto_validation = True
-        else:
-            skip_auto_validation = False
-
         if AUTORUN_VALIDATION_JOBS == 'yes' and not skip_auto_validation:
-
             # Invoke validation manager for automation
             client_lambda = util.get_client('lambda')
-
-            # Construct to an expected payload:
-            # {
-            #     "manifest_fp": "cardiac/20210711_170230/manifest.txt",
-            #     "manifest_dynamodb_key_prefix": "cardiac/20210711_170230/"
-            # }
-
-            validation_payload = {
-                "manifest_fp": event_record['s3']['object']['key'],
-                "manifest_dynamodb_key_prefix": data.submission_prefix
-            }
-
-            if len(exception_filename) > 0:
-                validation_payload['exception_postfix_filename'] = exception_filename
-
-            if skip_checksum_validation:
-                validation_payload['tasks_skipped'] = [batch.Tasks.CHECKSUM_VALIDATION.value]
 
             lambda_res = client_lambda.invoke(
                 FunctionName=VALIDATION_MANAGER_LAMBDA_ARN,

@@ -169,7 +169,7 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
     if files_missing_from_manifest:
         # File exist in s3 but not in the manifest, would just consider on file in the manifest.
         # This would give warning without any termination
-        notification.MESSAGE_STORE.append('') # New line to separate warning in email
+        notification.MESSAGE_STORE.append('')  # New line to separate warning in email
         notification.log_and_store_message(
             f'Files in s3, but not in manifest: {json.dumps(files_missing_from_manifest, indent=4, cls=util.JsonSerialEncoder)}',
             level='critical')
@@ -221,7 +221,8 @@ def find_checksum_from_manifest_df_and_filename(manifest_df, filename):
     file_info = manifest_df.loc[manifest_df['filename'] == filename].iloc[0]
     return file_info['checksum']
 
-def is_file_skipped(filename:str, postfix_exception_list:list=None) -> bool:
+
+def is_file_skipped(filename: str, postfix_exception_list: list = None) -> bool:
     """
     Should filename be accepted for validation.
     :param filename:
