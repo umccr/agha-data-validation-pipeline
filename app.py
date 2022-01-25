@@ -32,25 +32,25 @@ stack_props = {
     },
     'autorun_validation_jobs': 'yes',
     'notification': {
-        'slack_notify': 'no', # TODO: change to yes
+        'slack_notify': 'yes',
         'email_notify': 'yes',
         'slack_host': 'hooks.slack.com',
         'slack_channel': '#agha-gdr',
-        'manager_email': 'william.intan@unimelb.edu.au', # TODO: Change to: sarah.casauria@mcri.edu.au
+        'manager_email': 'william.intan@unimelb.edu.au',  # TODO: Change to: sarah.casauria@mcri.edu.au
         'sender_email': 'services@umccr.org'
     },
     'batch_environment': {
-        'compute_environment_name':{
-            'small':'agha-gdr-pipeline-compute-environment-small',
-            'medium':'agha-gdr-pipeline-compute-environment-medium',
-            'large':'agha-gdr-pipeline-compute-environment-large',
-            'xlarge':'agha-gdr-pipeline-compute-environment-xlarge'
+        'compute_environment_name': {
+            'small': 'agha-gdr-pipeline-compute-environment-small',
+            'medium': 'agha-gdr-pipeline-compute-environment-medium',
+            'large': 'agha-gdr-pipeline-compute-environment-large',
+            'xlarge': 'agha-gdr-pipeline-compute-environment-xlarge'
         },
         'batch_queue_name': {
-            'small':'agha-gdr-pipeline-job-queue-small',
-            'medium':'agha-gdr-pipeline-job-queue-medium',
-            'large':'agha-gdr-pipeline-job-queue-large',
-            'xlarge':'agha-gdr-pipeline-job-queue-xlarge'
+            'small': 'agha-gdr-pipeline-job-queue-small',
+            'medium': 'agha-gdr-pipeline-job-queue-medium',
+            'large': 'agha-gdr-pipeline-job-queue-large',
+            'xlarge': 'agha-gdr-pipeline-job-queue-xlarge'
         },
         'vpc_id': 'vpc-36fbdf51',
         'file_validation_ecr': {
@@ -68,7 +68,6 @@ stack_props = {
     }
 }
 
-
 # TODO: VERY IMPORTANT:  github source branch_name and email is for dev, NOT for production
 
 
@@ -85,7 +84,7 @@ DynamoDBStack(
         "Stack": "cdk-agha-gdr-dynamodb-resource",
         "Creator": "William"
     },
-    env = aws_env
+    env=aws_env
 )
 
 CodePipelineStack(
