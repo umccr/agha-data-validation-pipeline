@@ -9,11 +9,8 @@ import datetime
 
 import boto3
 
-
-
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
-
 
 FEXT_FASTQ = {'.fq', '.fq.gz', '.fastq', '.fastq.gz'}
 FEXT_BAM = {'.bam'}
@@ -149,6 +146,7 @@ def execute_command(command):
     )
     return process_result
 
+
 class JsonSerialEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, decimal.Decimal):
@@ -159,6 +157,7 @@ class JsonSerialEncoder(json.JSONEncoder):
 
         return super(JsonSerialEncoder, self).default(o)
 
+
 # TODO: Replace DecimalEncoder and json_serial (below) with the JsonSerialEncoder class (above)
 
 class DecimalEncoder(json.JSONEncoder):
@@ -166,13 +165,15 @@ class DecimalEncoder(json.JSONEncoder):
         if isinstance(o, decimal.Decimal):
             return str(o)
         return super(DecimalEncoder, self).default(o)
+
+
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
 
     if isinstance(obj, (datetime.datetime, datetime.date)):
         return obj.isoformat()
 
-    raise TypeError ("Type %s not serializable" % type(obj))
+    raise TypeError("Type %s not serializable" % type(obj))
 
 
 def replace_record_decimal_object(record):
@@ -180,3 +181,8 @@ def replace_record_decimal_object(record):
         if isinstance(record[k], decimal.Decimal):
             record[k] = int(record[k]) if record[k] % 1 == 0 else float(record[k])
     return record
+
+
+def get_record_from_given_field_and_panda_df(panda_df, fieldname_lookup: str, fieldvalue_lookup: str):
+    file_info = panda_df.loc[panda_df[fieldname_lookup] == fieldvalue_lookup].iloc[0]
+    return file_info

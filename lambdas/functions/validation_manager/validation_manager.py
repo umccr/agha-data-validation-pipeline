@@ -87,13 +87,19 @@ def handler(event, context):
         email=event.get('email_address', str()),
     )
 
-    if 'manifest_dynamodb_key_prefix' in event:
-        filename_list = dynamodb.get_field_list_from_dynamodb_record(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                                                     field_name='filename',
-                                                                     partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
-                                                                     sort_key_prefix=event[
-                                                                         'manifest_dynamodb_key_prefix'])
+    manifest_record_dynamodb_staging = None
+    manifest_record_dynamodb_df = None
 
+    manifest_fp = event.get('manifest_fp')
+    if manifest_fp is not None:
+        submission_prefix = os.path.dirname(event['manifest_fp'])
+        manifest_record_dynamodb_staging = dynamodb.get_batch_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                                                  partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                                                                                  sort_key_prefix=submission_prefix)
+        manifest_record_dynamodb_df = pd.json_normalize(manifest_record_dynamodb_staging)
+
+        # Find filename included list
+        filename_list = manifest_record_dynamodb_df['filename'].tolist()
         non_index_file_list = [filename for filename in filename_list if not agha.FileType.is_index_file(filename)]
         event['include_fns'] = non_index_file_list
 
@@ -102,7 +108,7 @@ def handler(event, context):
     # submission later, and are available through data.files_accepted.
     if 'manifest_fp' in event:
         notification.SUBMITTER_INFO.submission_prefix = os.path.dirname(event['manifest_fp'])
-        data = handle_input_manifest(data, event)
+        data = handle_input_manifest(data, event, manifest_record_dynamodb_df)
     elif 'filepaths' in event:
         notification.SUBMITTER_INFO.submission_prefix = os.path.dirname(event['filepaths'][0])
         data = handle_input_filepaths(data, event)
@@ -112,61 +118,61 @@ def handler(event, context):
     # Process each record and prepare Batch commands
     batch_job_data = list()
 
+    file_record_dynamodb_staging = dynamodb.get_batch_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                                          partition_key=dynamodb.FileRecordPartitionKey.FILE_RECORD.value,
+                                                                          sort_key_prefix=data.submission_prefix)
+    file_record_dynamodb_df = pd.json_normalize(file_record_dynamodb_staging)
+
+    # Possibility of being fetched before
+    if manifest_record_dynamodb_staging is None:
+        manifest_record_dynamodb_staging = dynamodb.get_batch_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                                                  partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                                                                                  sort_key_prefix=data.submission_prefix)
+        manifest_record_dynamodb_df = pd.json_normalize(manifest_record_dynamodb_staging)
+
     for filename in data.filename_accepted:
 
         # Get partition key and existing records
         sort_key = f'{data.submission_prefix}/{filename}'
 
-        # Search for existing record
-        logger.info('Grabing existing record from partition and sort key')
-        manifest_response = dynamodb.get_item_from_exact_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                                                   partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
-                                                                   sort_key=sort_key)
-        logger.info('Manifest Record Response')
-        logger.info(json.dumps(manifest_response))
-
-        if manifest_response['Count'] != 1:
+        # Find checksum file from file record
+        try:
+            manifest_record = util.get_record_from_given_field_and_panda_df(
+                panda_df=manifest_record_dynamodb_df,
+                fieldname_lookup='sort_key',
+                fieldvalue_lookup=sort_key
+            )
+            provided_checksum = manifest_record['provided_checksum']
+        except:
             message = f'No or more than one manifest record found for \'{sort_key}\'. Aborting!'
 
             notification.log_and_store_message(message, 'error')
             notification.notify_and_exit()
             return
 
-        manifest_record_json = manifest_response["Items"][0]
-        # Check to dynamodb if staging record has been validated
-        if manifest_record_json['validation_status'].upper() != "PASS".upper():
-            message = f"Data at '{sort_key}' has not pass manifest check. Aborting!"
-            notification.log_and_store_message(message, 'error')
-            notification.notify_and_exit()
-
-        provided_checksum = manifest_record_json['provided_checksum']
-
         # Replace tasks with those specified by user if available
-        if event.get('tasks') == None:
-            tasks_list = batch.get_tasks_list()
+        if event.get('tasks') is None:
+            tasks_list = batch.get_tasks_list(filename)
         else:
             tasks_list = event.get('tasks')
 
-        if event.get('tasks_skipped') != None:
+        if event.get('tasks_skipped') is not None:
             tasks_list = list(set(tasks_list) - set(event.get('tasks_skipped')))
 
-        # Grab file size
-        logger.info('Grab existing file record from partition and sort key for filesize')
-        file_record_response = dynamodb.get_item_from_exact_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                                                      partition_key=dynamodb.FileRecordPartitionKey.FILE_RECORD.value,
-                                                                      sort_key=sort_key)
-        logger.info('File Record Response File Size:')
-        logger.info(json.dumps(file_record_response, indent=4, cls=util.JsonSerialEncoder))
-
-        if file_record_response['Count'] != 1:
+        # Find size file from file record
+        try:
+            file_record = util.get_record_from_given_field_and_panda_df(
+                panda_df=file_record_dynamodb_df,
+                fieldname_lookup='sort_key',
+                fieldvalue_lookup=sort_key
+            )
+            filesize = int(file_record['size_in_bytes'])
+        except:
             message = f'No or more than one file record found for \'{sort_key}\'. Aborting!'
 
             notification.log_and_store_message(message, 'error')
             notification.notify_and_exit()
             return
-
-        file_record_json = file_record_response["Items"][0]
-        filesize = int(file_record_json['size_in_bytes'])
 
         # Create job data
         logger.info(f'Creating batch job for, s3_key:{sort_key}')
@@ -197,13 +203,13 @@ def handler(event, context):
         # Update DynamoDb status to running
         logger.info(json.dumps(batch_res, indent=4, cls=util.JsonSerialEncoder))
     logger.info(f'Batch job has executed. Submit {len(batch_job_data)} number of job')
-
-    # # Update status of dynamodb to RUNNING (Need to configure which task to set to running)
-    # if not event.get('skip_update_dynamodb') == 'true':
-    #     dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME, records=dynamodb_result_update)
-    #     dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
-    #                                         records=dynamodb_result_update,
-    #                                         archive_log='ObjectCreated')
+    
+    # Update status of dynamodb to RUNNING (Need to configure which task to set to running)
+    if not event.get('skip_update_dynamodb') == 'true':
+        dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME, records=dynamodb_result_update)
+        dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
+                                            records=dynamodb_result_update,
+                                            archive_log='ObjectCreated')
 
 
 def validate_event_data(event_record):
@@ -307,26 +313,12 @@ def validate_event_data(event_record):
         event_record['include_fns'] = list()
 
 
-def handle_input_manifest(data: submission_data.SubmissionData, event):
+def handle_input_manifest(data: submission_data.SubmissionData, event, manifest_df):
     data.manifest_key = event['manifest_fp']
     data.submission_prefix = os.path.dirname(data.manifest_key)
-    data.file_metadata = s3.get_s3_object_metadata(data.bucket_name, data.submission_prefix)
-    data.manifest_data = submission_data.retrieve_manifest_data(bucket_name=data.bucket_name,
-                                                                manifest_key=data.manifest_key)
-
-    if event.get('exception_postfix_filename') != None:
-        exception_filename = event.get('exception_postfix_filename')
-    else:
-        exception_filename = []
-
-    if event.get('skip_checksum_validation') == 'true':
-        skip_checksum_validation = True
-    else:
-        skip_checksum_validation = False
 
     try:
-        file_list, data.files_extra = submission_data.validate_manifest(data, exception_filename,
-                                                                        skip_checksum_check=skip_checksum_validation)
+        file_list = manifest_df['filename'].tolist()
     except ValueError as e:
         logger.error(f'Incorrect/Wrong manifest file: {str(e)}')
         logger.error(f'Terminating')

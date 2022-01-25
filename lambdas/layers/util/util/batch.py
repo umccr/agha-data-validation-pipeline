@@ -7,6 +7,7 @@ import enum
 import json
 
 import util
+import util.agha as agha
 
 JOB_NAME_RE = re.compile(r'[.\\/]')
 
@@ -22,12 +23,14 @@ DYNAMODB_STAGING_TABLE_NAME = os.environ.get('DYNAMODB_STAGING_TABLE_NAME')
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 RESULTS_BUCKET = os.environ.get('RESULTS_BUCKET')
 
+
 ########################################################################################################################
 # Batch result result file
 class StatusBatchResult(enum.Enum):
-    SUCCEED='SUCCEED'
-    FAIL='FAIL'
-    RUNNING='RUNNING'
+    SUCCEED = 'SUCCEED'
+    FAIL = 'FAIL'
+    RUNNING = 'RUNNING'
+
 
 class BatchJobResult:
 
@@ -37,6 +40,7 @@ class BatchJobResult:
         self.value = value
         self.status = status
         self.source_file = source_file
+
 
 ########################################################################################################################
 # Tasks available for batch task
@@ -50,7 +54,7 @@ class Tasks(enum.Enum):
     @staticmethod
     def is_valid(name: str) -> bool:
         for t in Tasks:
-            if t.value==name:
+            if t.value == name:
                 return True
         return False
 
@@ -62,12 +66,14 @@ class Tasks(enum.Enum):
     def tasks_create_file() -> list:
         return [Tasks.COMPRESS.value, Tasks.INDEX.value]
 
-def get_tasks_list():
+
+def get_tasks_list(filename: str = None):
     """
     Trigger which tasks should run
     """
 
     tasks_list = list()
+    filetype = agha.FileType.from_name(filename).get_name()
 
     # Always run checksum
     tasks_list.append(Tasks.CHECKSUM_VALIDATION.value)
@@ -76,15 +82,17 @@ def get_tasks_list():
     tasks_list.append(Tasks.FILE_VALIDATION.value)
 
     # Always create index if supported (In this case BAM and VCF file)
-    tasks_list.append(Tasks.INDEX.value)
+    if agha.FileType.is_indexable(filetype) or filename is None:  # Appended by default
+        tasks_list.append(Tasks.INDEX.value)
 
     # Always compress file when it is uncompressed for FASTQ and VCF
-    tasks_list.append(Tasks.COMPRESS.value)
+    if agha.FileType.is_compressable(filetype) or filename is None:  # Appended by default
+        tasks_list.append(Tasks.COMPRESS.value)
 
     return tasks_list
 
 
-def create_job_data(s3_key:str, partition_key:str, tasks_list, output_prefix, filesize, checksum=None):
+def create_job_data(s3_key: str, partition_key: str, tasks_list, output_prefix, filesize, checksum=None):
     name_raw = f'agha_validation__{s3_key}__{partition_key}'
     name = JOB_NAME_RE.sub('_', name_raw)
     # Job name must be less than 128 characters. If job name exceeds this length, truncate to the
@@ -98,7 +106,7 @@ def create_job_data(s3_key:str, partition_key:str, tasks_list, output_prefix, fi
     command.extend(["--s3_key", s3_key])
 
     # append checksum args
-    if checksum !=None:
+    if checksum != None:
         command.extend(["--checksum", checksum])
 
     # append task lists args
@@ -108,7 +116,8 @@ def create_job_data(s3_key:str, partition_key:str, tasks_list, output_prefix, fi
 
     return {'name': name, 'command': command, 'output_prefix': output_prefix, 'filesize': filesize}
 
-def find_suitble_batch_queue_name(filesize:int):
+
+def find_suitble_batch_queue_name(filesize: int):
     '''
     To define appropriate job queue for the job.
     :param filesize: The size needed for the job
@@ -117,14 +126,15 @@ def find_suitble_batch_queue_name(filesize:int):
 
     batch_queue_name_json = json.loads(BATCH_QUEUE_NAME)
 
-    if filesize > 150000000000: # Above 150gb
+    if filesize > 150000000000:  # Above 150gb
         return batch_queue_name_json['xlarge']
-    elif filesize > 100000000000: # Above 100gb
+    elif filesize > 100000000000:  # Above 100gb
         return batch_queue_name_json['large']
-    elif filesize > 50000000000: # Above 50 gb
+    elif filesize > 50000000000:  # Above 50 gb
         return batch_queue_name_json['medium']
     else:
         return batch_queue_name_json['small']
+
 
 def submit_batch_job(job_data):
     client_batch = util.get_client('batch')

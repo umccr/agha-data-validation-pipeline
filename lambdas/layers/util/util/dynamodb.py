@@ -625,3 +625,29 @@ def get_field_list_from_dynamodb_record(table_name: str, field_name: str, partit
         field_list.append(record[field_name])
 
     return field_list
+
+
+def get_batch_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix: str):
+
+    ddb = get_resource()
+    tbl = ddb.Table(table_name)
+
+    result_item = []
+
+    key_expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key) & Key(
+        FileRecordAttribute.SORT_KEY.value).begins_with(sort_key_prefix)
+
+    func_parameter = {
+        "KeyConditionExpression": key_expr
+    }
+    response = tbl.query(**func_parameter)
+    result_item.extend(response['Items'])
+
+    # Re-fetch until the last
+    while response.get('LastEvaluatedKey') is not None:
+
+        func_parameter['ExclusiveStartKey'] = response['LastEvaluatedKey']
+        response = tbl.query(**func_parameter)
+        result_item.extend(response['Items'])
+
+    return result_item
