@@ -170,7 +170,6 @@ def handler(event, context):
 
             notification.notify_and_exit()
             raise ValueError(e)
-            # Update DynamoDb regarding manifest checks status
 
         # Create status pass when no error raised
         manifest_status_record = dynamodb.ManifestStatusCheckRecord(
@@ -317,6 +316,8 @@ def handler(event, context):
 
             # Skip the auto validation
             skip_auto_validation = True
+        else:
+            notification.log_and_store_message('Continuing with file validation.')
 
         # Send notification to submitter for the submission if not skipped
         if not event.get("skip_send_notification") == 'true':

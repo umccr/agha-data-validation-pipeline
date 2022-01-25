@@ -120,7 +120,7 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
 
     # Extra files present on S3
     files_missing_from_manifest = list(files_s3.difference(files_manifest))
-    message_text = f'Entries on S3, but not in manifest'
+    message_text = f'Entries on S3, but not in manifest (including manifest)'
     notification.log_and_store_file_message(message_text, files_missing_from_manifest)
 
     # Files present in manifest *and* S3
@@ -171,11 +171,13 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
         # This would give warning without any termination
         notification.MESSAGE_STORE.append('')  # New line to separate warning in email
         notification.log_and_store_message(
-            f'Files in s3, but not in manifest: {json.dumps(files_missing_from_manifest, indent=4, cls=util.JsonSerialEncoder)}',
+            f'Files in s3, but not in manifest (excluding manifest, index, and md5 file): {json.dumps(files_missing_from_manifest, indent=4, cls=util.JsonSerialEncoder)}',
             level='critical')
         notification.log_and_store_message('Submission contain file that is not in the manifest. '
                                            'Proceeding with only file in the manifest.',
                                            level='critical')
+
+        notification.MESSAGE_STORE.append('')  # New line to separate warning in email
 
     # Field validation in the manifest file
     for row in data.manifest_data.itertuples():
@@ -203,7 +205,7 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
         raise ValueError(json.dumps(messages_error, indent=4))
 
     # Notify with success message
-    message = f'Manifest successfully validated, continuing with file validation'
+    message = f'Manifest successfully validated.'
     notification.log_and_store_message(message)
 
     # NOTE(SW): returning files that are on S3 and (1) in manifest, and (2) not in manifest. This
