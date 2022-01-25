@@ -203,7 +203,7 @@ def handler(event, context):
         # Update DynamoDb status to running
         logger.info(json.dumps(batch_res, indent=4, cls=util.JsonSerialEncoder))
     logger.info(f'Batch job has executed. Submit {len(batch_job_data)} number of job')
-    
+
     # Update status of dynamodb to RUNNING (Need to configure which task to set to running)
     if not event.get('skip_update_dynamodb') == 'true':
         dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME, records=dynamodb_result_update)

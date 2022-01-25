@@ -193,3 +193,18 @@ def find_folder_lock_statement(policy: dict):
 
 def create_s3_uri_from_bucket_name_and_key(bucket_name, s3_key):
     return f"s3://{bucket_name}/{s3_key}"
+
+
+def delete_s3_object_from_key(bucket_name: str, key_list: list):
+    objects_of_key = [{"Key": key} for key in key_list]
+
+    # Delete the key in s3
+    s3_client = util.get_client('s3')
+    res = s3_client.delete_objects(
+        Bucket=bucket_name,
+        Delete={
+            'Objects': objects_of_key,
+        }
+    )
+
+    return res
