@@ -112,6 +112,8 @@ def check_etag_and_size_match():
                                                           directory_prefix=submission_prefix)
             # Categorizing files
             list_of_old_submission_s3_keys = []
+            use_etag_array = []
+
             for metadata in old_metadata_list:
                 s3_key = metadata['Key']
                 size = metadata['Size']
@@ -126,6 +128,12 @@ def check_etag_and_size_match():
                 except IndexError:
                     # Substitute with ETag if it is not find
                     checksum = etag
+
+                    # Notify for the store use etag instead of their generated checksum
+                    # Keep track by using etag array
+                    use_etag_array.append(filename)
+
+                checksum = checksum.strip('"')
                 list_of_old_submission_s3_keys.append(f'{size}:{checksum}:{filename}')
             print(json.dumps(list_of_old_submission_s3_keys, indent=4))
             list_of_old_store_compressible_file = [metadata for metadata in list_of_old_submission_s3_keys if agha.FileType.is_compressable(agha.FileType.from_name(metadata).get_name())]
@@ -157,10 +165,11 @@ def check_etag_and_size_match():
                 filename = s3.get_s3_filename_from_s3_key(s3_key)
 
                 res = dynamodb.get_item_from_exact_pk_and_sk(table_name='agha-gdr-store-bucket', partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value, sort_key=s3_key)
-                if res['Count'] > 0:
+                if filename not in use_etag_array and res['Count'] > 0:
                     checksum = json.dumps(res['Items'][0]['provided_checksum'])
                 else:
                     checksum = etag
+
                 checksum = checksum.strip('"')
                 list_of_new_submission_s3_keys.append(f'{size}:{checksum}:{filename}')
             list_of_new_store_compressible_file = [metadata for metadata in list_of_new_submission_s3_keys if agha.FileType.is_compressable(agha.FileType.from_name(metadata).get_name())]
@@ -214,7 +223,9 @@ def check_etag_and_size_match():
             overall_report['files_in_old_bucket_minus_new_bucket_excluding_index_uncompress_md5'] = old_minus_new_and_etc_list
             overall_report['extra_files_in_new_bucket'] = new_minus_old_list
 
-            if len(old_minus_new_and_etc_list) > 0:
+            validation_value_results_list = list(overall_report['validation'].values())
+
+            if len(old_minus_new_and_etc_list) > 0 or [result for result in validation_value_results_list if result is True]:
                 attention_dict = {
                     "old_submission_prefix": submission_prefix,
                     "new_submission_prefix": new_submission_prefix,
