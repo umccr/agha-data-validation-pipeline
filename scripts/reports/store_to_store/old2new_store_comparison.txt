@@ -1,0 +1,1986 @@
+Comparison Report between old/new store (agha-gdr-store / agha-gdr-store-2.0)
+    Total number of prefixes (submissions): 100
+    
+    
+    
+    
+################################################################################
+Checking FlagShip ACUTE_CARE_GENOMICS
+################################################################################
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ACG/2020-01-31/ against agha-gdr-store-2.0/AC/2020-01-31/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 372
+        Object count agha-gdr-store-2.0: 370
+        Number of identical records: 304
+        Number of records only in agha-gdr-store: 68
+        Number of records only in agha-gdr-store-2.0: 66
+        
+        Checking file only in agha-gdr-store
+            53/68 differences explainable (15 unexplained).
+            Unexplained differences:
+            --------------------------------------------------------------------------------
+                                                                                        Key                                 ETag       Size    _merge
+                          19W000161-FAM000224.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "15295c1a8ac9ce9f2c15fcf65c277c15-1" 14563359.0 left_only
+                          19W000172-FAM000226.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "51ed331550c0d2b687d4c5d7edf7032d-2" 22048150.0 left_only
+            19W000175-FAM000227.individual.genotype.soi.vep.post_filter.vcfanno.cann.vcf.gz "191452441113ce7c939b55f087cf0516-1" 14148951.0 left_only
+                  19W000175-FAM000227.trio.genotype.soi.vep.post_filter.vcfanno.cann.vcf.gz "5a5896d5ad87714f16efbbfca18b8521-1" 16042786.0 left_only
+            19W000176-FAM000227.individual.genotype.soi.vep.post_filter.vcfanno.cann.vcf.gz "0ef8afb8d34d4fc397365b264c0ae45e-1" 13953159.0 left_only
+            19W000177-FAM000227.individual.genotype.soi.vep.post_filter.vcfanno.cann.vcf.gz "3fd7b4990afced6ada9168f2865e7c6a-1" 14054085.0 left_only
+                          19W000199-FAM000230.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "4deff72d2a33a9e6bb52341ab23c07cc-2" 21934233.0 left_only
+                          19W000212-FAM000231.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "37fcf7127838a855c31900c328efafb2-2" 22628883.0 left_only
+                          19W000280-FAM000236.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "5b56522fd6536cc601bbfe383e794243-2" 22273661.0 left_only
+                          19W000297-FAM000239.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "9648bfcbaea18bd1d722d12040325c4a-2" 23063443.0 left_only
+                    19W000304-FAM000240.individual.norm.vep.post_filter.vcfanno.cann.vcf.gz "f011a3df45df38875c97b6d1cd88e52f-1" 15420134.0 left_only
+                    19W000305-FAM000240.individual.norm.vep.post_filter.vcfanno.cann.vcf.gz "a4ae94d248964a802c5ecefac1460ee2-1" 15450057.0 left_only
+                          19W000348-FAM000244.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "b69e1793411146efc7d443983af5210a-2" 21962177.0 left_only
+                          19W000434-FAM000254.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "0f2be39edb50eefa0cec380398f3bb12-2" 21724388.0 left_only
+                           19W00168-FAM000225.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "42e9ca0eb3298dadae787487972b1d34-2" 22639166.0 left_only
+            --------------------------------------------------------------------------------
+        
+        Checking file only in agha-gdr-store-2.0
+            51/66 differences explainable (15 unexplained).
+            Unexplained differences:
+            --------------------------------------------------------------------------------
+                                                                                        Key                                 ETag       Size     _merge
+                          19W000161-FAM000224.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "d1da8f7a2e35852dc25a1f2d7814f685-2" 14563359.0 right_only
+                          19W000172-FAM000226.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "6045bee3bef1bca57dc31e2c1e75e5cb-3" 22048150.0 right_only
+            19W000175-FAM000227.individual.genotype.soi.vep.post_filter.vcfanno.cann.vcf.gz "1f12883db32f00c66bb86257d753cc77-2" 14148951.0 right_only
+                  19W000175-FAM000227.trio.genotype.soi.vep.post_filter.vcfanno.cann.vcf.gz "b352876f51fb165c6946f527f6834a1e-2" 16042786.0 right_only
+            19W000176-FAM000227.individual.genotype.soi.vep.post_filter.vcfanno.cann.vcf.gz "4f5f9cc64a86ed49b830c43404aa575e-2" 13953159.0 right_only
+            19W000177-FAM000227.individual.genotype.soi.vep.post_filter.vcfanno.cann.vcf.gz "3b1263e7ad37886492003531eab43e4d-2" 14054085.0 right_only
+                          19W000199-FAM000230.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "55c7b20cab0969ad474a550b11fd7dcc-3" 21934233.0 right_only
+                          19W000212-FAM000231.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "c74c16920a0bb09052feb4dc0aa3484b-3" 22628883.0 right_only
+                          19W000280-FAM000236.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "6e7e0efab44a494e2a766568523fc2ee-3" 22273661.0 right_only
+                          19W000297-FAM000239.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "9962ed54acd7cd13fbc4bfef43a571ba-3" 23063443.0 right_only
+                    19W000304-FAM000240.individual.norm.vep.post_filter.vcfanno.cann.vcf.gz "2e319e07fbf1c4301d8074996d2b7823-2" 15420134.0 right_only
+                    19W000305-FAM000240.individual.norm.vep.post_filter.vcfanno.cann.vcf.gz "9e16c66dea2127d4523fdf7e36b0d179-2" 15450057.0 right_only
+                          19W000348-FAM000244.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "60385ef78bfe3b58c579399fc33118c6-3" 21962177.0 right_only
+                          19W000434-FAM000254.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "bf0dedaed35740079c6d7860f52d9591-3" 21724388.0 right_only
+                           19W00168-FAM000225.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "08feeba990f1615d2c6728f96da2276b-3" 22639166.0 right_only
+            --------------------------------------------------------------------------------
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ACG/2020-02-30/ against agha-gdr-store-2.0/AC/2020-02-30/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 402
+        Object count agha-gdr-store-2.0: 400
+        Number of identical records: 339
+        Number of records only in agha-gdr-store: 63
+        Number of records only in agha-gdr-store-2.0: 61
+        
+        Checking file only in agha-gdr-store
+            50/63 differences explainable (13 unexplained).
+            Unexplained differences:
+            --------------------------------------------------------------------------------
+                                                                                Key                                 ETag       Size    _merge
+                  19W000447-FAM000256.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "ed10d308c736226260918fb3832aeb76-1" 14117285.0 left_only
+                  19W000467-FAM000258.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "45fd38e743eba5d5ec1035a4b76ac12d-1" 14295664.0 left_only
+                  19W000470-FAM000259.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "aab82a3a95dbe8df2bc2f32078c528cd-1" 14630976.0 left_only
+                  19W000477-FAM000260.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "09d38be73011ee16072fc839886dfb76-1" 13865870.0 left_only
+                  19W000495-FAM000262.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "27f79746b4e8bb53926a67c0ad5093c6-1" 14380593.0 left_only
+                  19W000504-FAM000264.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "816f3b19d31c75da112433ffe5984bc5-1" 16646589.0 left_only
+                  19W000529-FAM000265.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "79b6de8bddf52be7c29628fa141725f0-1" 13990249.0 left_only
+                  19W000567-FAM000269.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "7b88bc86c4b323f48cd32c2186e26fee-1" 14418097.0 left_only
+                  19W000579-FAM000270.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "cecb08896c158d2cdd4c58406293141c-1" 14173800.0 left_only
+            19W000641-FAM000273.individual.norm.vep.post_filter.vcfanno.cann.vcf.gz   "337bfef509e4117bc889cbb30c4e6e83"  8844499.0 left_only
+            19W000642-FAM000273.individual.norm.vep.post_filter.vcfanno.cann.vcf.gz   "b1d32c99ea8af35c381a92d835eb2f99"  9662438.0 left_only
+                  19W000746-FAM000277.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "a86af04e723ea25db4a054b4c118b52e-1" 14038576.0 left_only
+                  19W000772-FAM000281.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "a6164ab172013af8e2266bf158dedac9-1" 13998859.0 left_only
+            --------------------------------------------------------------------------------
+        
+        Checking file only in agha-gdr-store-2.0
+            48/61 differences explainable (13 unexplained).
+            Unexplained differences:
+            --------------------------------------------------------------------------------
+                                                                                Key                                 ETag       Size     _merge
+                  19W000447-FAM000256.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "0b608568acdbcd3013cf80ffc8cab435-2" 14117285.0 right_only
+                  19W000467-FAM000258.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "16fcd396df6810b86562cddb2785577e-2" 14295664.0 right_only
+                  19W000470-FAM000259.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "5847d858a82d622f028c7c3b45c6c7d6-2" 14630976.0 right_only
+                  19W000477-FAM000260.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "63f017b5ea1241f198d28d2f14c532ec-2" 13865870.0 right_only
+                  19W000495-FAM000262.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "adf9191aaeb25ad26335ee760d1142a9-2" 14380593.0 right_only
+                  19W000504-FAM000264.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "f9b0b6f9377d39330e911e6af5276462-2" 16646589.0 right_only
+                  19W000529-FAM000265.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "a9562a231cc93f0cf20defbff867a8c5-2" 13990249.0 right_only
+                  19W000567-FAM000269.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "475ed7134eed314d313bc3c2af92f518-2" 14418097.0 right_only
+                  19W000579-FAM000270.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "1d158ad7179e704965d992841053e6d9-2" 14173800.0 right_only
+            19W000641-FAM000273.individual.norm.vep.post_filter.vcfanno.cann.vcf.gz "99876bf4d13e1f9e502a62e3d3ba2095-2"  8844499.0 right_only
+            19W000642-FAM000273.individual.norm.vep.post_filter.vcfanno.cann.vcf.gz "694016e69ebb313b39af7decfd58c5c4-2"  9662438.0 right_only
+                  19W000746-FAM000277.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "1a7841569e6439040225f508a67ae203-2" 14038576.0 right_only
+                  19W000772-FAM000281.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "6434efa67df0fa9b011664968b92e457-2" 13998859.0 right_only
+            --------------------------------------------------------------------------------
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ACG/2020-09-01/ against agha-gdr-store-2.0/AC/2020-09-01/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 308
+        Object count agha-gdr-store-2.0: 306
+        Number of identical records: 242
+        Number of records only in agha-gdr-store: 66
+        Number of records only in agha-gdr-store-2.0: 64
+        
+        Checking file only in agha-gdr-store
+            66/66 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            64/64 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/acute_care_genomics/ against agha-gdr-store-2.0/AC/2019-05-16/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 2794
+        Object count agha-gdr-store-2.0: 3044
+        Number of identical records: 2546
+        Number of records only in agha-gdr-store: 248
+        Number of records only in agha-gdr-store-2.0: 498
+        
+        Checking file only in agha-gdr-store
+            247/248 differences explainable (1 unexplained).
+            Unexplained differences:
+            --------------------------------------------------------------------------------
+                         Key                               ETag     Size    _merge
+            manifest.txt.bak "43e01c47c50d2ea504e639b3c993988d" 281162.0 left_only
+            --------------------------------------------------------------------------------
+        
+        Checking file only in agha-gdr-store-2.0
+            498/498 differences explainable (0 unexplained).
+    
+    
+    
+    
+################################################################################
+Checking FlagShip BRAIN_MALFORMATIONS
+################################################################################
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/BM/2020-08-29/ against agha-gdr-store-2.0/BM/2020-08-29/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 7
+        Object count agha-gdr-store-2.0: 6
+        Number of identical records: 3
+        Number of records only in agha-gdr-store: 4
+        Number of records only in agha-gdr-store-2.0: 3
+        
+        Checking file only in agha-gdr-store
+            4/4 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            3/3 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/BM/2021-01-16/ against agha-gdr-store-2.0/BM/2021-01-16/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 93
+        Object count agha-gdr-store-2.0: 108
+        Number of identical records: 57
+        Number of records only in agha-gdr-store: 36
+        Number of records only in agha-gdr-store-2.0: 51
+        
+        Checking file only in agha-gdr-store
+            36/36 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            51/51 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/BM/2021-05-31/ against agha-gdr-store-2.0/BM/2021-05-31/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 6
+        Object count agha-gdr-store-2.0: 6
+        Number of identical records: 3
+        Number of records only in agha-gdr-store: 3
+        Number of records only in agha-gdr-store-2.0: 3
+        
+        Checking file only in agha-gdr-store
+            3/3 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            3/3 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/MCD/2019-09-05/ against agha-gdr-store-2.0/BM/2019-09-05/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 70
+        Object count agha-gdr-store-2.0: 96
+        Number of identical records: 54
+        Number of records only in agha-gdr-store: 16
+        Number of records only in agha-gdr-store-2.0: 42
+        
+        Checking file only in agha-gdr-store
+            16/16 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            42/42 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/MCD/2019-09-11/ against agha-gdr-store-2.0/BM/2019-09-11/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 124
+        Object count agha-gdr-store-2.0: 156
+        Number of identical records: 105
+        Number of records only in agha-gdr-store: 19
+        Number of records only in agha-gdr-store-2.0: 51
+        
+        Checking file only in agha-gdr-store
+            19/19 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            51/51 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/MCD/2019-09-16/ against agha-gdr-store-2.0/BM/2019-09-16/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 70
+        Object count agha-gdr-store-2.0: 90
+        Number of identical records: 57
+        Number of records only in agha-gdr-store: 13
+        Number of records only in agha-gdr-store-2.0: 33
+        
+        Checking file only in agha-gdr-store
+            13/13 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            33/33 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/brain_malformations/ against agha-gdr-store-2.0/BM/2019-07-22/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 512
+        Object count agha-gdr-store-2.0: 338
+        Number of identical records: 213
+        Number of records only in agha-gdr-store: 299
+        Number of records only in agha-gdr-store-2.0: 125
+        
+        Checking file only in agha-gdr-store
+            299/299 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            125/125 differences explainable (0 unexplained).
+    
+    
+    
+    
+################################################################################
+Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
+################################################################################
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2019-11-21/ against agha-gdr-store-2.0/Cardiac/2019-11-21/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 44
+        Object count agha-gdr-store-2.0: 42
+        Number of identical records: 37
+        Number of records only in agha-gdr-store: 7
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            7/7 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2019-12-11/ against agha-gdr-store-2.0/Cardiac/2019-12-11/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 10
+        Object count agha-gdr-store-2.0: 8
+        Number of identical records: 7
+        Number of records only in agha-gdr-store: 3
+        Number of records only in agha-gdr-store-2.0: 1
+        
+        Checking file only in agha-gdr-store
+            3/3 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            1/1 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-01-22/ against agha-gdr-store-2.0/Cardiac/2020-01-22/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 169
+        Object count agha-gdr-store-2.0: 184
+        Number of identical records: 150
+        Number of records only in agha-gdr-store: 19
+        Number of records only in agha-gdr-store-2.0: 34
+        
+        Checking file only in agha-gdr-store
+            19/19 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            34/34 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-01-23/ against agha-gdr-store-2.0/Cardiac/2020-01-23/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 34
+        Object count agha-gdr-store-2.0: 36
+        Number of identical records: 28
+        Number of records only in agha-gdr-store: 6
+        Number of records only in agha-gdr-store-2.0: 8
+        
+        Checking file only in agha-gdr-store
+            6/6 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            8/8 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-03-03/ against agha-gdr-store-2.0/Cardiac/2020-03-03/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 92
+        Object count agha-gdr-store-2.0: 90
+        Number of identical records: 62
+        Number of records only in agha-gdr-store: 30
+        Number of records only in agha-gdr-store-2.0: 28
+        
+        Checking file only in agha-gdr-store
+            30/30 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            28/28 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-03-14/ against agha-gdr-store-2.0/Cardiac/2020-03-14/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 160
+        Object count agha-gdr-store-2.0: 158
+        Number of identical records: 118
+        Number of records only in agha-gdr-store: 42
+        Number of records only in agha-gdr-store-2.0: 40
+        
+        Checking file only in agha-gdr-store
+            42/42 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            40/40 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-03-21/ against agha-gdr-store-2.0/Cardiac/2020-03-21/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 26
+        Object count agha-gdr-store-2.0: 24
+        Number of identical records: 12
+        Number of records only in agha-gdr-store: 14
+        Number of records only in agha-gdr-store-2.0: 12
+        
+        Checking file only in agha-gdr-store
+            14/14 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            12/12 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-03-22/ against agha-gdr-store-2.0/Cardiac/2020-03-22/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 34
+        Object count agha-gdr-store-2.0: 32
+        Number of identical records: 16
+        Number of records only in agha-gdr-store: 18
+        Number of records only in agha-gdr-store-2.0: 16
+        
+        Checking file only in agha-gdr-store
+            18/18 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            16/16 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-03-23/ against agha-gdr-store-2.0/Cardiac/2020-03-23/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 42
+        Object count agha-gdr-store-2.0: 40
+        Number of identical records: 20
+        Number of records only in agha-gdr-store: 22
+        Number of records only in agha-gdr-store-2.0: 20
+        
+        Checking file only in agha-gdr-store
+            22/22 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            20/20 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-03-24/ against agha-gdr-store-2.0/Cardiac/2020-03-24/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 34
+        Object count agha-gdr-store-2.0: 32
+        Number of identical records: 16
+        Number of records only in agha-gdr-store: 18
+        Number of records only in agha-gdr-store-2.0: 16
+        
+        Checking file only in agha-gdr-store
+            18/18 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            16/16 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-03-25/ against agha-gdr-store-2.0/Cardiac/2020-03-25/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 34
+        Object count agha-gdr-store-2.0: 32
+        Number of identical records: 16
+        Number of records only in agha-gdr-store: 18
+        Number of records only in agha-gdr-store-2.0: 16
+        
+        Checking file only in agha-gdr-store
+            18/18 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            16/16 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-03-31/ against agha-gdr-store-2.0/Cardiac/2020-03-31/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 146
+        Object count agha-gdr-store-2.0: 144
+        Number of identical records: 104
+        Number of records only in agha-gdr-store: 42
+        Number of records only in agha-gdr-store-2.0: 40
+        
+        Checking file only in agha-gdr-store
+            42/42 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            40/40 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-04-22/ against agha-gdr-store-2.0/Cardiac/2020-04-22/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 94
+        Object count agha-gdr-store-2.0: 92
+        Number of identical records: 68
+        Number of records only in agha-gdr-store: 26
+        Number of records only in agha-gdr-store-2.0: 24
+        
+        Checking file only in agha-gdr-store
+            26/26 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            24/24 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-04-23/ against agha-gdr-store-2.0/Cardiac/2020-04-23/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 124
+        Object count agha-gdr-store-2.0: 122
+        Number of identical records: 122
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-05-01/ against agha-gdr-store-2.0/Cardiac/2020-05-01/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 148
+        Object count agha-gdr-store-2.0: 146
+        Number of identical records: 125
+        Number of records only in agha-gdr-store: 23
+        Number of records only in agha-gdr-store-2.0: 21
+        
+        Checking file only in agha-gdr-store
+            23/23 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            21/21 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-05-08/ against agha-gdr-store-2.0/Cardiac/2020-05-08/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 114
+        Object count agha-gdr-store-2.0: 112
+        Number of identical records: 82
+        Number of records only in agha-gdr-store: 32
+        Number of records only in agha-gdr-store-2.0: 30
+        
+        Checking file only in agha-gdr-store
+            32/32 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            30/30 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-06-01/ against agha-gdr-store-2.0/Cardiac/2020-06-01/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 7
+        Object count agha-gdr-store-2.0: 6
+        Number of identical records: 4
+        Number of records only in agha-gdr-store: 3
+        Number of records only in agha-gdr-store-2.0: 2
+        
+        Checking file only in agha-gdr-store
+            3/3 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            2/2 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-07-07/ against agha-gdr-store-2.0/Cardiac/2020-07-07/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 150
+        Object count agha-gdr-store-2.0: 148
+        Number of identical records: 114
+        Number of records only in agha-gdr-store: 36
+        Number of records only in agha-gdr-store-2.0: 34
+        
+        Checking file only in agha-gdr-store
+            36/36 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            34/34 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-07-17/ against agha-gdr-store-2.0/Cardiac/2020-07-17/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 68
+        Object count agha-gdr-store-2.0: 77
+        Number of identical records: 65
+        Number of records only in agha-gdr-store: 3
+        Number of records only in agha-gdr-store-2.0: 12
+        
+        Checking file only in agha-gdr-store
+            3/3 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            12/12 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-08-01/ against agha-gdr-store-2.0/Cardiac/2020-08-01/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 34
+        Object count agha-gdr-store-2.0: 32
+        Number of identical records: 28
+        Number of records only in agha-gdr-store: 6
+        Number of records only in agha-gdr-store-2.0: 4
+        
+        Checking file only in agha-gdr-store
+            6/6 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            4/4 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-09-02/ against agha-gdr-store-2.0/Cardiac/2020-09-02/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 138
+        Object count agha-gdr-store-2.0: 136
+        Number of identical records: 118
+        Number of records only in agha-gdr-store: 20
+        Number of records only in agha-gdr-store-2.0: 18
+        
+        Checking file only in agha-gdr-store
+            20/20 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            18/18 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-10-01/ against agha-gdr-store-2.0/Cardiac/2020-10-01/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 107
+        Object count agha-gdr-store-2.0: 114
+        Number of identical records: 104
+        Number of records only in agha-gdr-store: 3
+        Number of records only in agha-gdr-store-2.0: 10
+        
+        Checking file only in agha-gdr-store
+            3/3 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            10/10 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CARDIAC/2020-10-02/ against agha-gdr-store-2.0/Cardiac/2020-10-02/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 7
+        Object count agha-gdr-store-2.0: 6
+        Number of identical records: 5
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 1
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            1/1 differences explainable (0 unexplained).
+    
+    
+    
+    
+################################################################################
+Checking FlagShip CHILDRANZ
+################################################################################
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CHW/2020-10-20/ against agha-gdr-store-2.0/chILDRANZ/2020-10-20/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 68
+        Object count agha-gdr-store-2.0: 66
+        Number of identical records: 66
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CHW/2021-02-15/ against agha-gdr-store-2.0/chILDRANZ/2021-02-15/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 96
+        Object count agha-gdr-store-2.0: 94
+        Number of identical records: 94
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CHW/2021-02-22/ against agha-gdr-store-2.0/chILDRANZ/2021-02-22/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 8
+        Object count agha-gdr-store-2.0: 6
+        Number of identical records: 6
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CHW/2021-03-26/ against agha-gdr-store-2.0/chILDRANZ/2021-03-26/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 26
+        Object count agha-gdr-store-2.0: 24
+        Number of identical records: 12
+        Number of records only in agha-gdr-store: 14
+        Number of records only in agha-gdr-store-2.0: 12
+        
+        Checking file only in agha-gdr-store
+            14/14 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            12/12 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/CHW/2021-04-16/ against agha-gdr-store-2.0/chILDRANZ/2021-04-16/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 12
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    
+    
+################################################################################
+Checking FlagShip EPILEPTIC_ENCEPHALOPATHY
+################################################################################
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/EE/2019-08-12/ against agha-gdr-store-2.0/EE/2019-08-12/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 212
+        Object count agha-gdr-store-2.0: 270
+        Number of identical records: 180
+        Number of records only in agha-gdr-store: 32
+        Number of records only in agha-gdr-store-2.0: 90
+        
+        Checking file only in agha-gdr-store
+            32/32 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            90/90 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/EE/2019-09-05/ against agha-gdr-store-2.0/EE/2019-09-05/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 140
+        Object count agha-gdr-store-2.0: 194
+        Number of identical records: 110
+        Number of records only in agha-gdr-store: 30
+        Number of records only in agha-gdr-store-2.0: 84
+        
+        Checking file only in agha-gdr-store
+            30/30 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            84/84 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/EE/2019-09-11/ against agha-gdr-store-2.0/EE/2019-09-11/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 88
+        Object count agha-gdr-store-2.0: 114
+        Number of identical records: 72
+        Number of records only in agha-gdr-store: 16
+        Number of records only in agha-gdr-store-2.0: 42
+        
+        Checking file only in agha-gdr-store
+            16/16 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            42/42 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/EE/2019-09-16/ against agha-gdr-store-2.0/EE/2019-09-16/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 81
+        Object count agha-gdr-store-2.0: 102
+        Number of identical records: 68
+        Number of records only in agha-gdr-store: 13
+        Number of records only in agha-gdr-store-2.0: 34
+        
+        Checking file only in agha-gdr-store
+            13/13 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            34/34 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/EE/2019-10-19/ against agha-gdr-store-2.0/EE/2019-10-19/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 6
+        Object count agha-gdr-store-2.0: 6
+        Number of identical records: 3
+        Number of records only in agha-gdr-store: 3
+        Number of records only in agha-gdr-store-2.0: 3
+        
+        Checking file only in agha-gdr-store
+            3/3 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            3/3 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/EE/2021-01-16/ against agha-gdr-store-2.0/EE/2021-01-16/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 121
+        Object count agha-gdr-store-2.0: 140
+        Number of identical records: 77
+        Number of records only in agha-gdr-store: 44
+        Number of records only in agha-gdr-store-2.0: 63
+        
+        Checking file only in agha-gdr-store
+            44/44 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            63/63 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/EE/2021-02-09/ against agha-gdr-store-2.0/EE/2021-02-09/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 7
+        Object count agha-gdr-store-2.0: 6
+        Number of identical records: 3
+        Number of records only in agha-gdr-store: 4
+        Number of records only in agha-gdr-store-2.0: 3
+        
+        Checking file only in agha-gdr-store
+            4/4 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            3/3 differences explainable (0 unexplained).
+    
+    
+    
+    
+################################################################################
+Checking FlagShip GENETIC_IMMUNOLOGY
+################################################################################
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/GI/2019-08-27/ against agha-gdr-store-2.0/GI/2019-08-27/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 855
+        Object count agha-gdr-store-2.0: 802
+        Number of identical records: 401
+        Number of records only in agha-gdr-store: 454
+        Number of records only in agha-gdr-store-2.0: 401
+        
+        Checking file only in agha-gdr-store
+            398/454 differences explainable (56 unexplained).
+            Unexplained differences:
+            --------------------------------------------------------------------------------
+                                          Key                                   ETag         Size    _merge
+              CCG_cohort155_sg1_joint_all.vcf  "8e6335cca4da9697a1f193cf337888e3-18"  147046962.0 left_only
+              CCG_cohort156_sg1_joint_all.vcf  "4b2aa0ef8edf341edb9e2f6699bf4b64-30"  251621513.0 left_only
+              CCG_cohort157_sg1_joint_all.vcf  "484dd0909f82525518807762ce2cd2e4-35"  291662657.0 left_only
+              CCG_cohort158_sg1_joint_all.vcf  "bfc733b5b2971100ba8556000f731275-38"  312411168.0 left_only
+              CCG_cohort159_sg1_joint_all.vcf  "364214ec0fb4201c64ff221cc930f80f-43"  354367976.0 left_only
+              CCG_cohort160_sg1_joint_all.vcf  "a222520d6163f800342d7b8bd876f0e7-34"  277276979.0 left_only
+              CCG_cohort165_sg1_joint_all.vcf  "7220e7f3d4d3477d013c40107c93ad9f-48"  397488743.0 left_only
+              CCG_cohort166_sg1_joint_all.vcf  "f6285ca5f960b4446058b5a0cba3fc5f-68"  565630117.0 left_only
+              CCG_cohort167_sg1_joint_all.vcf  "cb8c0d84e6536d3d60cb21a39ee254e7-51"  421661795.0 left_only
+              CCG_cohort168_sg1_joint_all.vcf  "376c056441e7e78e83502b2bcda4b9dd-56"  464071279.0 left_only
+              CCG_cohort176_sg1_joint_all.vcf  "ac50a161dd2a0fbac7aa9dc5b5a20ae5-48"  399933165.0 left_only
+              CCG_cohort177_sg1_joint_all.vcf  "921086b97c8418f9ce614bdefe9047fd-60"  498482027.0 left_only
+               CCG_cohort17_sg1_joint_all.vcf  "ba70466bd9fabefed74307c4e6ace2e2-29"  240129975.0 left_only
+              CCG_cohort180_sg1_joint_all.vcf  "51c2c8d66f275cc12bfb2e9f64e61239-61"  504605416.0 left_only
+              CCG_cohort185_sg1_joint_all.vcf  "fe2d9f5ecad25377e919566751cbefed-44"  367233731.0 left_only
+              CCG_cohort186_sg1_joint_all.vcf  "82e4a0a26bb79e9cb664c41e5795e27c-43"  353483237.0 left_only
+              CCG_cohort187_sg1_joint_all.vcf  "d76dcf22c2696d9d324d0170158008f2-42"  349530677.0 left_only
+               CCG_cohort20_sg1_joint_all.vcf  "e8aa37f60bbd982232d7d96ab585a83c-31"  251732974.0 left_only
+               CCG_cohort21_sg1_joint_all.vcf  "e76baa53e71bfba0c5adbed3cc387ecd-37"  307738226.0 left_only
+               CCG_cohort23_sg1_joint_all.vcf  "835f1d1aa16eca938bbc993026d851e9-29"  240158095.0 left_only
+               CCG_cohort24_sg1_joint_all.vcf  "41e482f4c5db9570937f21ce76d571da-22"  182340936.0 left_only
+               CCG_cohort25_sg1_all_joint.vcf  "02a723d6541fb02328456be25b35aa48-18"  147293451.0 left_only
+               CCG_cohort28_sg1_joint_all.vcf  "17ee04764863eb4b5d1274a380011882-37"  302838923.0 left_only
+               CCG_cohort29_sg1_joint_all.vcf  "68dcff4e58c8a347cfce28f0b6b30e93-28"  232026691.0 left_only
+                   CCG_cohort31_joint_all.vcf  "08e3aa486663db119125e566a45521b2-15"  120557753.0 left_only
+               CCG_cohort32_sg1_joint_all.vcf  "0c726b7536fdb2e91efc849efc527271-30"  243474312.0 left_only
+               CCG_cohort40_sg1_joint_all.vcf  "e94084daa8a3a6704e1f2edf15954393-32"  267710285.0 left_only
+               CCG_cohort43_sg1_joint_all.vcf  "530b29684c40e6506864f8bc50d1c527-23"  185733062.0 left_only
+               CCG_cohort44_sg1_joint_all.vcf  "d06dd7cf8a9a1bc909fe3319d50e27ff-29"  240176174.0 left_only
+               CCG_cohort45_sg1_joint_all.vcf  "3276679f05d154e65044f4a917e947f0-15"  124768259.0 left_only
+               CCG_cohort46_sg1_joint_all.vcf  "7da1781e15c2553aa7bfbd1117da195b-22"  177254391.0 left_only
+               CCG_cohort48_sg1_joint_all.vcf  "817fb0d67423061e7652d9a731271b83-26"  216935507.0 left_only
+               CCG_cohort52_sg1_joint_all.vcf  "0e20ced8ee8357c8dd38bdc9d66ebb2f-22"  182552230.0 left_only
+               CCG_cohort53_sg1_joint_all.vcf  "93a6a5af73794c266fc06d7005acec28-21"  170265521.0 left_only
+               CCG_cohort59_sg1_joint_all.vcf  "d95f25ca787ceac75fb4c20f42e28047-32"  266583443.0 left_only
+                CCG_cohort5_sg1_joint_all.vcf  "7dd70a044a7703d6124eaa6220831fa9-32"  266582291.0 left_only
+               CCG_cohort65_sg1_joint_all.vcf  "4efef570c20f587d6cf91b6e7b1c69fb-21"  169162493.0 left_only
+               CCG_cohort67_sg1_joint_all.vcf  "62f02537cc8d149d14cd11aba7f746e3-28"  234045270.0 left_only
+               CCG_cohort71_sg1_joint_all.vcf  "13c8b70023ecb2197b208e6d1f092f63-29"  240129975.0 left_only
+               CCG_cohort74_sg1_joint_all.vcf  "a0405c8703b8d44c2b7c0b05e99e3584-31"  251732974.0 left_only
+               CCG_cohort75_sg1_joint_all.vcf  "78535d65276b25297c45002092227668-37"  307738226.0 left_only
+               CCG_cohort77_sg1_joint_all.vcf  "d383be8db534d621484aa793c3ff6a86-29"  240158095.0 left_only
+               CCG_cohort78_sg1_joint_all.vcf  "f40af827e4f98bc3e6fddbd72bb10005-22"  182340936.0 left_only
+               CCG_cohort79_sg1_joint_all.vcf  "a463d085308015e444625b186c110e42-18"  147293451.0 left_only
+               CCG_cohort80_sg1_joint_all.vcf  "7b4a3e0a1c646cdd43c79a834aab0418-28"  234544789.0 left_only
+               CCG_cohort82_sg1_joint_all.vcf  "0e2f9a34c4d8b3528c793f959187b37b-37"  302838923.0 left_only
+               CCG_cohort83_sg1_joint_all.vcf  "fb83da81af31bebc5a44daa3c754b2d7-28"  232026691.0 left_only
+               CCG_cohort85_sg1_joint_all.vcf  "b4a5f29ddb947ef4fb4f6b11956e11ac-15"  120557753.0 left_only
+               CCG_cohort86_sg1_joint_all.vcf  "182aed3f913b4f5de83084e431ce8df3-30"  243474312.0 left_only
+               CCG_cohort94_sg1_joint_all.vcf  "93c1aac5a5405d1f00aa365d27c889e4-32"  267710285.0 left_only
+               CCG_cohort96_sg1_joint_all.vcf  "082ef0e7cd85f74959168d38ec0a6b98-23"  185733062.0 left_only
+               CCG_cohort97_sg1_joint.all.vcf  "668a6a15179c3c4584b0d0673842fda3-29"  240176174.0 left_only
+               CCG_cohort98_sg1_joint_all.vcf  "ea9158d6447885b6cb985f444d71295c-15"  124768259.0 left_only
+               CCG_cohort99_sg1_joint_all.vcf  "f2563e894eaa60d1cd7ce4041e495876-22"  177254391.0 left_only
+            CPI-CCG_cohort1_sg1_joint_all.vcf "0247b4a0b5697a599a465fbc2f6fce95-366" 3064973805.0 left_only
+            CPI-CCG_cohort2_sg1_joint_all.vcf "242704efd77ac6dd57b5641128ab01a4-377" 3154667093.0 left_only
+            --------------------------------------------------------------------------------
+        
+        Checking file only in agha-gdr-store-2.0
+            401/401 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/GI/2019-09-19/ against agha-gdr-store-2.0/GI/2019-09-19/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 5
+        Object count agha-gdr-store-2.0: 2
+        Number of identical records: 1
+        Number of records only in agha-gdr-store: 4
+        Number of records only in agha-gdr-store-2.0: 1
+        
+        Checking file only in agha-gdr-store
+            3/4 differences explainable (1 unexplained).
+            Unexplained differences:
+            --------------------------------------------------------------------------------
+                     Key                               ETag   Size    _merge
+            metadata.txt "fdf9ea2ed7a9efa9017b7b541a1ad791" 1144.0 left_only
+            --------------------------------------------------------------------------------
+        
+        Checking file only in agha-gdr-store-2.0
+            1/1 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/GI/2020-06-04/ against agha-gdr-store-2.0/GI/2020-06-04/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 412
+        Object count agha-gdr-store-2.0: 232
+        Number of identical records: 232
+        Number of records only in agha-gdr-store: 180
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/180 differences explainable (178 unexplained).
+            Unexplained differences:
+            --------------------------------------------------------------------------------
+                                                    Key                                   ETag         Size    _merge
+            CCG0111_CCHHAANXX_AACGTGAT_L005_R1.fastq.gz "e60cb0e3dbe477f198a94eaff5724c57-324" 2714851146.0 left_only
+            CCG0111_CCHHAANXX_AACGTGAT_L005_R2.fastq.gz "3f246e20f67b458b351b5d994bac40b5-319" 2670497168.0 left_only
+            CCG0112_CCHHAANXX_CACTTCGA_L005_R1.fastq.gz "f99bfcb04598c8d346254ce2771a4863-264" 2213814284.0 left_only
+            CCG0112_CCHHAANXX_CACTTCGA_L005_R2.fastq.gz "bd5806a3dd85a541a06e031dfb52b91a-260" 2174758983.0 left_only
+            CCG0115_CCHHAANXX_ATTGGCTC_L005_R1.fastq.gz "a4e4741ad16432f8d2b237985592dc85-425" 3558489507.0 left_only
+            CCG0115_CCHHAANXX_ATTGGCTC_L005_R2.fastq.gz "52cbe52b6d863584fc9d04fd59891471-422" 3533770459.0 left_only
+            CCG0116_CCHHAANXX_GATGAATC_L005_R1.fastq.gz "ac14fda490542ad8dfbc4ae804a1432e-226" 1888577034.0 left_only
+            CCG0116_CCHHAANXX_GATGAATC_L005_R2.fastq.gz "b82910eeff6c66b9aea2e5bccefe098b-222" 1858203357.0 left_only
+            CCG0124_CCHHAANXX_GACAGTGC_L006_R1.fastq.gz "24a42029d50f05a5a480d06ed6d0d09d-243" 2030831856.0 left_only
+            CCG0124_CCHHAANXX_GACAGTGC_L006_R2.fastq.gz "9abcf784af31d4ecfa76da5d0a5d3262-240" 2007474087.0 left_only
+            CCG0125_CCHHAANXX_ATCATTCC_L007_R1.fastq.gz "49404173fd0db7256ac1138ebca7b944-257" 2151512909.0 left_only
+            CCG0125_CCHHAANXX_ATCATTCC_L007_R2.fastq.gz "043be4f8ed2baf6f6eba2810d989dce0-255" 2138187635.0 left_only
+                             HUM6760_S3_R1_001.fastq.gz "317877133de2827dc02e829aade6407d-643" 5388232661.0 left_only
+                             HUM6760_S3_R2_001.fastq.gz "0a8a0b71deb6960d17f5c4203ef7955d-670" 5617096624.0 left_only
+                             HUM6918_S7_R1_001.fastq.gz "d08afdb32e06e2f0bd55b0737a875e7f-409" 3428222033.0 left_only
+                             HUM6918_S7_R2_001.fastq.gz "7336356ad1f59cf2488e8cc8088a7926-434" 3636224128.0 left_only
+                             HUM6921_S2_R1_001.fastq.gz "e8738257e4296f1180eb2f7e9c6d8213-213" 1779344094.0 left_only
+                             HUM6921_S2_R2_001.fastq.gz "bce58175f6b34600a7fe4cdacdda908e-222" 1861875086.0 left_only
+                             HUM6947_S1_R1_001.fastq.gz "96344b7b0f8f9d8780a0bb9872542b7e-311" 2608736386.0 left_only
+                             HUM6947_S1_R2_001.fastq.gz "41c93621dda76aa8a77a2e0f859e723c-330" 2766132275.0 left_only
+                             HUM6957_S4_R1_001.fastq.gz "4cb31e9eec06caf603adaeba359fb956-235" 1968845786.0 left_only
+                             HUM6957_S4_R2_001.fastq.gz "42d9a52bf0fcf3659711f2fa1c512cc9-252" 2109713430.0 left_only
+                             HUM6960_S7_R1_001.fastq.gz "8f0218cbc090a4299423aac81a8118f8-384" 3217606474.0 left_only
+                             HUM6960_S7_R2_001.fastq.gz "b7af8f2bd192889d202153c6573ae6f9-406" 3403456643.0 left_only
+                             HUM7151_S5_R1_001.fastq.gz "2c46eab43198e05d6f31983aacb8f3af-365" 3055189680.0 left_only
+                             HUM7151_S5_R2_001.fastq.gz "9970e5d531ab2633f2f9c0bc2e641d55-390" 3270472248.0 left_only
+                             HUM7152_S1_R1_001.fastq.gz "0f4064aebe592dc961f3a504de5322ed-408" 3414564930.0 left_only
+                             HUM7152_S1_R2_001.fastq.gz "cb306243e0b240f009058e1e67fdc8bd-433" 3629779818.0 left_only
+                             HUM7162_S1_R1_001.fastq.gz "0f83330550e583e12be7af0dedc90b99-368" 3084157891.0 left_only
+                             HUM7162_S1_R2_001.fastq.gz "28b230698b0a89dfc87a9bede056e510-386" 3233212987.0 left_only
+                             HUM7163_S2_R1_001.fastq.gz "6371bf20a8741c0c1a33e1c0d7754a7c-382" 3199647629.0 left_only
+                             HUM7163_S2_R2_001.fastq.gz "c845fceffbae3678de1e636f6f0b1814-411" 3439710100.0 left_only
+                             HUM7165_S6_R1_001.fastq.gz "8d3dd77779a799a1760f6ba8630254e6-359" 3007273916.0 left_only
+                             HUM7165_S6_R2_001.fastq.gz "067e03a8714ce39b0f065b926796cdc4-385" 3228612507.0 left_only
+                             HUM7166_S7_R1_001.fastq.gz "1685ad8f43728be57cb9322b6cc27abe-445" 3726209839.0 left_only
+                             HUM7166_S7_R2_001.fastq.gz "2185ca3400975006fe555f6c6835a610-468" 3919810088.0 left_only
+                             HUM7194_S4_R1_001.fastq.gz "3839b3d4b52c2743ddb2bafc88a99c35-487" 4079465417.0 left_only
+                             HUM7194_S4_R2_001.fastq.gz "ec1dc6fb070e855792927850fee6ee58-512" 4290695409.0 left_only
+                             HUM7197_S3_R1_001.fastq.gz "0b2a4371e70dcc481dcd64dee204a575-404" 3384679440.0 left_only
+                             HUM7197_S3_R2_001.fastq.gz "8225f394b37a99683e67cd4f726f6315-425" 3559036888.0 left_only
+                             HUM7203_S2_R1_001.fastq.gz "b8f9982516cb213a12b48dd8c2cb8be9-427" 3577325322.0 left_only
+                             HUM7203_S2_R2_001.fastq.gz "f1473310663025267cd580556b5ca081-457" 3828717389.0 left_only
+                             HUM7204_S6_R1_001.fastq.gz "757b62deb6d9e27349ce9639d1e1bb32-365" 3058425007.0 left_only
+                             HUM7204_S6_R2_001.fastq.gz "3458b18767ba2bb735cc63d7ad3369e2-388" 3252607155.0 left_only
+                             HUM7238_S3_R1_001.fastq.gz "a1ae3da5aa897faa6abff5a895388d6e-505" 4235482390.0 left_only
+                             HUM7238_S3_R2_001.fastq.gz "563639c9b408730834db8ae932ac0898-527" 4417603170.0 left_only
+                             HUM7243_S8_R1_001.fastq.gz "ee905dc5eae691adac8b5931ff1b86d8-350" 2928496518.0 left_only
+                             HUM7243_S8_R2_001.fastq.gz "90a505468456b3c293e50405fe91608e-366" 3066606369.0 left_only
+                             HUM7246_S1_R1_001.fastq.gz "82bae49397c06b948aa477cc3dc3758c-493" 4128941669.0 left_only
+                             HUM7246_S1_R2_001.fastq.gz "c1fb6520960f7b8176c0e8560fc38a6f-519" 4347198143.0 left_only
+                             HUM7247_S2_R1_001.fastq.gz "0f88fed80665e28a072cc3270b02314f-366" 3062581344.0 left_only
+                             HUM7247_S2_R2_001.fastq.gz "f2af07dddaa295d5ae2ce15bf3df2463-384" 3219156845.0 left_only
+                             HUM7387_S7_R1_001.fastq.gz "c0664a542df1b8e21e4c77ac2d686a00-450" 3770243388.0 left_only
+                             HUM7387_S7_R2_001.fastq.gz "85c61914a595484c5801860623862ee2-474" 3975172259.0 left_only
+                             HUM7388_S8_R1_001.fastq.gz "876238edd03d8ec70536f7a8d36dc46f-313" 2625070750.0 left_only
+                             HUM7388_S8_R2_001.fastq.gz "7faa16d73f8e7b19e3501b449ffaa5ef-329" 2759083896.0 left_only
+                             HUM7394_S6_R1_001.fastq.gz "c4ef5330ec8c5074cca165764a28eaab-365" 3056047547.0 left_only
+                             HUM7394_S6_R2_001.fastq.gz "4ce2ad2e29db3d2c2ff9292aabf8c8f6-381" 3193272754.0 left_only
+                             HUM7399_S1_R1_001.fastq.gz "e3823236446b9cc369cdfa886b733617-251" 2098650356.0 left_only
+                             HUM7399_S1_R2_001.fastq.gz "ee48fc6a4eecab7d121262d8000b5319-265" 2216454795.0 left_only
+                             HUM7400_S1_R1_001.fastq.gz "1394e7843fe9a7708a643fedb44aebb6-293" 2457769724.0 left_only
+                             HUM7400_S1_R2_001.fastq.gz "ac8e732fc57c886c0bc7b2c1e4bcadb2-311" 2601271655.0 left_only
+                             HUM7404_S4_R1_001.fastq.gz "73986959791f174bd423533406be9aad-225" 1880820002.0 left_only
+                             HUM7404_S4_R2_001.fastq.gz "25310efa2ab82d1ce6fe7d8c3c97b031-242" 2027759973.0 left_only
+                             HUM7804_S2_R1_001.fastq.gz "d62ad31a5cc55ce348e942378f97f2c0-340" 2849594824.0 left_only
+                             HUM7804_S2_R2_001.fastq.gz "95a150b292fe197c5b81a208112a6cfa-362" 3033654974.0 left_only
+                             HUM7808_S7_R1_001.fastq.gz "48a19ed47558721e4b2e647e29671c1a-385" 3227934598.0 left_only
+                             HUM7808_S7_R2_001.fastq.gz "97887ccf6fc6805968ab391c1258c4f2-410" 3438293973.0 left_only
+                             HUM7816_S4_R1_001.fastq.gz "1343e2fdd35e53a439dbb37e479a693f-273" 2285263786.0 left_only
+                             HUM7816_S4_R2_001.fastq.gz "f0aba7911a3b7ac638aad76515db8291-292" 2446030066.0 left_only
+                             HUM7837_S8_R1_001.fastq.gz "246e675a301c302ffdec3167a1f005eb-368" 3083753675.0 left_only
+                             HUM7837_S8_R2_001.fastq.gz "7ac1b52bdb4d662e4ce6a165e9d23a35-393" 3291804984.0 left_only
+                             HUM7841_S5_R1_001.fastq.gz "5681c0a840c31349432d6a1d7c791386-347" 2905807947.0 left_only
+                             HUM7841_S5_R2_001.fastq.gz "5845a386d472465134746ffc6de9840d-371" 3108727985.0 left_only
+                             HUM7845_S5_R1_001.fastq.gz "7c9d872f32e82e3d959bececc42faaf8-281" 2357093553.0 left_only
+                             HUM7845_S5_R2_001.fastq.gz "27939477b75b7e1682c9a6f6aa2a1bc5-299" 2507539975.0 left_only
+                             HUM7965_S5_R1_001.fastq.gz "e02eb133715d8189ecca9e922fed633d-406" 3399001769.0 left_only
+                             HUM7965_S5_R2_001.fastq.gz "3488554208368240701fd5b42a41b875-431" 3609229519.0 left_only
+                             HUM8102_S1_R1_001.fastq.gz "dc0d7824345f63e5e78810fa0abb24d7-274" 2294112964.0 left_only
+                             HUM8102_S1_R2_001.fastq.gz "2f3c5e05d88ef0e156167cebd3291583-289" 2420270702.0 left_only
+                             HUM8120_S2_R1_001.fastq.gz "4b54218022856b9ef7f2afa3150ab566-412" 3451683036.0 left_only
+                             HUM8120_S2_R2_001.fastq.gz "c23b3c20ab4f69dd0d88458b52a2114f-438" 3670054460.0 left_only
+                             HUM8121_S5_R1_001.fastq.gz "28d1574cf52cee1bddcbaa20637106f2-352" 2949301196.0 left_only
+                             HUM8121_S5_R2_001.fastq.gz "58725505d122ee0c254f0c573973cf1c-371" 3109443265.0 left_only
+                             HUM8133_S7_R1_001.fastq.gz "a53d1debe4ad862e3eb9baf03fbe61d3-324" 2714498399.0 left_only
+                             HUM8133_S7_R2_001.fastq.gz "1590d679360b5aebe54cfb430563f400-343" 2872545020.0 left_only
+                             HUM8140_S6_R1_001.fastq.gz "17ed3bc3815a016e0729afc9ed475de4-340" 2851212638.0 left_only
+                             HUM8140_S6_R2_001.fastq.gz "559e7f3bdb0eae88b3a3db750c297648-354" 2962158046.0 left_only
+                             HUM8145_S5_R1_001.fastq.gz "548fe4833f53bbfb1a8701cda8bc2254-432" 3620061498.0 left_only
+                             HUM8145_S5_R2_001.fastq.gz "fe5f4a25ab773bcb03815051ea134b4c-459" 3850022042.0 left_only
+                            HUM8307_S11_R1_001.fastq.gz "cb5553eb14dc07d5b49464dda76026fd-604" 5059221441.0 left_only
+                            HUM8307_S11_R2_001.fastq.gz "ddfe2658684d3bc51234ab089d8a4bcb-625" 5238760408.0 left_only
+                            HUM8311_S15_R1_001.fastq.gz "7f944520bfd9d4ecd02a6673e5374631-623" 5223070289.0 left_only
+                            HUM8311_S15_R2_001.fastq.gz "f24aea7ac0133306a1cf444e2cb70635-647" 5423200459.0 left_only
+                             HUM8354_S4_R1_001.fastq.gz "67965fd3d7c0283df02bf655077077b2-498" 4171992687.0 left_only
+                             HUM8354_S4_R2_001.fastq.gz "1329bb0bb755202953ab6de6d6df8dae-518" 4344977625.0 left_only
+                             HUM8355_S7_R1_001.fastq.gz "471cd4f011b7a1ee1205fabcf0f41ab1-621" 5206545927.0 left_only
+                             HUM8355_S7_R2_001.fastq.gz "2a4e9aa4fcb448151f20afff7345f159-653" 5472185092.0 left_only
+                            HUM8370_S17_R1_001.fastq.gz "9f0ab7197852457cfa905437f70be1c5-647" 5423620554.0 left_only
+                            HUM8370_S17_R2_001.fastq.gz "1a261b79b417db2cf240cb2647c97429-675" 5655112583.0 left_only
+                             HUM8489_S3_R1_001.fastq.gz "c1e8d74bf5f9c031012fc3db9de46494-651" 5457522532.0 left_only
+                             HUM8489_S3_R2_001.fastq.gz "54d250ec0802480032b1f83373d920d0-670" 5613611754.0 left_only
+                            HUM8497_S11_R1_001.fastq.gz "0d9ed4b35980b2316d454cf9ddf6ec4f-543" 4550068085.0 left_only
+                            HUM8497_S11_R2_001.fastq.gz "73bbdca328549573fae90d20f2bb123d-567" 4753613829.0 left_only
+                             HUM8509_S8_R1_001.fastq.gz "ba1e54b1cbec78078eb0711ed42eed25-488" 4085402942.0 left_only
+                             HUM8509_S8_R2_001.fastq.gz "5ca7a0fab1bb1fa6b009de3ffb2a4f22-512" 4294878556.0 left_only
+                            HUM8769_S20_R1_001.fastq.gz "50ac96d8280082e287428204bd20fcfb-384" 3220471856.0 left_only
+                            HUM8769_S20_R2_001.fastq.gz "44fe467b89e2c8c75cf7b2c81608f73a-419" 3508004298.0 left_only
+                            HUM8772_S14_R1_001.fastq.gz "9873417fbb63745bf453afd4962ad9ab-685" 5745580077.0 left_only
+                            HUM8772_S14_R2_001.fastq.gz "c818017bb6185f403b43fb7038b67d17-710" 5948124639.0 left_only
+                             HUM8830_S8_R1_001.fastq.gz "0f3ef78b528876ac7b5fd080cecc8661-591" 4952623987.0 left_only
+                             HUM8830_S8_R2_001.fastq.gz "2226ade3393c348e33304b3caadbc04f-613" 5138550966.0 left_only
+                            HUM8840_S18_R1_001.fastq.gz "5d26cd88ac1505049415930184ade385-695" 5825041782.0 left_only
+                            HUM8840_S18_R2_001.fastq.gz "d69da30f287860ebfbd7b60103745e9a-732" 6136294652.0 left_only
+                             HUM8894_S5_R1_001.fastq.gz "9a7bb12dfe317fc7db914b14e2415416-380" 3180029292.0 left_only
+                             HUM8894_S5_R2_001.fastq.gz "a383719936a325b8021e0cfe87afd4d8-394" 3303031956.0 left_only
+                            HUM8901_S19_R1_001.fastq.gz "b61e8503e0984296d4cccde624da5d1c-462" 3873229744.0 left_only
+                            HUM8901_S19_R2_001.fastq.gz "8db16a24bb3bfcae877f69aaf2a04b5d-476" 3988993811.0 left_only
+                            HUM8906_S18_R1_001.fastq.gz "854879b43cb19b9cac21f691e2936eee-621" 5201222367.0 left_only
+                            HUM8906_S18_R2_001.fastq.gz "985dcf31ba9f3b11ef55f560b72517bc-646" 5414050219.0 left_only
+                            HUM8910_S12_R1_001.fastq.gz "4ad9c0ac398a24609e36c0385c753ba5-764" 6403651706.0 left_only
+                            HUM8910_S12_R2_001.fastq.gz "4aefb90c67770c9e1fbd40f0e22952bf-802" 6719907218.0 left_only
+                            HUM8911_S15_R1_001.fastq.gz "e2c1f1d937fd2f09ea79dafcc28d67a4-402" 3370342450.0 left_only
+                            HUM8911_S15_R2_001.fastq.gz "ae456d368443c9c47605973720d5a7c7-417" 3497839695.0 left_only
+                            HUM8912_S16_R1_001.fastq.gz "afafa10e0b763fb804b2de5b02add9bd-341" 2852866342.0 left_only
+                            HUM8912_S16_R2_001.fastq.gz "43d63c5703eeef1f34a1007534cd484b-354" 2969119818.0 left_only
+                            HUM8916_S20_R1_001.fastq.gz "a4bcbf44ae8fda9c6b22bcb8350d7ad1-442" 3706848798.0 left_only
+                            HUM8916_S20_R2_001.fastq.gz "f0df5b23b70be4d8c8284500e114d665-464" 3890646451.0 left_only
+                            HUM8927_S13_R1_001.fastq.gz "4be0cf908174a8adcd952702ef4649a6-387" 3245874569.0 left_only
+                            HUM8927_S13_R2_001.fastq.gz "2b5d84d13ce660072291b7c4685ff126-401" 3363800486.0 left_only
+                            HUM8931_S15_R1_001.fastq.gz "26616342ba2e4dd8bd981ac6560d47ce-488" 4090081661.0 left_only
+                            HUM8931_S15_R2_001.fastq.gz "0b56e032a26d22cee7c243cc17d6e01b-508" 4258405362.0 left_only
+                             HUM8936_S7_R1_001.fastq.gz "0fc1126748e1b233e21f41cd65cdf30f-465" 3894424377.0 left_only
+                             HUM8936_S7_R2_001.fastq.gz "4cf578c2abcf04f3ec4a3ef9da21b77a-487" 4081804910.0 left_only
+                            HUM8939_S10_R1_001.fastq.gz "cdb3b2a403250d07c258e6a70246db1a-333" 2789773328.0 left_only
+                            HUM8939_S10_R2_001.fastq.gz "0ce674a3a849e5c564c4791474b0be4a-350" 2929458366.0 left_only
+                            HUM9006_S14_R1_001.fastq.gz "ba74e6d2225d686e0192cb7a9c3507e8-535" 4480249688.0 left_only
+                            HUM9006_S14_R2_001.fastq.gz "7a90f55da6c6bbe8b0f592c4926a50f9-549" 4599809123.0 left_only
+                             HUM9011_S2_R1_001.fastq.gz "8e1b6782c27dca73e7c0d972609319ff-434" 3637225888.0 left_only
+                             HUM9011_S2_R2_001.fastq.gz "384996b8644d47005288e890d177e2b9-443" 3716025831.0 left_only
+                             HUM9077_S4_R1_001.fastq.gz "cd4e074ec0411b6ec92485196ab0269c-509" 4265614034.0 left_only
+                             HUM9077_S4_R2_001.fastq.gz "75f2f83f5c2e900fc1228130d1ae49d4-529" 4434451909.0 left_only
+                            HUM9081_S16_R1_001.fastq.gz "7d8e3a03801f5bec1e5f932ea224fd58-366" 3065174685.0 left_only
+                            HUM9081_S16_R2_001.fastq.gz "68a203e9e295533e9753006f26c79bc1-376" 3149644039.0 left_only
+                            HUM9082_S19_R1_001.fastq.gz "288d2ddc149c667543789432184cc221-543" 4553718468.0 left_only
+                            HUM9082_S19_R2_001.fastq.gz "529123d62776e56b079dc4ca9471ba26-559" 4681503067.0 left_only
+                             HUM9084_S3_R1_001.fastq.gz "5c37dded44ff97b2c6f4f1154abe92fc-653" 5473629622.0 left_only
+                             HUM9084_S3_R2_001.fastq.gz "fe6479de562c53e08f5b8e95074ae747-668" 5595689988.0 left_only
+                            HUM9086_S12_R1_001.fastq.gz "aca1b5219e5571e4a44fd9a2445fdff2-585" 4905432106.0 left_only
+                            HUM9086_S12_R2_001.fastq.gz "1cfb082cd4e50e2c2142676f2e16ab2e-606" 5081641430.0 left_only
+                             HUM9090_S7_R1_001.fastq.gz "4673875554fdd18e5123b79bf36392cf-480" 4025728255.0 left_only
+                             HUM9090_S7_R2_001.fastq.gz "8611b448cb5726d1a787e5eeee89534f-491" 4115145989.0 left_only
+                             HUM9177_S7_R1_001.fastq.gz "30be98200277db44e7c6af565ca04b41-719" 6026826846.0 left_only
+                             HUM9177_S7_R2_001.fastq.gz "8a497706a57329b68876418ffb25e92c-745" 6248132217.0 left_only
+                             HUM9182_S3_R1_001.fastq.gz "6b1871a76d7db418020f128b8074597e-586" 4914111987.0 left_only
+                             HUM9182_S3_R2_001.fastq.gz "c32ed035d07ecb2ecc8c562369582669-607" 5085914789.0 left_only
+                            HUM9188_S13_R1_001.fastq.gz "231868f417b3d2bfcdf4466fea048999-566" 4742512323.0 left_only
+                            HUM9188_S13_R2_001.fastq.gz "0ad7f081761fe67f4e4bebf0a7537175-589" 4940753810.0 left_only
+                            HUM9238_S10_R1_001.fastq.gz "f986a907b1321cefe8e9bf237a1e26ab-448" 3753303550.0 left_only
+                            HUM9238_S10_R2_001.fastq.gz "fe5c914885a8745323e14add291f4ce4-467" 3915979819.0 left_only
+                             HUM9257_S7_R1_001.fastq.gz "94efbab2208d7a2447b3da6e4193d430-728" 6102676796.0 left_only
+                             HUM9257_S7_R2_001.fastq.gz "305e3110450a8c87fe4b91f4d665eb55-753" 6308774827.0 left_only
+                            HUM9299_S17_R1_001.fastq.gz "69f3e586323bcc1db2d3c23c0db5895e-416" 3482040534.0 left_only
+                            HUM9299_S17_R2_001.fastq.gz "18c42716f3195cf7d986b8508390dc01-431" 3613792992.0 left_only
+                            HUM9300_S20_R1_001.fastq.gz "5873f18740a270befdd7beebbda3b483-251" 2102504701.0 left_only
+                            HUM9300_S20_R2_001.fastq.gz "b26da83b31480961d406ee8a9b42bf67-268" 2239933944.0 left_only
+                            HUM9303_S23_R1_001.fastq.gz "f596fdf3d6431dab5f7148d5152d4e50-527" 4419753316.0 left_only
+                            HUM9303_S23_R2_001.fastq.gz "cc12825cdba6153b70e0cb0d9ef064a6-549" 4601245779.0 left_only
+                             HUM9307_S4_R1_001.fastq.gz "e959e4a219f2b220190c4a6845426512-460" 3856119192.0 left_only
+                             HUM9307_S4_R2_001.fastq.gz "7f0441c2c76b6811a33267deea761868-482" 4041640994.0 left_only
+                            HUM9310_S10_R1_001.fastq.gz "b00490dd25a0319e9713ed5be2302ee7-352" 2948937025.0 left_only
+                            HUM9310_S10_R2_001.fastq.gz "f115115ebd4918057e7a83bd0bb79cf3-369" 3087646779.0 left_only
+                             HUM9311_S7_R1_001.fastq.gz "436166de37356f2ebc2764342c0f4b07-576" 4830886716.0 left_only
+                             HUM9311_S7_R2_001.fastq.gz "cfbc0ad75ab702ffc76409c86f7a6cd7-601" 5034517117.0 left_only
+                            HUM9314_S11_R1_001.fastq.gz "6032fc7f033776f4eab4863868198782-639" 5352430794.0 left_only
+                            HUM9314_S11_R2_001.fastq.gz "903ad8bcfea09bde5da63c2a905aecec-676" 5663809611.0 left_only
+                            HUM9319_S14_R1_001.fastq.gz "11fabc52dec98d4c666b38fb2bb831d0-696" 5830197394.0 left_only
+                            HUM9319_S14_R2_001.fastq.gz "0de2704aa67168f54867d17a67dc19a9-722" 6052000770.0 left_only
+            --------------------------------------------------------------------------------
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/GI/2021-04-13/ against agha-gdr-store-2.0/GI/2021-04-13/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 236
+        Object count agha-gdr-store-2.0: 234
+        Number of identical records: 234
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/GI/2021-05-19/ against agha-gdr-store-2.0/GI/2021-05-19/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 132
+        Object count agha-gdr-store-2.0: 130
+        Number of identical records: 130
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    
+    
+################################################################################
+Checking FlagShip HIDDEN_RENAL_GENETICS
+################################################################################
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/HIDDEN/2019-09-19/ against agha-gdr-store-2.0/HIDDEN/2019-09-19/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 7
+        Number of records only in agha-gdr-store: 7
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            7/7 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/HIDDEN/2019-09-20/ against agha-gdr-store-2.0/HIDDEN/2019-09-20/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 7
+        Number of records only in agha-gdr-store: 7
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            7/7 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/HIDDEN/2019-09-21/ against agha-gdr-store-2.0/HIDDEN/2019-09-21/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 7
+        Number of records only in agha-gdr-store: 7
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            7/7 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/HIDDEN/2019-09-22/ against agha-gdr-store-2.0/HIDDEN/2019-09-22/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 7
+        Number of records only in agha-gdr-store: 7
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            7/7 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/HIDDEN/2019-09-23/ against agha-gdr-store-2.0/HIDDEN/2019-09-23/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 7
+        Number of records only in agha-gdr-store: 7
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            7/7 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/HIDDEN/2019-09-24/ against agha-gdr-store-2.0/HIDDEN/2019-09-24/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 7
+        Number of records only in agha-gdr-store: 7
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            7/7 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/HIDDEN/2019-09-25/ against agha-gdr-store-2.0/HIDDEN/2019-09-25/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 7
+        Number of records only in agha-gdr-store: 7
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            7/7 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/HIDDEN/2019-09-26/ against agha-gdr-store-2.0/HIDDEN/2019-09-26/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 7
+        Number of records only in agha-gdr-store: 7
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            7/7 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    WARNING: could not find new submission for agha-gdr-store/HIDDEN/2019-09-27/
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/HIDDEN/2019-09-28/ against agha-gdr-store-2.0/HIDDEN/2019-09-28/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 7
+        Number of records only in agha-gdr-store: 7
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            7/7 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/HIDDEN/2019-09-29/ against agha-gdr-store-2.0/HIDDEN/2019-09-29/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 7
+        Number of records only in agha-gdr-store: 7
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            7/7 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/HIDDEN/2019-09-30/ against agha-gdr-store-2.0/HIDDEN/2019-09-30/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 7
+        Number of records only in agha-gdr-store: 7
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            7/7 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    
+    
+################################################################################
+Checking FlagShip HEREDITARY_CANCERS
+################################################################################
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2019-09-24/ against agha-gdr-store-2.0/ICCon/2019-09-24/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 109
+        Object count agha-gdr-store-2.0: 108
+        Number of identical records: 108
+        Number of records only in agha-gdr-store: 1
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            1/1 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2019-09-25/ against agha-gdr-store-2.0/ICCon/2019-09-25/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 16
+        Object count agha-gdr-store-2.0: 14
+        Number of identical records: 14
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2019-09-26/ against agha-gdr-store-2.0/ICCon/2019-09-26/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 14
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 12
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2019-09-27/ against agha-gdr-store-2.0/ICCon/2019-09-27/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 18
+        Object count agha-gdr-store-2.0: 16
+        Number of identical records: 16
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2019-09-28/ against agha-gdr-store-2.0/ICCon/2019-09-28/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 26
+        Object count agha-gdr-store-2.0: 24
+        Number of identical records: 24
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2019-12-13/ against agha-gdr-store-2.0/ICCon/2019-12-13/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 12
+        Object count agha-gdr-store-2.0: 10
+        Number of identical records: 10
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2020-01-20/ against agha-gdr-store-2.0/ICCon/2020-01-20/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 42
+        Object count agha-gdr-store-2.0: 40
+        Number of identical records: 40
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2020-07-06/ against agha-gdr-store-2.0/ICCon/2020-07-06/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 12
+        Object count agha-gdr-store-2.0: 10
+        Number of identical records: 10
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2020-07-13/ against agha-gdr-store-2.0/ICCon/2020-07-13/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 32
+        Object count agha-gdr-store-2.0: 30
+        Number of identical records: 30
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2020-07-14/ against agha-gdr-store-2.0/ICCon/2020-07-14/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 12
+        Object count agha-gdr-store-2.0: 10
+        Number of identical records: 10
+        Number of records only in agha-gdr-store: 2
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            2/2 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2020-10-16/ against agha-gdr-store-2.0/ICCon/2020-10-16/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 25
+        Object count agha-gdr-store-2.0: 24
+        Number of identical records: 24
+        Number of records only in agha-gdr-store: 1
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            1/1 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2020-11-27/ against agha-gdr-store-2.0/ICCon/2020-11-27/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 75
+        Object count agha-gdr-store-2.0: 74
+        Number of identical records: 74
+        Number of records only in agha-gdr-store: 1
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            1/1 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2020-12-16/ against agha-gdr-store-2.0/ICCon/2020-12-16/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 11
+        Object count agha-gdr-store-2.0: 10
+        Number of identical records: 10
+        Number of records only in agha-gdr-store: 1
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            1/1 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ICCON/2020-12-21/ against agha-gdr-store-2.0/ICCon/2020-12-21/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 17
+        Object count agha-gdr-store-2.0: 16
+        Number of identical records: 16
+        Number of records only in agha-gdr-store: 1
+        Number of records only in agha-gdr-store-2.0: 0
+        
+        Checking file only in agha-gdr-store
+            1/1 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            0/0 differences explainable (0 unexplained).
+    
+    
+    
+    
+################################################################################
+Checking FlagShip INTELLECTUAL_DISABILITY
+################################################################################
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ID/2019-09-05/ against agha-gdr-store-2.0/ID/2019-09-05/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 22
+        Object count agha-gdr-store-2.0: 28
+        Number of identical records: 18
+        Number of records only in agha-gdr-store: 4
+        Number of records only in agha-gdr-store-2.0: 10
+        
+        Checking file only in agha-gdr-store
+            4/4 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            10/10 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ID/2019-09-11/ against agha-gdr-store-2.0/ID/2019-09-11/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 56
+        Object count agha-gdr-store-2.0: 66
+        Number of identical records: 51
+        Number of records only in agha-gdr-store: 5
+        Number of records only in agha-gdr-store-2.0: 15
+        
+        Checking file only in agha-gdr-store
+            5/5 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            15/15 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ID/2019-09-16/ against agha-gdr-store-2.0/ID/2019-09-16/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 30
+        Object count agha-gdr-store-2.0: 32
+        Number of identical records: 27
+        Number of records only in agha-gdr-store: 3
+        Number of records only in agha-gdr-store-2.0: 5
+        
+        Checking file only in agha-gdr-store
+            3/3 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            5/5 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/ID/2020-08-22/ against agha-gdr-store-2.0/ID/2020-08-22/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 489
+        Object count agha-gdr-store-2.0: 558
+        Number of identical records: 335
+        Number of records only in agha-gdr-store: 154
+        Number of records only in agha-gdr-store-2.0: 223
+        
+        Checking file only in agha-gdr-store
+            154/154 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            223/223 differences explainable (0 unexplained).
+    
+    
+    
+    
+################################################################################
+Checking FlagShip RENAL_GENETICS
+################################################################################
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/KidGen/2020-03-03/ against agha-gdr-store-2.0/KidGen/2020-03-03/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 283
+        Object count agha-gdr-store-2.0: 328
+        Number of identical records: 187
+        Number of records only in agha-gdr-store: 96
+        Number of records only in agha-gdr-store-2.0: 141
+        
+        Checking file only in agha-gdr-store
+            96/96 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            141/141 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/KidGen/2020-03-04/ against agha-gdr-store-2.0/KidGen/2020-03-04/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 257
+        Object count agha-gdr-store-2.0: 300
+        Number of identical records: 165
+        Number of records only in agha-gdr-store: 92
+        Number of records only in agha-gdr-store-2.0: 135
+        
+        Checking file only in agha-gdr-store
+            92/92 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            135/135 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/KidGen/2020-03-05/ against agha-gdr-store-2.0/KidGen/2020-03-05/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 330
+        Object count agha-gdr-store-2.0: 384
+        Number of identical records: 216
+        Number of records only in agha-gdr-store: 114
+        Number of records only in agha-gdr-store-2.0: 168
+        
+        Checking file only in agha-gdr-store
+            114/114 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            168/168 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/KidGen/2020-03-06/ against agha-gdr-store-2.0/KidGen/2020-03-06/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 350
+        Object count agha-gdr-store-2.0: 406
+        Number of identical records: 232
+        Number of records only in agha-gdr-store: 118
+        Number of records only in agha-gdr-store-2.0: 174
+        
+        Checking file only in agha-gdr-store
+            118/118 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            174/174 differences explainable (0 unexplained).
+    
+    
+    
+    
+################################################################################
+Checking FlagShip LEUKODYSTROPHIES
+################################################################################
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/LD/2019-09-05/ against agha-gdr-store-2.0/Leuko/2019-09-05/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 20
+        Object count agha-gdr-store-2.0: 24
+        Number of identical records: 15
+        Number of records only in agha-gdr-store: 5
+        Number of records only in agha-gdr-store-2.0: 9
+        
+        Checking file only in agha-gdr-store
+            5/5 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            9/9 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/LD/2019-09-11/ against agha-gdr-store-2.0/Leuko/2019-09-11/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 12
+        Object count agha-gdr-store-2.0: 12
+        Number of identical records: 9
+        Number of records only in agha-gdr-store: 3
+        Number of records only in agha-gdr-store-2.0: 3
+        
+        Checking file only in agha-gdr-store
+            3/3 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            3/3 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/LD/2019-09-16/ against agha-gdr-store-2.0/Leuko/2019-09-16/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 53
+        Object count agha-gdr-store-2.0: 72
+        Number of identical records: 40
+        Number of records only in agha-gdr-store: 13
+        Number of records only in agha-gdr-store-2.0: 32
+        
+        Checking file only in agha-gdr-store
+            13/13 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            32/32 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/LD/2020-08-29/ against agha-gdr-store-2.0/Leuko/2020-08-29/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 12
+        Object count agha-gdr-store-2.0: 10
+        Number of identical records: 9
+        Number of records only in agha-gdr-store: 3
+        Number of records only in agha-gdr-store-2.0: 1
+        
+        Checking file only in agha-gdr-store
+            3/3 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            1/1 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/LD/2020-08-31/ against agha-gdr-store-2.0/Leuko/2020-08-31/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 51
+        Object count agha-gdr-store-2.0: 56
+        Number of identical records: 35
+        Number of records only in agha-gdr-store: 16
+        Number of records only in agha-gdr-store-2.0: 21
+        
+        Checking file only in agha-gdr-store
+            16/16 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            21/21 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/LD/2020-11-05/ against agha-gdr-store-2.0/Leuko/2020-11-05/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 61
+        Object count agha-gdr-store-2.0: 70
+        Number of identical records: 38
+        Number of records only in agha-gdr-store: 23
+        Number of records only in agha-gdr-store-2.0: 32
+        
+        Checking file only in agha-gdr-store
+            23/23 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            32/32 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/LD/2021-01-19/ against agha-gdr-store-2.0/Leuko/2021-01-19/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 40
+        Object count agha-gdr-store-2.0: 44
+        Number of identical records: 26
+        Number of records only in agha-gdr-store: 14
+        Number of records only in agha-gdr-store-2.0: 18
+        
+        Checking file only in agha-gdr-store
+            14/14 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            18/18 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/LD/2021-02-26/ against agha-gdr-store-2.0/Leuko/2021-02-26/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 22
+        Object count agha-gdr-store-2.0: 24
+        Number of identical records: 12
+        Number of records only in agha-gdr-store: 10
+        Number of records only in agha-gdr-store-2.0: 12
+        
+        Checking file only in agha-gdr-store
+            10/10 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            12/12 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/LD/2021-03-29/ against agha-gdr-store-2.0/Leuko/2021-03-29/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 16
+        Object count agha-gdr-store-2.0: 20
+        Number of identical records: 11
+        Number of records only in agha-gdr-store: 5
+        Number of records only in agha-gdr-store-2.0: 9
+        
+        Checking file only in agha-gdr-store
+            5/5 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            9/9 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/leukodystrophies/ against agha-gdr-store-2.0/Leuko/2019-08-12/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 98
+        Object count agha-gdr-store-2.0: 62
+        Number of identical records: 41
+        Number of records only in agha-gdr-store: 57
+        Number of records only in agha-gdr-store-2.0: 21
+        
+        Checking file only in agha-gdr-store
+            57/57 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            21/21 differences explainable (0 unexplained).
+    
+    
+    
+    
+################################################################################
+Checking FlagShip MITOCHONDRIAL_DISORDERS
+################################################################################
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/MITO/2019-08-14/ against agha-gdr-store-2.0/Mito/2019-08-14/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 6
+        Object count agha-gdr-store-2.0: 6
+        Number of identical records: 3
+        Number of records only in agha-gdr-store: 3
+        Number of records only in agha-gdr-store-2.0: 3
+        
+        Checking file only in agha-gdr-store
+            3/3 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            3/3 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/MITO/2019-09-11/ against agha-gdr-store-2.0/Mito/2019-09-11/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 52
+        Object count agha-gdr-store-2.0: 68
+        Number of identical records: 41
+        Number of records only in agha-gdr-store: 11
+        Number of records only in agha-gdr-store-2.0: 27
+        
+        Checking file only in agha-gdr-store
+            11/11 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            27/27 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/MITO/2019-09-16/ against agha-gdr-store-2.0/Mito/2019-09-16/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 66
+        Object count agha-gdr-store-2.0: 76
+        Number of identical records: 58
+        Number of records only in agha-gdr-store: 8
+        Number of records only in agha-gdr-store-2.0: 18
+        
+        Checking file only in agha-gdr-store
+            8/8 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            18/18 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    Checking agha-gdr-store/MITO/2020-08-16/ against agha-gdr-store-2.0/Mito/2020-08-16/
+        Comparing S3 bucket content
+        Object count agha-gdr-store: 115
+        Object count agha-gdr-store-2.0: 134
+        Number of identical records: 71
+        Number of records only in agha-gdr-store: 44
+        Number of records only in agha-gdr-store-2.0: 63
+        
+        Checking file only in agha-gdr-store
+            44/44 differences explainable (0 unexplained).
+        
+        Checking file only in agha-gdr-store-2.0
+            63/63 differences explainable (0 unexplained).
+    
+    
+    ================================================================================
+    WARNING: could not find new submission for agha-gdr-store/mitochondrial_disease/
