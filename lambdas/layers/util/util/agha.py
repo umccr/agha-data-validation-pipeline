@@ -96,6 +96,14 @@ class FileType(Enum):
         return False
 
     @staticmethod
+    def is_compressable_file(filename: str) -> bool:
+        COMPRESSABLE_TYPE = [FileType.VCF, FileType.FASTQ]
+        ft = FileType.from_name(filename)
+        if ft in COMPRESSABLE_TYPE:
+            return True
+        return False
+
+    @staticmethod
     def is_index_file(filename: str) -> bool:
         INDEX_FILE = [FileType.BAM_INDEX, FileType.VCF_INDEX]
         if FileType.from_name(filename) in INDEX_FILE:
