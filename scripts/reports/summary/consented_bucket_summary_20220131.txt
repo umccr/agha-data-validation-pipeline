@@ -1,0 +1,233 @@
+General statistic report for consented data in 'agha-gdr-store-2.0' bucket at date 20220131.
+
+
+################################################################################
+Statistic Entire Bucket
+################################################################################
+        File count per file type.
+        
+        Total number of BAM: 779
+        Total number of BAM_INDEX: 779
+        Total number of FASTQ: 4442
+        Total number of VCF: 735
+        Total number of VCF_INDEX: 735
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        
+        Total file size of BAM (in bytes): 7280423152332
+        Total file size of BAM_INDEX (in bytes): 2428924920
+        Total file size of FASTQ (in bytes): 11170190351527
+        Total file size of VCF (in bytes): 6680507661
+        Total file size of VCF_INDEX (in bytes): 187272404
+
+
+################################################################################
+Checking FlagShip Leukodystrophies
+################################################################################
+        File count per file type.
+        
+        Total number of BAM: 50
+        Total number of BAM_INDEX: 50
+        Total number of FASTQ: 178
+        Total number of VCF: 51
+        Total number of VCF_INDEX: 51
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        
+        Total file size of BAM (in bytes): 456021692040
+        Total file size of BAM_INDEX (in bytes): 144407824
+        Total file size of FASTQ (in bytes): 470452828327
+        Total file size of VCF (in bytes): 636179433
+        Total file size of VCF_INDEX (in bytes): 11421504
+
+
+################################################################################
+Checking FlagShip Genetic Immunology
+################################################################################
+        File count per file type.
+        
+        Total number of FASTQ: 332
+        Total number of VCF: 1
+        Total number of VCF_INDEX: 1
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        
+        Total file size of FASTQ (in bytes): 1263587634779
+        Total file size of VCF (in bytes): 20599093
+        Total file size of VCF_INDEX (in bytes): 1200742
+
+
+################################################################################
+Checking FlagShip Epileptic Encephalopathy
+################################################################################
+        File count per file type.
+        
+        Total number of BAM: 100
+        Total number of BAM_INDEX: 100
+        Total number of FASTQ: 386
+        Total number of VCF: 99
+        Total number of VCF_INDEX: 99
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        
+        Total file size of BAM (in bytes): 765725433406
+        Total file size of BAM_INDEX (in bytes): 274929232
+        Total file size of FASTQ (in bytes): 989796466482
+        Total file size of VCF (in bytes): 458895707
+        Total file size of VCF_INDEX (in bytes): 15818866
+
+
+################################################################################
+Checking FlagShip Brain Malformations
+################################################################################
+        File count per file type.
+        
+        Total number of BAM: 102
+        Total number of BAM_INDEX: 102
+        Total number of FASTQ: 390
+        Total number of VCF: 102
+        Total number of VCF_INDEX: 102
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        
+        Total file size of BAM (in bytes): 785442577547
+        Total file size of BAM_INDEX (in bytes): 282612048
+        Total file size of FASTQ (in bytes): 1001669542330
+        Total file size of VCF (in bytes): 525734915
+        Total file size of VCF_INDEX (in bytes): 16748195
+
+
+################################################################################
+Checking FlagShip HIDDEN Renal Genetics
+################################################################################
+        File count per file type.
+        
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        
+
+
+################################################################################
+Checking FlagShip Interstitial and Diffuse Lung Disease in Children
+################################################################################
+        File count per file type.
+        
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        
+
+
+################################################################################
+Checking FlagShip Acute Care Genomics
+################################################################################
+        File count per file type.
+        
+        Total number of BAM: 304
+        Total number of BAM_INDEX: 304
+        Total number of FASTQ: 2480
+        Total number of VCF: 259
+        Total number of VCF_INDEX: 259
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        
+        Total file size of BAM (in bytes): 3141354512731
+        Total file size of BAM_INDEX (in bytes): 1130312576
+        Total file size of FASTQ (in bytes): 4892780435533
+        Total file size of VCF (in bytes): 4554411098
+        Total file size of VCF_INDEX (in bytes): 107645967
+
+
+################################################################################
+Checking FlagShip Mitochondrial Disorders
+################################################################################
+        File count per file type.
+        
+        Total number of BAM: 37
+        Total number of BAM_INDEX: 37
+        Total number of FASTQ: 136
+        Total number of VCF: 37
+        Total number of VCF_INDEX: 37
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        
+        Total file size of BAM (in bytes): 215642396610
+        Total file size of BAM_INDEX (in bytes): 74867664
+        Total file size of FASTQ (in bytes): 295635569789
+        Total file size of VCF (in bytes): 134735311
+        Total file size of VCF_INDEX (in bytes): 4508899
+
+
+################################################################################
+Checking FlagShip Renal Genetics
+################################################################################
+        File count per file type.
+        
+        Total number of BAM: 186
+        Total number of BAM_INDEX: 186
+        Total number of FASTQ: 540
+        Total number of VCF: 186
+        Total number of VCF_INDEX: 186
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        
+        Total file size of BAM (in bytes): 1916236539998
+        Total file size of BAM_INDEX (in bytes): 521795576
+        Total file size of FASTQ (in bytes): 2256267874287
+        Total file size of VCF (in bytes): 349952104
+        Total file size of VCF_INDEX (in bytes): 29928231
+
+
+################################################################################
+Checking FlagShip Intellectual Disability
+################################################################################
+        File count per file type.
+        
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        
+
+
+################################################################################
+Checking FlagShip Hereditary Cancers
+################################################################################
+        File count per file type.
+        
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        
+
+
+################################################################################
+Checking FlagShip Cardiovascular Genetic Disorders
+################################################################################
+        File count per file type.
+        
+    
+    ================================================================================
+    
+        Total file size in bytes per file type.
+        

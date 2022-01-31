@@ -492,16 +492,17 @@ def delete_record_from_dictionary(table_name: str, dictionary: dict):
         return ValueError(f"partition_key: {dictionary['partition_key'],}, sort_key: {dictionary['sort_key']}\
          has not been successfully deleted from table '{table_name}'")
 
-def batch_delete_from_dictionary(table_name: str, dictionary_list: list):
 
+def batch_delete_from_dictionary(table_name: str, dictionary_list: list):
     tbl = get_resource().Table(table_name)
     with tbl.batch_writer() as batch:
         for record in dictionary_list:
             key = {
-                "partition_key":record['partition_key'],
-                "sort_key":record['sort_key'],
+                "partition_key": record['partition_key'],
+                "sort_key": record['sort_key'],
             }
             batch.delete_item(Key=key)
+
 
 def write_main_and_archive_record_from_class(main_table_name: str, archive_table_name: str, record_class,
                                              archive_log: str):
@@ -566,8 +567,6 @@ def batch_write_objects_archive(table_name: str, object_list: list, archive_log:
             object['sort_key'] = object['sort_key'] + ':' + util.get_datetimestamp()
             object["archive_log"] = archive_log
 
-            print(json.dumps(object, indent=4))
-            continue
             batch.put_item(Item=object)
 
 
@@ -628,7 +627,6 @@ def get_field_list_from_dynamodb_record(table_name: str, field_name: str, partit
 
 
 def get_batch_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix: str):
-
     ddb = get_resource()
     tbl = ddb.Table(table_name)
 
@@ -645,7 +643,29 @@ def get_batch_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_
 
     # Re-fetch until the last
     while response.get('LastEvaluatedKey') is not None:
+        func_parameter['ExclusiveStartKey'] = response['LastEvaluatedKey']
+        response = tbl.query(**func_parameter)
+        result_item.extend(response['Items'])
 
+    return result_item
+
+
+def get_batch_item_from_pk_only(table_name: str, partition_key: str):
+    ddb = get_resource()
+    tbl = ddb.Table(table_name)
+
+    result_item = []
+
+    key_expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key)
+
+    func_parameter = {
+        "KeyConditionExpression": key_expr
+    }
+    response = tbl.query(**func_parameter)
+    result_item.extend(response['Items'])
+
+    # Re-fetch until the last
+    while response.get('LastEvaluatedKey') is not None:
         func_parameter['ExclusiveStartKey'] = response['LastEvaluatedKey']
         response = tbl.query(**func_parameter)
         result_item.extend(response['Items'])

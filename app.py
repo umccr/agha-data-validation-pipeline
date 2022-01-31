@@ -36,7 +36,7 @@ stack_props = {
         'email_notify': 'yes',
         'slack_host': 'hooks.slack.com',
         'slack_channel': '#agha-gdr',
-        'manager_email': 'william.intan@unimelb.edu.au',  # TODO: Change to: sarah.casauria@mcri.edu.au
+        'manager_email': 'sarah.casauria@mcri.edu.au',
         'sender_email': 'services@umccr.org'
     },
     'batch_environment': {
@@ -67,9 +67,6 @@ stack_props = {
         'branch_name': 'dev'
     }
 }
-
-# TODO: VERY IMPORTANT:  github source branch_name and email is for dev, NOT for production
-
 
 # Initialise stack
 app = core.App(

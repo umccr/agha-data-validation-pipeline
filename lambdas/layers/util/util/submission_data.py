@@ -231,7 +231,7 @@ def is_file_skipped(filename: str, postfix_exception_list: list = None) -> bool:
     :param postfix_exception_list:
     :return:
     """
-    if postfix_exception_list == None:
+    if postfix_exception_list is None:
         postfix_exception_list = []
 
     if agha.FileType.is_manifest_file(filename) or \
