@@ -220,7 +220,6 @@ def validate_event_data(event_record):
         'output_prefix',
         'include_fns',
         'exclude_fns',
-        'record_mode',
         'email_address',
         'email_name',
         'tasks',
@@ -296,15 +295,6 @@ def validate_event_data(event_record):
         tasks_allow_str = '\', \''.join(batch.Tasks.tasks_to_list())
         logger.critical(f'expected tasks to be one of \'{tasks_allow_str}\' but got:\t\r{tasks_str}')
         raise ValueError
-
-    # Check record mode, if not present set default
-    if rm := event_record.get('record_mode'):
-        if rm not in {'create', 'update'}:
-            msg = f'expected \'record_mode\' as one of \'create\' or \'update\' but got \'{rm}\''
-            logger.critical(msg)
-            raise ValueError
-    else:
-        event_record['record_mode'] = 'create'
 
     # Set remaining defaults
     if 'exclude_fns' not in event_record:
