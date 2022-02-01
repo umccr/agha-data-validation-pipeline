@@ -250,13 +250,6 @@ def handler(event, context):
         archive_staging_dynamodb_batch_write_list.append(
             manifest_status_record.create_archive_dictionary('Create/Update'))
 
-        # Update dynamodb batch if not skipped
-        if not event.get('skip_update_dynamodb') == 'true':
-            dynamodb.batch_write_objects(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                         object_list=staging_dynamodb_batch_write_list)
-            dynamodb.batch_write_objects(table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
-                                         object_list=archive_staging_dynamodb_batch_write_list)
-
         # Construct to an expected payload:
         # {
         #     "manifest_fp": "cardiac/20210711_170230/manifest.txt",
@@ -320,6 +313,13 @@ def handler(event, context):
                 Payload=json.dumps(validation_payload)
             )
             print(lambda_res)
+
+        # Update dynamodb batch if not skipped
+        if not event.get('skip_update_dynamodb') == 'true':
+            dynamodb.batch_write_objects(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                         object_list=staging_dynamodb_batch_write_list)
+            dynamodb.batch_write_objects(table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
+                                         object_list=archive_staging_dynamodb_batch_write_list)
 
 
 def validate_event_data(event_record):
