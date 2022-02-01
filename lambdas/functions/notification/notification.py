@@ -76,10 +76,15 @@ def handler(event, context):
 
     if SLACK_NOTIFY == 'yes':
         logger.info(f'Sending notification to {SLACK_CHANNEL}')
+
+        slack_message = '\n'.join(messages)
+        slack_message = slack_message.replace(
+            '&nbsp;', ' ').replace('<br>', '\n')
+
         slack_response = call_slack_webhook(
             subject,
             f'Submission: {submitter_info["submission_prefix"]} ({submitter_info["name"]})',
-            '\n'.join(messages),
+            slack_message,
             SLACK_HOST,
             SLACK_CHANNEL,
             SLACK_WEBHOOK_ENDPOINT
