@@ -176,6 +176,8 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
         notification.log_and_store_message('Submission contain file that is not in the manifest. '
                                            'Proceeding with only file in the manifest.',
                                            level='critical')
+        notification.log_and_store_message('Files not in the manifest will NOT be store at GDR store bucket',
+                                           level='critical')
 
         notification.MESSAGE_STORE.append('')  # New line to separate warning in email
 

@@ -289,23 +289,10 @@ def handler(event, context):
                 'critical')
             notification.log_and_store_message(f'Please check/resubmit submitted file to prevent duplication',
                                                'critical')
+            notification.log_and_store_message(f'To unlock bucket for resubmission, please contact the GDR administrator.',
+                                               'critical')
             notification.log_and_store_message(f'If the duplication file is intended, '
-                                               f'proceed to trigger validation pipeline by invoking the lambda from aws cli, '
-                                               f'with the following command.', 'critical')
-
-            lambda_func_name = VALIDATION_MANAGER_LAMBDA_ARN.split(':')[-1]
-            notification.log_and_store_message(f"<br>"  # New line on email
-                                               f"aws lambda invoke "
-                                               f"--cli-binary-format raw-in-base64-out "
-                                               f"--function-name {lambda_func_name} "
-                                               f"--invocation-type Event "
-                                               f"--payload '{json.dumps(validation_payload)}' "
-                                               f"response.json"
-                                               f"<br>"  # New line on email
-                                               )
-
-            notification.log_and_store_message(
-                f"NOTE: If 'aws --version' is in version 1 (aws-cli/1.X.XX), '--cli-binary-format raw-in-base64-out' flag may not be necessary.<br>")
+                                               f'please contact the data manager for further actions.', 'critical')
 
             # List all duplicates file
             notification.log_and_store_message(

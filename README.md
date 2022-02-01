@@ -235,8 +235,8 @@ aws lambda invoke \
     --function-name {function_name} \
     --cli-binary-format raw-in-base64-out \
     --payload '{
-      "manifest_fp": "cardiac/20210711_170230/manifest.txt",
-      "manifest_dynamodb_key_prefix": "cardiac/20210711_170230/"
+      "manifest_fp": "Cardiac/20210711_170230/manifest.txt",
+      "manifest_dynamodb_key_prefix": "Cardiac/20210711_170230/"
     }' \
     response.json
 ```
