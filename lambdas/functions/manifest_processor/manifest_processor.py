@@ -103,18 +103,21 @@ def handler(event, context):
             }
         ]
 
+    validate_manual_trigger_payload(event)
+
     if event.get('exception_postfix_filename') is not None:
         exception_filename = event.get('exception_postfix_filename')
     else:
         exception_filename = []
 
-    if event.get('skip_checksum_validation') == 'true':
+    # To check checksum validation
+    if event.get('skip_checksum_validation'):
         skip_checksum_validation = True
     else:
         skip_checksum_validation = False
 
     # Triggering validation lambda options
-    if event.get("skip_auto_validation") == 'true':
+    if event.get("skip_auto_validation"):
         skip_auto_validation = True
     else:
         skip_auto_validation = False
@@ -282,8 +285,9 @@ def handler(event, context):
                 'critical')
             notification.log_and_store_message(f'Please check/resubmit submitted file to prevent duplication',
                                                'critical')
-            notification.log_and_store_message(f'To unlock bucket for resubmission, please contact the GDR administrator.',
-                                               'critical')
+            notification.log_and_store_message(
+                f'To unlock bucket for resubmission, please contact the GDR administrator.',
+                'critical')
             notification.log_and_store_message(f'If the duplication file is intended, '
                                                f'please contact the data manager for further actions.', 'critical')
 
@@ -345,3 +349,22 @@ def validate_event_data(event_record):
     if record_s3['bucket']['name'] != STAGING_BUCKET:
         logger.critical(f'expected {STAGING_BUCKET} bucket but got {record_s3["bucket"]["name"]}')
         raise ValueError
+
+
+def validate_manual_trigger_payload(event_payload: dict) -> None:
+    # Sanitize to string of bool to bool()
+    for args in ['skip_auto_validation', 'skip_update_dynamodb', 'skip_send_notification', 'skip_checksum_validation',
+                 "exception_postfix_filename"]:
+
+        print(type(event_payload.get('skip_auto_validation')))
+        if (bool_payload := event_payload.get(args)) is not None:
+            if isinstance(bool_payload, str):
+                try:
+                    event_payload[args] = json.loads(bool_payload.lower())
+                except json.JSONDecodeError:
+                    raise ValueError(f'\'{args}\' has an invalid boolean')
+
+    # Check if exception_postfix_filename is a list
+    if (list_args := event_payload.get('exception_postfix_filename')) is not None:
+        if not isinstance(list_args, list):
+            raise ValueError(f'\'exception_postfix_filename\' is not a list')

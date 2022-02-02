@@ -227,7 +227,6 @@ def validate_event_data(event_record):
         'manifest_dynamodb_key_prefix',
         'exception_postfix_filename',
         'skip_update_dynamodb',
-        'skip_checksum_validation',
     }
 
     args_unknown = [arg for arg in event_record if arg not in args_known]
@@ -301,6 +300,15 @@ def validate_event_data(event_record):
         event_record['exclude_fns'] = list()
     if 'include_fns' not in event_record:
         event_record['include_fns'] = list()
+
+    # Sanitize to string of bool to bool()
+    for args in ['skip_update_dynamodb']:
+        if (bool_payload := event_record.get(args)) is not None:
+            if isinstance(bool_payload, str):
+                try:
+                    event_record[args] = json.loads(bool_payload.lower())
+                except json.JSONDecodeError:
+                    raise ValueError(f'\'{args}\' has an invalid boolean')
 
 
 def handle_input_manifest(data: submission_data.SubmissionData, event, manifest_df):

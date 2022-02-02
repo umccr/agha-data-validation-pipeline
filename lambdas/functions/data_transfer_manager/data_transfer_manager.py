@@ -45,6 +45,7 @@ def handler(event, context):
         "skip_update_dynamodb": "true",
         "validation_check_only": "true",
         "exception_postfix_filename": ["metadata.txt", ".md5", etc.],
+        "run_all":"true"
     }
 
     :param event: payload to process and run batchjob
@@ -55,8 +56,10 @@ def handler(event, context):
     logger.info(json.dumps(event))
 
     # Parse event data and get record
-    if not validate_event_data(event):
-        return {"StatusCode": 406, "body": "Invalid event payload"}
+    try:
+        validate_event_data(event)
+    except ValueError as e:
+        return {"StatusCode": 406, "body": f"Invalid event payload.\n ERROR: {e}"}
 
     submission = event["submission"]
     flagship = event["flagship_code"]
@@ -75,10 +78,10 @@ def handler(event, context):
     # Checking if all type of test exist for the submission pass
     fail_status_result_key = run_status_result_check(submission_directory)
 
-    if len(fail_batch_key) > 0 or len(fail_status_result_key) > 0 or event.get('validation_check_only') == 'true':
+    if len(fail_batch_key) > 0 or len(fail_status_result_key) > 0 or event.get('validation_check_only'):
         reason = 'Validation report requested'
 
-        if event.get('validation_check_only') == None:
+        if event.get('validation_check_only') is None:
             logger.error('Status check has failed')
             reason = 'The following fail check should not exist'
 
@@ -180,7 +183,7 @@ def handler(event, context):
                                            f",Error: {e}"}
 
     # Unlock bucket
-    if event.get("skip_unlock_bucket") == 'true':
+    if event.get("skip_unlock_bucket"):
         logger.info('Skip unlock bucket flag is raised. Skipping...')
     else:
         try:
@@ -230,7 +233,7 @@ def handler(event, context):
             logger.critical('Continue with the risk of fail to delete files in the staging bucket.')
 
     # Submit Batch jobs
-    if event.get("skip_submit_batch_job") == 'true':
+    if event.get("skip_submit_batch_job"):
         logger.info('Skip submit batch job flag is raised. Skipping ...')
     else:
         for job_data in batch_job_data:
@@ -239,7 +242,7 @@ def handler(event, context):
         logger.info(f'Batch job has executed. Submit {len(batch_job_data)} number of job')
 
     # Create DynamoDb in store table
-    if event.get("skip_update_dynamodb") == 'true':
+    if event.get("skip_update_dynamodb"):
         logger.info('Skip update dynamodb flag is raised. Skipping ...')
     else:
         logger.info(f'Writing data to dynamodb')
@@ -296,8 +299,7 @@ def submit_data_transfer_job(job_data):
     )
 
 
-def validate_event_data(event_record):
-    print(event_record)
+def validate_event_data(event_payload: dict):
     # Check for unknown arguments
     args_known = {
         'submission',
@@ -306,14 +308,54 @@ def validate_event_data(event_record):
         'skip_submit_batch_job',
         'skip_unlock_bucket',
         'validation_check_only',
-        "exception_postfix_filename"
+        'exception_postfix_filename',
+        'run_all'
     }
 
-    for arg in event_record:
-        if arg not in args_known:
-            logger.error(f'\'{arg}\' is not in the allowed payload.')
-            return False
-    return True
+    # Check for required payload
+    for args in ['submission', 'flagship_code']:
+        if args not in event_payload:
+            raise ValueError(f'\'{args}\' does not exist. It is required.')
+
+    # Check for foreign keyword
+    payload_supplied = set(event_payload.keys())
+    foreign_payload = set(payload_supplied - args_known)
+    if len(foreign_payload) > 0:
+        logger.error(f'\'{json.dumps(foreign_payload)}\' is not in the allowed payload.')
+        raise ValueError(f'\'{json.dumps(foreign_payload)}\' is not in the allowed payload.')
+
+    # Sanitize to string of bool to bool()
+    for args in ['skip_update_dynamodb', 'skip_submit_batch_job', 'skip_unlock_bucket', 'validation_check_only', "run_all"]:
+        if (bool_payload := event_payload.get(args)) is not None:
+            if isinstance(bool_payload, str):
+                try:
+                    event_payload[args] = json.loads(bool_payload.lower())
+                except json.JSONDecodeError:
+                    raise ValueError(f'\'{args}\' has an invalid boolean')
+
+    # Check if exception_postfix_filename is a list
+    if (list_args := event_payload.get('exception_postfix_filename')) is not None:
+        if not isinstance(list_args, list):
+            raise ValueError(f'\'exception_postfix_filename\' is not a list')
+
+    # Check if submission and flagship_code is a string
+    for args in ['submission', 'flagship_code']:
+        if (payload := event_payload.get(args)) is not None:
+            if not isinstance(payload, str):
+                raise ValueError(f'\'{args}\' is not a string')
+
+    # If run all, remove all skipping steps
+    if event_payload.get('run_all') is not None and event_payload['run_all']:
+        for args in ['skip_update_dynamodb', 'skip_submit_batch_job', 'skip_unlock_bucket', 'validation_check_only']:
+            event_payload.pop(args, None)
+    else:
+        # These args must be in the payload if not run_all
+        skip_args = ['skip_update_dynamodb', 'skip_submit_batch_job', 'skip_unlock_bucket', 'validation_check_only']
+        difference = set(skip_args) - set(event_payload.keys())
+
+        if len(difference) >= len(skip_args):
+            raise ValueError(f'If run_all is not specified or equals to False, one of the skip arguments must be present. \n'
+                             f'Skipped arguments: {json.dumps(skip_args)}')
 
 
 def construct_resource_from_s3_key_and_bucket(bucket_name, s3_key):
@@ -321,17 +363,17 @@ def construct_resource_from_s3_key_and_bucket(bucket_name, s3_key):
 
 
 def run_batch_check(staging_directory_prefix: str, exception_list=None) -> list:
-    '''
+    """
     This function is to check if all batch job has been run successfully. The function will check if non-index file
     in s3 staging bucket has a result generated by batch job in the result bucket.
 
     :param directory_prefix: s3 key to the staging bucket
     :return:
-    '''
+    """
 
     s3_list = s3.get_s3_object_metadata(bucket_name=STAGING_BUCKET, directory_prefix=staging_directory_prefix)
 
-    if exception_list == None:
+    if exception_list is None:
         exception_list = []
 
     fail_batch_job_key = []
@@ -364,12 +406,12 @@ def run_batch_check(staging_directory_prefix: str, exception_list=None) -> list:
 
 
 def run_status_result_check(submission_directory: str) -> list:
-    '''
+    """
     This will check if all checks generated from the batch job is valid with a PASS status. Any other value than 'PASS'
     will be returned from this function.
     :param submission_directory:
     :return:
-    '''
+    """
 
     fail_s3_key = []
 

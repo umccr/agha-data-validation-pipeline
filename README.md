@@ -170,35 +170,36 @@ The following are arguments supported on each lambda.
 
 ##### data_transfer_manager
 
-| Argument                   | Description                                        | Type              | Example                         |
-|----------------------------|----------------------------------------------------|-------------------|---------------------------------|
-| submission [REQUIRED]      | Submission date in the flagship                    | String            | "13023_3432423"                 |
-| flagship_code [REQUIRED]   | Flagship code                                      | String            | "ACG"                           |
-| skip_unlock_bucket         | Allow skipping unlocking bucket                    | Boolean of string | "true"                          |
-| skip_submit_batch_job      | Allow skipping submitting batch job                | Boolean of string | "true"                          |
-| skip_update_dynamodb       | Allow skipping dynamodb update                     | Boolean of string | "true"                          |
-| validation_check_only      | Only validation check only and return fail result. | Boolean of string | "true"                          |
-| exception_postfix_filename | Skip move file for the following list of postfix   | List of string    | ["metadata.txt", ".md5", etc.], |
+| Argument                   | Description                                                                                                          | Type           | Example                        |
+|----------------------------|----------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------|
+| submission [REQUIRED]      | Submission date in the flagship                                                                                      | String         | "13023_3432423"                |
+| flagship_code [REQUIRED]   | Flagship code                                                                                                        | String         | "ACG"                          |
+| run_all                    | To confirm all event will run. If this is false or do not exist. Skiped arguments below are expected in the payload. | Boolean        | true                           |
+| skip_unlock_bucket         | Allow skipping unlocking bucket                                                                                      | Boolean        | true                           |
+| skip_submit_batch_job      | Allow skipping submitting batch job                                                                                  | Boolean        | true                           |
+| skip_update_dynamodb       | Allow skipping dynamodb update                                                                                       | Boolean        | true                           |
+| validation_check_only      | Only validation check only and return fail result.                                                                   | Boolean        | true                           |
+| exception_postfix_filename | Skip move file for the following list of postfix                                                                     | List of string | ["metadata.txt", ".md5", etc.] |
 
 
   
 
 ##### manifest_processor
-| Argument                   | Description                                   | Type              | Example                            |
-|----------------------------|-----------------------------------------------|-------------------|------------------------------------|
-| bucket_name [REQUIRED]     | Bucket name to check                          | String            | "somebucketname"                   |
-| manifest_fp [REQUIRED]     | Manifest filepath                             | String            | "FLAGSHIP/SUBMISSION/manifest.txt" |
-| email_report_to            | Configure this for email notification         | String            | "john.doe@email.com"               |
-| skip_auto_validation       | Disable triggering validation manager lambda  | Boolean of string | "true"                             |
-| skip_update_dynamodb       | Allow skipping dynamodb update                | Boolean of string | "true"                             |
-| skip_send_notification     | Allow skipping notification trigger           | Boolean of string | "true"                             |
-| skip_checksum_validation   | Allow skipping checksum validation            | Boolean of string | "true"                             |
-| exception_postfix_filename | Skip checking on file in this list of postfix | List of string    | ["metadata.txt", ".md5", etc.]     |
+| Argument                   | Description                                   | Type           | Example                            |
+|----------------------------|-----------------------------------------------|----------------|------------------------------------|
+| bucket_name [REQUIRED]     | Bucket name to check                          | String         | "somebucketname"                   |
+| manifest_fp [REQUIRED]     | Manifest filepath                             | String         | "FLAGSHIP/SUBMISSION/manifest.txt" |
+| email_report_to            | Configure this for email notification         | String         | "john.doe@email.com"               |
+| skip_auto_validation       | Disable triggering validation manager lambda  | Boolean        | true                               |
+| skip_update_dynamodb       | Allow skipping dynamodb update                | Boolean        | true                               |
+| skip_send_notification     | Allow skipping notification trigger           | Boolean        | true                               |
+| skip_checksum_validation   | Allow skipping checksum validation            | Boolean        | true                               |
+| exception_postfix_filename | Skip checking on file in this list of postfix | List of string | ["metadata.txt", ".md5", etc.]     |
 
 
 ##### validation_manager
-There are some combination of required arguments allowed
-Structured #1
+There are some combination of required arguments allowed  
+Structure #1
 
 | Argument               | Description        | Type           | Example                            |
 |------------------------|--------------------|----------------|------------------------------------|
@@ -221,11 +222,11 @@ Structure #3
 
 Optional Arguments
 
-| Argument                   | Description                                                                                                                                              | Type              | Example                        |
-|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|--------------------------------|
-| skip_update_dynamodb       | Allow skipping dynamodb update                                                                                                                           | Boolean of string | "true"                         |
-| tasks_skipped              | Allow skipping some tasks. By default, it will run all tasks. List of tasks: ['CHECKSUM_VALIDATION','FILE_VALIDATION','CREATE_INDEX', 'CREATE_COMPRESS'] | List of string    | ['CHECKSUM_VALIDATION']        |
-| exception_postfix_filename | Skip checking on file in this list of postfix                                                                                                            | List of string    | ["metadata.txt", ".md5", etc.] |
+| Argument                   | Description                                                                                                                                              | Type           | Example                        |
+|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------|
+| skip_update_dynamodb       | Allow skipping dynamodb update                                                                                                                           | Boolean        | true                           |
+| tasks_skipped              | Allow skipping some tasks. By default, it will run all tasks. List of tasks: ['CHECKSUM_VALIDATION','FILE_VALIDATION','CREATE_INDEX', 'CREATE_COMPRESS'] | List of string | ['CHECKSUM_VALIDATION']        |
+| exception_postfix_filename | Skip checking on file in this list of postfix                                                                                                            | List of string | ["metadata.txt", ".md5", etc.] |
 
 
 
