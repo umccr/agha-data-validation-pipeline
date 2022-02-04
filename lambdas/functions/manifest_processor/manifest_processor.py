@@ -249,10 +249,6 @@ def handler(event, context):
                 create_archive_manifest_record_from_manifest_record(manifest_record, 'CREATE')
             archive_staging_dynamodb_batch_write_list.append(archive_manifest_record.__dict__)
 
-        staging_dynamodb_batch_write_list.append(manifest_status_record.__dict__)
-        archive_staging_dynamodb_batch_write_list.append(
-            manifest_status_record.create_archive_dictionary('Create/Update'))
-
         # Construct to an expected payload:
         # {
         #     "manifest_fp": "cardiac/20210711_170230/manifest.txt",
@@ -303,8 +299,19 @@ def handler(event, context):
         else:
             notification.log_and_store_message('Continuing with file validation.')
 
+        staging_dynamodb_batch_write_list.append(manifest_status_record.__dict__)
+        archive_staging_dynamodb_batch_write_list.append(
+            manifest_status_record.create_archive_dictionary('Create/Update'))
+
+        # Update dynamodb batch if not skipped
+        if not event.get('skip_update_dynamodb'):
+            dynamodb.batch_write_objects(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                         object_list=staging_dynamodb_batch_write_list)
+            dynamodb.batch_write_objects(table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
+                                         object_list=archive_staging_dynamodb_batch_write_list)
+
         # Send notification to submitter for the submission if not skipped
-        if not event.get("skip_send_notification") == 'true':
+        if not event.get("skip_send_notification"):
             notification.send_notifications()
 
         if AUTORUN_VALIDATION_JOBS == 'yes' and not skip_auto_validation:
@@ -317,13 +324,6 @@ def handler(event, context):
                 Payload=json.dumps(validation_payload)
             )
             print(lambda_res)
-
-        # Update dynamodb batch if not skipped
-        if not event.get('skip_update_dynamodb') == 'true':
-            dynamodb.batch_write_objects(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                         object_list=staging_dynamodb_batch_write_list)
-            dynamodb.batch_write_objects(table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
-                                         object_list=archive_staging_dynamodb_batch_write_list)
 
 
 def validate_event_data(event_record):
@@ -356,7 +356,6 @@ def validate_manual_trigger_payload(event_payload: dict) -> None:
     for args in ['skip_auto_validation', 'skip_update_dynamodb', 'skip_send_notification', 'skip_checksum_validation',
                  "exception_postfix_filename"]:
 
-        print(type(event_payload.get('skip_auto_validation')))
         if (bool_payload := event_payload.get(args)) is not None:
             if isinstance(bool_payload, str):
                 try:
