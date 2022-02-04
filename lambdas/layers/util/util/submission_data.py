@@ -142,9 +142,9 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
         else:
             files_matched_prohibited.append(filename)
 
-    message_text = f'Matched entries excluded on file extension'
+    message_text = f'Unsupported file extension'
     notification.log_and_store_file_message(message_text, files_matched_prohibited)
-    message_text = f'Matched entries eligible for validation'
+    message_text = f'Matched entries eligible for validation (excluding index, manifest, and md5 file)'
     notification.log_and_store_file_message(message_text, files_matched_accepted)
 
     # Record error messages for extra files (other than manifest.txt, *.tbi, *.bai) or missing files
@@ -190,17 +190,17 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
 
         # Study ID
         if not AGHA_ID_RE.match(row.agha_study_id):
-            message = f'got malformed AGHA study ID for {row.filename} ({row.agha_study_id})'
+            message = f'Malformed AGHA study ID: {row.filename} ({row.agha_study_id})'
             messages_error.append(message)
         # Checksum
         if not MD5_RE.match(row.checksum) and not skip_checksum_check:
-            message = f'got malformed MD5 checksum for {row.filename} ({row.checksum})'
+            message = f'Malformed MD5 checksum: {row.filename} ({row.checksum})'
             messages_error.append(message)
 
     # Check for error messages, exit in strict mode otherwise just emit warnings
     if messages_error:
         plurality = 'message' if len(messages_error) == 1 else 'messages'
-        errors = '\r\t'.join(messages_error)
+        notification.MESSAGE_STORE.append('')  # Extra line before messages
         message_base = f'Manifest failed validation with the following {plurality}:'
         messages_error.insert(0, message_base)
         notification.log_and_store_list_message(messages_error, level='critical')
