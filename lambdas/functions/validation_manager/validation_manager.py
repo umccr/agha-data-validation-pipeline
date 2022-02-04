@@ -91,7 +91,7 @@ def handler(event, context):
     manifest_record_dynamodb_df = None
 
     manifest_fp = event.get('manifest_fp')
-    if manifest_fp is not None:
+    if manifest_fp is not None and 'manifest_dynamodb_key_prefix' in event:
         submission_prefix = os.path.dirname(event['manifest_fp'])
         manifest_record_dynamodb_staging = dynamodb.get_batch_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
                                                                                   partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
