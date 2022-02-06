@@ -14,7 +14,7 @@ from util import notification, s3, agha
 
 MANIFEST_REQUIRED_COLUMNS = {'filename', 'checksum', 'agha_study_id'}
 # Manifest field validation related
-AGHA_ID_RE = re.compile('^A\d{7,8}(?:_mat|_pat|_R1|_R2|_R3)?$|^unknown$')
+AGHA_ID_RE = re.compile('^A[0-9]{7,8}(?:_[a-zA-Z0-9]+)?$|^unknown$')
 MD5_RE = re.compile('^[0-9a-f]{32}$')
 
 # Logging
