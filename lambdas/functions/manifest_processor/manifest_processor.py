@@ -269,12 +269,45 @@ def handler(event, context):
         notification.log_and_store_message(
             f'<br>Number of duplicates file found in this submission with other submissions: {number_of_duplicates}')
 
+        if len(data.files_extra) > 0:
+            report_info = {
+                "topic": "UNSUPPORTED extension file type found.",
+                "data": data.files_extra
+            }
+            if isinstance(manifest_status_record.additional_information, list):
+                manifest_status_record.additional_information.append(report_info)
+            else:
+                manifest_status_record.additional_information = [report_info]
+
+            notification.log_and_store_message(
+                'Trigger of validation pipeline has been disabled due to UNRECOGNIZED/UNRECOGNIZED filetype found.',
+                'critical')
+            notification.log_and_store_message(f'Please check/resubmit submitted file.', 'critical')
+            notification.log_and_store_message(
+                f'To proceed with this submission, please contact the GDR administrator or data manger.',
+                'critical')
+
+            # List all duplicates file
+            notification.log_and_store_message(
+                "The following list are files of unrecognized file.<br>")
+            list_of_duplicate_files_email_format = json.dumps(data.files_extra, indent=4, sort_keys=True).replace(
+                ' ', '&nbsp;').replace('\n', '<br>')
+            notification.log_and_store_message(list_of_duplicate_files_email_format)
+
+            # Skip the auto validation
+            skip_auto_validation = True
+
         # Detecting duplicate payload
         if number_of_duplicates > 0:
-            manifest_status_record.additional_information = {
+            report_info = {
                 "topic": "Duplicate files found in this submission with other submissions",
                 "data": duplicate_etag_list
             }
+
+            if isinstance(manifest_status_record.additional_information, list):
+                manifest_status_record.additional_information.append(report_info)
+            else:
+                manifest_status_record.additional_information = [report_info]
 
             notification.log_and_store_message(
                 'Trigger of validation pipeline has been disabled due to duplicate submission has been found.',

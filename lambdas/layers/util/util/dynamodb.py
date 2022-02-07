@@ -100,7 +100,7 @@ class ManifestStatusCheckRecord:
                  partition_key=FileRecordPartitionKey.STATUS_MANIFEST.value,
                  sort_key="",
                  status=ManifestStatusCheckValue.NOT_COMPLETED.value,
-                 additional_information="",
+                 additional_information=None,
                  date_modified=util.get_datetimestamp()):
         self.partition_key = partition_key
         self.sort_key = sort_key
