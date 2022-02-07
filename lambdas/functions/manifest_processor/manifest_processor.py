@@ -157,9 +157,7 @@ def handler(event, context):
         try:
             file_list, data.files_extra = submission_data.validate_manifest(data, exception_filename,
                                                                             skip_checksum_check=skip_checksum_validation)
-
         except ValueError as e:
-
             # Update DynamoDb regarding manifest checks status
             manifest_status_record = dynamodb.ManifestStatusCheckRecord(
                 sort_key=data.manifest_s3_key,
@@ -330,6 +328,7 @@ def handler(event, context):
             # Skip the auto validation
             skip_auto_validation = True
         else:
+            notification.MESSAGE_STORE.append('')
             notification.log_and_store_message('Continuing with file validation.')
 
         staging_dynamodb_batch_write_list.append(manifest_status_record.__dict__)

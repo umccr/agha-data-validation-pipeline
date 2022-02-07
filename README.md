@@ -161,30 +161,31 @@ _*arguments are defined below_
 - **data_transfer_manager:** This would use AWS/CLI Image and use MV command to move data from staging to store
 
 ### Dynamodb
-There are 7 tables for this pipeline which include archive tables.
+There are 7 tables for this pipeline which include archive tables.  
+Archive tables is the history table, it will record all changes to the current state of changes happening on the main table.
 <p align="center"><img src="images/dynamodb2.0.png" width="80%"></p>
 
 ### Lambda Arguments
 
 The following are arguments supported on each lambda.
 
-##### data_transfer_manager
+### data_transfer_manager
 
-| Argument                   | Description                                                                                                          | Type           | Example                        |
-|----------------------------|----------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------|
-| submission [REQUIRED]      | Submission date in the flagship                                                                                      | String         | "13023_3432423"                |
-| flagship_code [REQUIRED]   | Flagship code                                                                                                        | String         | "ACG"                          |
-| run_all                    | To confirm all event will run. If this is false or do not exist. Skiped arguments below are expected in the payload. | Boolean        | true                           |
-| skip_unlock_bucket         | Allow skipping unlocking bucket                                                                                      | Boolean        | true                           |
-| skip_submit_batch_job      | Allow skipping submitting batch job                                                                                  | Boolean        | true                           |
-| skip_update_dynamodb       | Allow skipping dynamodb update                                                                                       | Boolean        | true                           |
-| validation_check_only      | Only validation check only and return fail result.                                                                   | Boolean        | true                           |
-| exception_postfix_filename | Skip move file for the following list of postfix                                                                     | List of string | ["metadata.txt", ".md5", etc.] |
+| Argument                   | Description                                                                                                                            | Type           | Example                        |
+|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------|
+| submission [REQUIRED]      | Submission date in the flagship                                                                                                        | String         | "13023_3432423"                |
+| flagship_code [REQUIRED]   | Flagship code                                                                                                                          | String         | "ACG"                          |
+| run_all                    | To confirm all event will run. If this is false or do not exist. Skipped/validation_check arguments below are expected in the payload. | Boolean        | true                           |
+| skip_unlock_bucket         | Allow skipping unlocking bucket                                                                                                        | Boolean        | true                           |
+| skip_submit_batch_job      | Allow skipping submitting batch job                                                                                                    | Boolean        | true                           |
+| skip_update_dynamodb       | Allow skipping dynamodb update                                                                                                         | Boolean        | true                           |
+| validation_check_only      | Only validation check only and return fail result.                                                                                     | Boolean        | true                           |
+| exception_postfix_filename | Skip move file for the following list of postfix                                                                                       | List of string | ["metadata.txt", ".md5", etc.] |
 
 
   
 
-##### manifest_processor
+### manifest_processor
 | Argument                   | Description                                   | Type           | Example                            |
 |----------------------------|-----------------------------------------------|----------------|------------------------------------|
 | bucket_name [REQUIRED]     | Bucket name to check                          | String         | "somebucketname"                   |
@@ -197,8 +198,9 @@ The following are arguments supported on each lambda.
 | exception_postfix_filename | Skip checking on file in this list of postfix | List of string | ["metadata.txt", ".md5", etc.]     |
 
 
-##### validation_manager
-There are some combination of required arguments allowed  
+### validation_manager
+There are multiple ways to trigger this function, defined as follows. Optional arguments can be used on top of the primary arguments.
+
 Structure #1
 
 | Argument               | Description        | Type           | Example                            |
