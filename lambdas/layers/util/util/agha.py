@@ -51,6 +51,8 @@ class FlagShip(Enum):
 FEXT_FASTQ = ['.fq', '.fq.gz', '.fastq', '.fastq.gz']
 FEXT_BAM = ['.bam']
 FEXT_BAM_INDEX = ['.bai']
+FEXT_CRAM = ['.cram']
+FEXT_CRAM_INDEX = ['.crai']
 FEXT_VCF = ['vcf.gz', 'vcf']
 FEXT_VCF_INDEX = ['.tbi']
 FEXT_MANIFEST = ['manifest.txt', '.manifest']
@@ -63,6 +65,8 @@ class FileType(Enum):
     VCF_INDEX = ('VCF_INDEX', FEXT_VCF_INDEX)
     BAM = ('BAM', FEXT_BAM)
     BAM_INDEX = ('BAM_INDEX', FEXT_BAM_INDEX)
+    CRAM = ('CRAM', FEXT_CRAM)
+    CRAM_INDEX = ('CRAM_INDEX', FEXT_CRAM_INDEX)
     MANIFEST = ('MANIFEST', FEXT_MANIFEST)
 
     def get_name(self) -> str:
@@ -83,7 +87,7 @@ class FileType(Enum):
 
     @staticmethod
     def is_indexable(filetype: str) -> bool:
-        INDEXABLE_TYPE = [FileType.BAM.get_name(), FileType.VCF.get_name()]
+        INDEXABLE_TYPE = [FileType.BAM.get_name(), FileType.CRAM.get_name(), FileType.VCF.get_name()]
         if filetype in INDEXABLE_TYPE:
             return True
         return False
@@ -105,7 +109,7 @@ class FileType(Enum):
 
     @staticmethod
     def is_index_file(filename: str) -> bool:
-        INDEX_FILE = [FileType.BAM_INDEX, FileType.VCF_INDEX]
+        INDEX_FILE = [FileType.BAM_INDEX, FileType.CRAM_INDEX, FileType.VCF_INDEX]
         if FileType.from_name(filename) in INDEX_FILE:
             return True
         return False
