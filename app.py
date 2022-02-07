@@ -64,7 +64,7 @@ stack_props = {
         'artifact_bucket_name': 'agha-validation-pipeline-artifact',
         'pipeline_name': 'agha-validation-build-pipeline',
         'repository_name': 'agha-data-validation-pipeline',
-        'branch_name': 'dev'
+        'branch_name': 'main'
     }
 }
 

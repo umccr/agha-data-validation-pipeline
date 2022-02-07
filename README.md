@@ -1,4 +1,7 @@
 # AGHA data validation stack
+
+This is the active branch of the pipeline (version 2).
+---
 This stack is used to handle and validate data received as part of the AGHA GDR project. The primary functions are:
 1. take receipt of genomic files in a staging area
 2. validate genomic files, and generate indexes if required
