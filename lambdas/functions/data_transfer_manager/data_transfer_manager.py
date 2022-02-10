@@ -146,9 +146,24 @@ def handler(event, context):
 
             if is_move_original_file:
                 logger.info(f'Do not have data generated in pipeline. Moving file from original state')
+
+                # Grab checksum value from result
+                data_partition_key = dynamodb.ResultPartitionKey.DATA.value + ':' + batch.Tasks.CHECKSUM_VALIDATION.value
+                data_res = dynamodb.get_item_from_exact_pk_and_sk(DYNAMODB_RESULT_TABLE_NAME,
+                                                                  data_partition_key,
+                                                                  s3_key)
+                if data_res['Count'] > 0:
+                    item = data_res['Items'][0]
+                    calculated_checksum = item['value']
+
+                else:
+                    logger.warning(f'No checksum found from batch. Using submitted checksum ...')
+                    calculated_checksum = manifest_record['provided_checksum']
+
                 list_to_process.append({'s3_key': s3_key,
-                                        'checksum': manifest_record['provided_checksum'],
+                                        'checksum': calculated_checksum,
                                         'bucket_name': STAGING_BUCKET})
+
 
             # Process and crate move job
             for job_info in list_to_process:
