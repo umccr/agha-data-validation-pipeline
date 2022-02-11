@@ -27,6 +27,15 @@ def exists_submission(bucket: str, prefix: str):
     return key_count > 0
 
 
+def exists_key(bucket: str, key: str):
+    client_s3 = util.get_client('s3')
+    response = client_s3.list_objects_v2(
+        Bucket=bucket,
+        Prefix=key
+    )
+    return response.get('Contents')
+
+
 def get_submission_map():
     submissions = dict()
 
@@ -42,7 +51,11 @@ def get_submission_map():
             print(f"Needs manual exception: {old_root}")
             if old_flagship in exceptions.keys():
                 print(f"Adding exception: {old_flagship} -> {exceptions[old_flagship]}")
-                submissions[old_flagship] = exceptions[old_flagship]
+                new_submission = exceptions[old_flagship]
+                if exists_submission(bucket=BUCKET_NAME_STORE_NEW, prefix=new_submission):
+                    print(f"Submission already exists: {new_submission} in bucket {BUCKET_NAME_STORE_NEW}")
+                    continue
+                submissions[old_flagship] = new_submission
         for prefix in prefixes:
             sub = prefix.split('/')[1]
             old_submission = f"{old_flagship}/{sub}"
@@ -71,18 +84,22 @@ def generate_manifest_commands(old_to_new_map: dict):
         old : str = key
         new : str = old_to_new_map[old]
         # TODO: check that the folder actually contains data files
-        commands.append(f'aws s3 cp s3://{BUCKET_NAME_STAGING_OLD}/{old}/manifest.txt s3://{BUCKET_NAME_STAGING_NEW}/{new}/manifest.txt')
+        if not exists_key(bucket=BUCKET_NAME_STAGING_NEW, key=f"{new}/manifest.txt"):
+            commands.append(f'aws s3 cp s3://{BUCKET_NAME_STAGING_OLD}/{old}/manifest.txt s3://{BUCKET_NAME_STAGING_NEW}/{new}/manifest.txt')
+        else:
+            print(f"Manifest already present for s3://{BUCKET_NAME_STAGING_NEW}/{new}")
+    return commands
 
 
 if __name__ == '__main__':
     subs = get_submission_map()
 
-    data_commands = generate_sync_commands(subs)
-    for cmd in data_commands:
-        print(cmd)
+    # data_commands = generate_sync_commands(subs)
+    # for cmd in data_commands:
+    #     print(cmd)
+    #
+    # print("\n\n")
 
-    print("\n\n")
-
-    manifest_commands = generate_sync_commands(subs)
+    manifest_commands = generate_manifest_commands(subs)
     for cmd in manifest_commands:
         print(cmd)

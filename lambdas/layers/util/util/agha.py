@@ -15,19 +15,19 @@ class FlagShip(Enum):
     - aliases
     """
     ACUTE_CARE_GENOMICS = ('AC', 'Acute Care Genomics', 'ACG', 'acute', 'acutecare', 'acute_care_genomics')
-    MITOCHONDRIAL_DISORDERS = ('Mito', 'Mitochondrial Disorders', 'mito', 'MITO', 'mito-batch-7',
-                               'mitochondrial_disease')
+    BRAIN_MALFORMATIONS = ('BM', 'Brain Malformations', 'brain_malformations', 'MCD')
+    CARDIOVASCULAR_GENETIC_DISORDERS = ('Cardiac', 'Cardiovascular Genetic Disorders', 'CARDIAC', 'cardiac')
+    CHILDRANZ = ('chILDRANZ', 'Interstitial and Diffuse Lung Disease in Children', 'CHW')
     EPILEPTIC_ENCEPHALOPATHY = ('EE', 'Epileptic Encephalopathy')
     GENETIC_IMMUNOLOGY = ('GI', 'Genetic Immunology')
-    LEUKODYSTROPHIES = ('Leuko', 'Leukodystrophies', 'LD', 'leukodystrophies')
-    BRAIN_MALFORMATIONS = ('BM', 'Brain Malformations', 'brain_malformations', 'MCD')
-    CHILDRANZ = ('chILDRANZ', 'Interstitial and Diffuse Lung Disease in Children', 'CHW')
-    RENAL_GENETICS = ('KidGen', 'Renal Genetics', 'RENAL', 'renal')
-    NEUROMUSCULAR_DISORDERS = ('NMD', 'Neuromuscular Disorders')
     HEREDITARY_CANCERS = ('ICCon', 'Hereditary Cancers', 'ICCON')
-    INTELLECTUAL_DISABILITY = ('ID', 'Intellectual Disability', 'id')
-    CARDIOVASCULAR_GENETIC_DISORDERS = ('Cardiac', 'Cardiovascular Genetic Disorders', 'CARDIAC', 'cardiac')
     HIDDEN_RENAL_GENETICS = ('HIDDEN', 'HIDDEN Renal Genetics', 'hidden')
+    INTELLECTUAL_DISABILITY = ('ID', 'Intellectual Disability', 'id')
+    LEUKODYSTROPHIES = ('Leuko', 'Leukodystrophies', 'LD', 'leukodystrophies')
+    MITOCHONDRIAL_DISORDERS = ('Mito', 'Mitochondrial Disorders', 'mito', 'MITO', 'mito-batch-7',
+                               'mitochondrial_disease')
+    NEUROMUSCULAR_DISORDERS = ('NMD', 'Neuromuscular Disorders')
+    RENAL_GENETICS = ('KidGen', 'Renal Genetics', 'RENAL', 'renal')
     TEST = ('TEST', 'Test submissions')
     UNKNOWN = ('UNKNOWN', 'Unknown flagship')
 
