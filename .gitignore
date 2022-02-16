@@ -36,3 +36,4 @@ var/
 .vscode
 
 foo.py
+/scripts/rerun-checksum/

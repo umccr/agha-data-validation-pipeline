@@ -135,6 +135,12 @@ def handler(event, context):
         # Get partition key and existing records
         sort_key = f'{data.submission_prefix}/{filename}'
 
+        # Skipping exception validation defined in payload
+        if event.get('exception_postfix_filename') is not None:
+            postfix_exception_list = event.get('exception_postfix_filename')
+            if len([filename for postfix in postfix_exception_list if filename.endswith(postfix)]) > 0:
+                continue
+
         # Find checksum file from file record
         try:
             manifest_record = util.get_record_from_given_field_and_panda_df(
