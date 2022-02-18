@@ -71,6 +71,11 @@ def generate_old_manifest_migration_commands(source_bucket: str, source_manifest
     commands: List[str] = list()
     for source_manifest in source_manifest_keys:
         dest_manifest = source_manifest.replace('.txt', '.orig')
+        dest_prefix = dest_manifest.rstrip('manifest.orig')
+        # make sure we have a submission already in store before adding the manifest
+        if not exists_key(dest_bucket, dest_prefix):
+            print(f"No submission in store yet for {dest_prefix}")
+            continue
         cmd = f"aws s3 cp --dryrun s3://{source_bucket}/{source_manifest} s3://{dest_bucket}/{dest_manifest}"
         commands.append(cmd)
     return commands
@@ -88,22 +93,22 @@ def get_all_manifest_headers(manifest_keys: List[str]) -> List[str]:
 
 if __name__ == '__main__':
     mf_headers_file_name = 'manifest_headers.txt'
-    mf_cmd_file_name = 'manifest_migration_cmds.txt'
+    mf_cmd_file_name = '../tmp/manifest_migration_cmds.txt'
 
     # generate manifest keys for the staging bucket
     manifest_keys = get_manifest_keys(BUCKET_NAME_STAGING_NEW)
     print(f"Found {len(manifest_keys)} manifests.")
-    f = open('manifests-staging.txt', 'w')
+    f = open('../tmp/manifests-staging.txt', 'w')
     for h in manifest_keys:
-        f.write(h)
+        f.write(h + '\n')
     f.close()
 
     # generate manifest keys for the staging bucket
     manifest_keys_store = get_manifest_keys(BUCKET_NAME_STORE_NEW)
-    print(f"Found {len(manifest_keys)} manifests.")
-    f = open('manifests-store.txt', 'w')
-    for h in manifest_keys:
-        f.write(h)
+    print(f"Found {len(manifest_keys_store)} manifests.")
+    f = open('../tmp/manifests-store.txt', 'w')
+    for h in manifest_keys_store:
+        f.write(h + '\n')
     f.close()
 
     # # write manifest headers to file
@@ -119,14 +124,14 @@ if __name__ == '__main__':
     #     for line in tsvreader:
     #         print(len(line))
 
-    # # generate migration commands for the original manifests to store
-    # cmds = generate_old_manifest_migration_commands(
-    #     source_bucket=BUCKET_NAME_STAGING_NEW,
-    #     source_manifest_keys=manifest_keys,
-    #     dest_bucket=BUCKET_NAME_STORE_NEW)
-    # f = open(mf_cmd_file_name, 'w')
-    # for cmd in cmds:
-    #     f.write(cmd + '\n')
-    # f.close()
+    # generate migration commands for the original manifests to store
+    cmds = generate_old_manifest_migration_commands(
+        source_bucket=BUCKET_NAME_STAGING_NEW,
+        source_manifest_keys=manifest_keys,
+        dest_bucket=BUCKET_NAME_STORE_NEW)
+    f = open(mf_cmd_file_name, 'w')
+    for cmd in cmds:
+        f.write(cmd + '\n')
+    f.close()
 
     print("All done.")

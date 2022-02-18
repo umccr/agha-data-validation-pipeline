@@ -1,9 +1,11 @@
-import logging
+import json
 import util.s3 as s3
 import util.agha as agha
 import util as util
+from collections import defaultdict
 
-from typing import Dict, List
+
+from typing import Generator
 
 BUCKET_NAME_STAGING_OLD = 'agha-gdr-staging'
 BUCKET_NAME_STAGING_NEW = 'agha-gdr-staging-2.0'
@@ -34,6 +36,17 @@ def exists_key(bucket: str, key: str):
         Prefix=key
     )
     return response.get('Contents')
+
+
+def get_listing(bucket: str, prefix: str = "", filter_dirs: bool = True) -> Generator[dict, None, None]:
+    paginator = util.get_client('s3').get_paginator('list_objects_v2')
+    page_iterator = paginator.paginate(Bucket=bucket, Prefix=prefix)
+
+    for page in page_iterator:
+        for obj in page.get('Contents', list()):
+            if filter_dirs and obj['Key'].endswith('/'):
+                continue
+            yield obj
 
 
 def get_submission_map():
@@ -91,8 +104,67 @@ def generate_manifest_commands(old_to_new_map: dict):
     return commands
 
 
+def compare_bucket_etags():
+    prefix = ''
+
+    # # get all Etags from the old bucket
+    # old_etags = defaultdict(list)
+    # for s3_object in get_listing(bucket=BUCKET_NAME_STAGING_OLD, prefix=prefix):
+    #     etag = s3_object['ETag'].strip('"')
+    #     key = s3_object['Key']
+    #     old_etags[etag].append(key)
+
+    # with open('../tmp/temp-etag-staging-old.json', 'w') as convert_file:
+    #     convert_file.write(json.dumps(old_etags, indent=6))
+
+    with open('../tmp/temp-etag-staging-old.json', 'r') as convert_file:
+        old_etags = json.loads(convert_file.read())
+
+    print(f"Number of ETags in old staging bucket: {len(old_etags.keys())}")
+
+
+    # # get all Etags from the new bucket
+    # new_etags = defaultdict(list)
+    # for s3_object in get_listing(bucket=BUCKET_NAME_STAGING_NEW, prefix=prefix):
+    #     etag = s3_object['ETag'].strip('"')
+    #     key = s3_object['Key']
+    #     new_etags[etag].append(key)
+
+    # with open('../tmp/temp-etag-staging-new.json', 'w') as convert_file:
+    #     convert_file.write(json.dumps(new_etags, indent=6))
+
+    with open('../tmp/temp-etag-staging-new.json', 'r') as convert_file:
+        new_etags = json.loads(convert_file.read())
+
+    print(f"Number of ETags in new staging bucket: {len(new_etags.keys())}")
+
+    # # get all Etags from the new store
+    # store_etags = defaultdict(list)
+    # for s3_object in get_listing(bucket=BUCKET_NAME_STORE_NEW, prefix=prefix):
+    #     etag = s3_object['ETag'].strip('"')
+    #     key = s3_object['Key']
+    #     store_etags[etag].append(key)
+    #
+    # with open('../tmp/temp-etag-store-new.json', 'w') as convert_file:
+    #     convert_file.write(json.dumps(store_etags, indent=6))
+
+    with open('../tmp/temp-etag-store-new.json', 'r') as convert_file:
+        store_etags = json.loads(convert_file.read())
+
+    print(f"Number of ETags in new store bucket: {len(store_etags.keys())}")
+
+    # Compare the ETags
+    mismatch_cnt = 0
+    for old_etag in old_etags.keys():
+        if old_etag in new_etags.keys() or old_etag in store_etags.keys():
+            continue
+        mismatch_cnt += 1
+        print(f"ETag not found: {old_etags[old_etag]}")
+    print(f"Number of ETags not found: {mismatch_cnt}")
+
+
 if __name__ == '__main__':
-    subs = get_submission_map()
+    # subs = get_submission_map()
 
     # data_commands = generate_sync_commands(subs)
     # for cmd in data_commands:
@@ -100,6 +172,9 @@ if __name__ == '__main__':
     #
     # print("\n\n")
 
-    manifest_commands = generate_manifest_commands(subs)
-    for cmd in manifest_commands:
-        print(cmd)
+    # manifest_commands = generate_manifest_commands(subs)
+    # for cmd in manifest_commands:
+    #     print(cmd)
+
+    compare_bucket_etags()
+    print("All done.")
