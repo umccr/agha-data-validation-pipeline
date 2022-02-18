@@ -14,8 +14,9 @@ LOGGER.setLevel(logging.INFO)
 
 FEXT_FASTQ = {'.fq', '.fq.gz', '.fastq', '.fastq.gz'}
 FEXT_BAM = {'.bam'}
+FEXT_CRAM = {'.cram'}
 FEXT_VCF = {'.vcf.gz', '.gvcf.gz'}
-FEXT_ACCEPTED = {*FEXT_FASTQ, *FEXT_BAM, *FEXT_VCF}
+FEXT_ACCEPTED = {*FEXT_FASTQ, *FEXT_BAM,  *FEXT_CRAM, *FEXT_VCF}
 
 
 class StreamHandlerNewLine(logging.StreamHandler):

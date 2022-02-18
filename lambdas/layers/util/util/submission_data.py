@@ -200,13 +200,14 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
     # Check for error messages, exit in strict mode otherwise just emit warnings
     if messages_error:
         plurality = 'message' if len(messages_error) == 1 else 'messages'
-        notification.MESSAGE_STORE.append('')  # Extra line before messages
+        notification.MESSAGE_STORE.append('----------'*3)  # Extra line before messages
         message_base = f'Manifest failed validation with the following {plurality}:'
         messages_error.insert(0, message_base)
         notification.log_and_store_list_message(messages_error, level='critical')
         raise ValueError(json.dumps(messages_error, indent=4))
 
     # Notify with success message
+    notification.MESSAGE_STORE.append('----------' * 3)
     message = f'Manifest successfully validated.'
     notification.log_and_store_message(message)
 

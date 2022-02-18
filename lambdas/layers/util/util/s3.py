@@ -208,3 +208,16 @@ def delete_s3_object_from_key(bucket_name: str, key_list: list):
     )
 
     return res
+
+
+def upload_s3_object_local_file(bucket_name: str, local_file: str, s3_key_destination: str):
+    s3_client = util.get_client('s3')
+
+    byte_file = open(local_file, 'rb')
+
+    res = s3_client.put_object(
+        Body=byte_file,
+        Bucket=bucket_name,
+        Key=s3_key_destination,
+    )
+    return res

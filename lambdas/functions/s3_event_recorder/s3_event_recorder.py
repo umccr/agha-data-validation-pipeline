@@ -378,16 +378,8 @@ def validate_batch_job_result(batch_result: dict):
     status = batch_result['status']
     value = batch_result['value']
 
-    if type == batch.Tasks.CHECKSUM_VALIDATION.value:
-        calculated_checksum = value
-        provided_checksum = get_checksum_from_manifest_record(DYNAMODB_STAGING_TABLE_NAME, s3_key)
-
-        if calculated_checksum == provided_checksum:
-            return "PASS"
-
-    else:
-        if status == "SUCCEED":
-            return "PASS"
+    if status == "SUCCEED":
+        return "PASS"
 
     return "FAIL"
 

@@ -108,7 +108,7 @@ def handler(event, context):
     # submission later, and are available through data.files_accepted.
     if 'manifest_fp' in event:
         notification.SUBMITTER_INFO.submission_prefix = os.path.dirname(event['manifest_fp'])
-        data = handle_input_manifest(data, event, manifest_record_dynamodb_df)
+        data = handle_input_manifest(data, event, event['include_fns'])
     elif 'filepaths' in event:
         notification.SUBMITTER_INFO.submission_prefix = os.path.dirname(event['filepaths'][0])
         data = handle_input_filepaths(data, event)
@@ -311,25 +311,18 @@ def validate_event_data(event_record):
                     raise ValueError(f'\'{args}\' has an invalid boolean')
 
 
-def handle_input_manifest(data: submission_data.SubmissionData, event, manifest_df):
+def handle_input_manifest(data: submission_data.SubmissionData, event, file_list):
     data.manifest_key = event['manifest_fp']
     data.submission_prefix = os.path.dirname(data.manifest_key)
-
-    try:
-        file_list = manifest_df['filename'].tolist()
-    except ValueError as e:
-        logger.error(f'Incorrect/Wrong manifest file: {str(e)}')
-        logger.error(f'Terminating')
-        raise ValueError
-
-    logger.info(f'File list to process:')
-    logger.info(json.dumps(file_list, indent=4, cls=util.JsonSerialEncoder))
 
     files_included, data.files_rejected = filter_filelist(
         file_list,
         event['include_fns'],
         event['exclude_fns']
     )
+
+    logger.info(f'File list to process:')
+    logger.info(json.dumps(files_included, indent=4, cls=util.JsonSerialEncoder))
 
     # Create file records
     # data.output_prefix = s3.get_output_prefix(data.submission_prefix)

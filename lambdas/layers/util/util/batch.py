@@ -81,7 +81,7 @@ def get_tasks_list(filename: str = None):
     # Always validate filetype
     tasks_list.append(Tasks.FILE_VALIDATION.value)
 
-    # Always create index if supported (In this case BAM and VCF file)
+    # Always create index if supported (In this case BAM, CRAM and VCF file)
     if agha.FileType.is_indexable(filetype) or filename is None:  # Appended by default
         tasks_list.append(Tasks.INDEX.value)
 
