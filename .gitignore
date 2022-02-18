@@ -37,3 +37,4 @@ var/
 
 foo.py
 /scripts/rerun-checksum/
+*cdk.context.json

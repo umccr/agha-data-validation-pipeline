@@ -287,6 +287,32 @@ def handler(event, context):
                                             records=dynamodb_result_update_job,
                                             archive_log=s3.S3EventType.EVENT_OBJECT_CREATED.value)
 
+    if event.get("skip_generate_manifest_file"):
+        logger.info('Skip generate manifest file flag is in event payload. Skipping ...')
+    else:
+        # Create new manifest file from dynamodb given
+        logger.info(f'Generate manifest file from dynamodb')
+        manifest_item = dynamodb.get_batch_item_from_pk_and_sk(DYNAMODB_STORE_TABLE_NAME,
+                                                               dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                                                               submission_directory)
+        # Define manifest file
+        new_manifest_file = 'checksum\tfilename\tagha_study_id\n'  # First line is header
+
+        # Iterate to manifest list
+        for item in manifest_item:
+            checksum = item['provided_checksum']
+            filename = item['filename']
+            agha_study_id = item['agha_study_id']
+
+            new_manifest_file += f'{checksum}\t{filename}\t{agha_study_id}\n'
+        manifest_destination_key = submission_directory + 'manifest.txt'
+        upload_res = s3.upload_s3_object_from_string(bucket_name=STORE_BUCKET,
+                                                     byte_of_string=new_manifest_file,
+                                                     s3_key_destination=manifest_destination_key)
+
+        logger.info(f'Uploaded dynamodb manifest.txt. Response:')
+        print(upload_res)
+
     return "Data Transfer Job has started"
 
 
@@ -340,7 +366,8 @@ def validate_event_data(event_payload: dict):
         'skip_unlock_bucket',
         'validation_check_only',
         'exception_postfix_filename',
-        'run_all'
+        'run_all',
+        'skip_generate_manifest_file'
     }
 
     # Check for required payload
@@ -357,7 +384,7 @@ def validate_event_data(event_payload: dict):
 
     # Sanitize to string of bool to bool()
     for args in ['skip_update_dynamodb', 'skip_submit_batch_job', 'skip_unlock_bucket', 'validation_check_only',
-                 "run_all"]:
+                 "run_all", 'skip_generate_manifest_file']:
         if (bool_payload := event_payload.get(args)) is not None:
             if isinstance(bool_payload, str):
                 try:
