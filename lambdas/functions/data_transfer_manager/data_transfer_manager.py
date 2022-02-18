@@ -99,10 +99,9 @@ def handler(event, context):
     try:
 
         # Grab object list
-        manifest_list_res = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                                             partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
-                                                             sort_key_prefix=submission_directory)
-        manifest_list = manifest_list_res['Items']
+        manifest_list = dynamodb.get_batch_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                               partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                                                               sort_key_prefix=submission_directory)
 
         for manifest_record in manifest_list:
             s3_key = manifest_record['sort_key']
@@ -164,7 +163,6 @@ def handler(event, context):
                                         'checksum': calculated_checksum,
                                         'bucket_name': STAGING_BUCKET})
 
-
             # Process and crate move job
             for job_info in list_to_process:
                 source_bucket = job_info['bucket_name']
@@ -190,6 +188,21 @@ def handler(event, context):
                 record.provided_checksum = checksum
                 record.sort_key = source_s3
                 dynamodb_job.append(record)
+
+        # Final step to Move original manifest file
+        manifest_source_key = submission_directory + 'manifest.txt'
+        manifest_target_key = submission_directory + 'manifest.orig'
+
+        logger.info(f'Creating move from \'{manifest_source_key}\' to \'{manifest_target_key}\'')
+
+        manifest_batch_job = create_cli_s3_object_batch_job(
+            source_bucket_name=STAGING_BUCKET,
+            source_s3_key=manifest_source_key,
+            target_s3_key=manifest_target_key,
+            cli_op='mv'
+        )
+
+        batch_job_data.append(manifest_batch_job)
 
     except Exception as e:
         logger.error(e)
@@ -281,11 +294,14 @@ def construct_directory_from_flagship_and_submission(flagship, submission):
     return f'{flagship}/{submission}/'
 
 
-def create_cli_s3_object_batch_job(source_bucket_name, source_s3_key, cli_op: str = 'mv'):
+def create_cli_s3_object_batch_job(source_bucket_name, source_s3_key, target_s3_key=None, cli_op: str = 'mv'):
+    if target_s3_key is None:
+        target_s3_key = source_s3_key
+
     name = source_s3_key
 
     source_s3_uri = s3.create_s3_uri_from_bucket_name_and_key(bucket_name=source_bucket_name, s3_key=source_s3_key)
-    target_s3_uri = s3.create_s3_uri_from_bucket_name_and_key(bucket_name=STORE_BUCKET, s3_key=source_s3_key)
+    target_s3_uri = s3.create_s3_uri_from_bucket_name_and_key(bucket_name=STORE_BUCKET, s3_key=target_s3_key)
 
     name_raw = f'agha_data_transfer_{name}'
     name = JOB_NAME_RE.sub('_', name_raw)
@@ -340,7 +356,8 @@ def validate_event_data(event_payload: dict):
         raise ValueError(f'\'{json.dumps(foreign_payload)}\' is not in the allowed payload.')
 
     # Sanitize to string of bool to bool()
-    for args in ['skip_update_dynamodb', 'skip_submit_batch_job', 'skip_unlock_bucket', 'validation_check_only', "run_all"]:
+    for args in ['skip_update_dynamodb', 'skip_submit_batch_job', 'skip_unlock_bucket', 'validation_check_only',
+                 "run_all"]:
         if (bool_payload := event_payload.get(args)) is not None:
             if isinstance(bool_payload, str):
                 try:
@@ -369,8 +386,9 @@ def validate_event_data(event_payload: dict):
         difference = set(skip_args) - set(event_payload.keys())
 
         if len(difference) >= len(skip_args):
-            raise ValueError(f'If run_all is not specified or equals to False, one of the skip arguments must be present. \n'
-                             f'Skipped arguments: {json.dumps(skip_args)}')
+            raise ValueError(
+                f'If run_all is not specified or equals to False, one of the skip arguments must be present. \n'
+                f'Skipped arguments: {json.dumps(skip_args)}')
 
 
 def construct_resource_from_s3_key_and_bucket(bucket_name, s3_key):
