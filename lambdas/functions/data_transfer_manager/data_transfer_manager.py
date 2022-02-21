@@ -103,12 +103,13 @@ def handler(event, context):
                                                                partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
                                                                sort_key_prefix=submission_directory)
 
+        logger.info(f'Processing {len(manifest_list)} number of records from manifest dynamodb')
         for manifest_record in manifest_list:
             s3_key = manifest_record['sort_key']
-            logger.info(f'Processing s3_key:{s3_key}')
+            logger.debug(f'Processing s3_key: {s3_key}')
 
             if submission_data.is_file_skipped(s3_key, event.get("exception_postfix_filename")):
-                logger.info(f'Skipping index file as validation manager produce its own')
+                logger.debug(f'{s3_key} are in the skipped list.')
                 # Not processing index file from staging bucket
                 # Validation manager produce its own indexing file
                 continue
@@ -125,8 +126,8 @@ def handler(event, context):
                                                                   partition_key=data_partition_key,
                                                                   sort_key=s3_key)
 
-                logger.info(f'Response of sort_key:\'{s3_key}\', partition_key:\'{data_partition_key}\':')
-                logger.info(json.dumps(data_res, indent=4))
+                logger.debug(f'Response of sort_key:\'{s3_key}\', partition_key:\'{data_partition_key}\':')
+                logger.debug(json.dumps(data_res, indent=4))
 
                 if data_res['Count'] > 0:
                     item = data_res['Items'][0]
@@ -144,7 +145,7 @@ def handler(event, context):
                     dynamodb_result_update_job.append(updated_result_dynamodb)
 
             if is_move_original_file:
-                logger.info(f'Do not have data generated in pipeline. Moving file from original state')
+                logger.debug(f'{s3_key} do not have data generated in pipeline. Moving file from staging bucket.')
 
                 # Grab checksum value from result
                 data_partition_key = dynamodb.ResultPartitionKey.DATA.value + ':' + batch.Tasks.CHECKSUM_VALIDATION.value
@@ -156,7 +157,7 @@ def handler(event, context):
                     calculated_checksum = item['value']
 
                 else:
-                    logger.warning(f'No checksum found from batch. Using submitted checksum ...')
+                    logger.warning(f'No checksum found from batch for \'{s3_key}\'. Using submitted checksum ...')
                     calculated_checksum = manifest_record['provided_checksum']
 
                 list_to_process.append({'s3_key': s3_key,
@@ -176,11 +177,8 @@ def handler(event, context):
                                                            cli_op=cli_op)
 
                 batch_job_data.append(batch_job)
-                logger.info(f'Creating job for index:')
-                logger.info(json.dumps(batch_job, indent=4))
 
                 # Create Dynamodb from existing and override some value
-                logger.info(f'Create dynamodb manifest record')
                 record = dynamodb.ManifestFileRecord(**manifest_record)
                 record.filename = s3.get_s3_filename_from_s3_key(source_s3)
                 record.date_modified = util.get_datetimestamp()
@@ -193,8 +191,6 @@ def handler(event, context):
         manifest_source_key = submission_directory + 'manifest.txt'
         manifest_target_key = submission_directory + 'manifest.orig'
 
-        logger.info(f'Creating move from \'{manifest_source_key}\' to \'{manifest_target_key}\'')
-
         manifest_batch_job = create_cli_s3_object_batch_job(
             source_bucket_name=STAGING_BUCKET,
             source_s3_key=manifest_source_key,
@@ -203,6 +199,8 @@ def handler(event, context):
         )
 
         batch_job_data.append(manifest_batch_job)
+
+        logger.info(f'{len(batch_job_data)} number of batch job item (incl manifest move) have been created.')
 
     except Exception as e:
         logger.error(e)
@@ -216,19 +214,16 @@ def handler(event, context):
     else:
         try:
             get_bucket_policy_response = S3_CLIENT.get_bucket_policy(Bucket=STAGING_BUCKET)
-            logger.info("Received policy response:")
-            logger.info(json.dumps(get_bucket_policy_response))
+            logger.debug("Received policy response:")
+            logger.debug(json.dumps(get_bucket_policy_response))
             bucket_policy = json.loads(get_bucket_policy_response['Policy'])
 
-            logger.info("Grab folder lock statement")
             folder_lock_statement = s3.find_folder_lock_statement(bucket_policy)
+            logger.debug(f"folder_lock_statement: {folder_lock_statement}")
 
             folder_lock_resource = folder_lock_statement.get('Resource')
-            logger.info('Folder Lock statement')
-            logger.info(json.dumps(folder_lock_resource))
 
             resource = construct_resource_from_s3_key_and_bucket(STAGING_BUCKET, submission_directory) + '*'
-            logger.info(f'Construct resource: {resource}')
 
             if isinstance(folder_lock_resource, list):
 
@@ -242,15 +237,15 @@ def handler(event, context):
                 logger.info(bucket_policy_json)
 
                 response = S3_CLIENT.put_bucket_policy(Bucket=STAGING_BUCKET, Policy=bucket_policy_json)
-                logger.info(f"BucketPolicy update response: {response}")
+                logger.debug(f"BucketPolicy update response: {response}")
 
             elif isinstance(folder_lock_resource, str) and folder_lock_resource == resource:
 
-                logger.info(f"Only one resource found in the folder lock policy. Removing it...")
+                logger.debug(f"Only one resource found in the folder lock policy. Removing it...")
                 bucket_policy['Statement'].remove(folder_lock_statement)
                 bucket_policy_json = json.dumps(bucket_policy)
                 response = S3_CLIENT.put_bucket_policy(Bucket=STAGING_BUCKET, Policy=bucket_policy_json)
-                logger.info(f"BucketPolicy update response: {response}")
+                logger.debug(f"BucketPolicy update response: {response}")
 
             else:
                 logger.critical("Unknown bucket policy. Raising an error")
@@ -264,8 +259,8 @@ def handler(event, context):
     if event.get("skip_submit_batch_job"):
         logger.info('Skip submit batch job flag is raised. Skipping ...')
     else:
+        logger.info(f'Batch Job list: {json.dumps(batch_job_data, indent=4)}')
         for job_data in batch_job_data:
-            logger.info(f'Executing job:{json.dumps(job_data)}')
             submit_data_transfer_job(job_data)
         logger.info(f'Batch job has executed. Submit {len(batch_job_data)} number of job')
 
@@ -273,7 +268,7 @@ def handler(event, context):
     if event.get("skip_update_dynamodb"):
         logger.info('Skip update dynamodb flag is raised. Skipping ...')
     else:
-        logger.info(f'Writing data to dynamodb')
+        logger.info(f'Batch Job list: {json.dumps(dynamodb_job, indent=4)}')
         dynamodb.batch_write_records(table_name=DYNAMODB_STORE_TABLE_NAME,
                                      records=dynamodb_job)
         dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_STORE_TABLE_NAME,
@@ -306,12 +301,11 @@ def handler(event, context):
 
             new_manifest_file += f'{checksum}\t{filename}\t{agha_study_id}\n'
         manifest_destination_key = submission_directory + 'manifest.txt'
-        upload_res = s3.upload_s3_object_from_string(bucket_name=STORE_BUCKET,
-                                                     byte_of_string=new_manifest_file,
-                                                     s3_key_destination=manifest_destination_key)
+        s3.upload_s3_object_from_string(bucket_name=STORE_BUCKET,
+                                        byte_of_string=new_manifest_file,
+                                        s3_key_destination=manifest_destination_key)
 
-        logger.info(f'Uploaded dynamodb manifest.txt. Response:')
-        print(upload_res)
+        logger.info(f'Uploaded dynamodb manifest.txt')
 
     return "Data Transfer Job has started"
 
