@@ -411,6 +411,7 @@ class LambdaStack(core.NestedStack):
             ]
         )
 
+        # Permission to modify staging bucket policy
         data_transfer_manager_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
@@ -422,9 +423,19 @@ class LambdaStack(core.NestedStack):
             )
         )
 
+        # Permission to put object at store bucket
+        data_transfer_manager_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    's3:PutObject'
+                ],
+                resources=[f'arn:aws:s3:::{bucket_name["store_bucket"]}/*']
+            )
+        )
+
+        # Permission to submit batch job
         resources = batch_queue_arn_list.copy()
         resources.append(batch.batch_s3_job_definition.job_definition_arn)
-
         data_transfer_manager_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
@@ -433,6 +444,7 @@ class LambdaStack(core.NestedStack):
                 resources=resources
             )
         )
+
         self.data_transfer_manager_lambda = lambda_.Function(
             self,
             'DataTransferManagerLambda',

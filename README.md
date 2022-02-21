@@ -174,16 +174,17 @@ The following are arguments supported on each lambda.
 
 ### data_transfer_manager
 
-| Argument                   | Description                                                                                                                            | Type           | Example                        |
-|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------|
-| submission [REQUIRED]      | Submission date in the flagship                                                                                                        | String         | "13023_3432423"                |
-| flagship_code [REQUIRED]   | Flagship code                                                                                                                          | String         | "ACG"                          |
-| run_all                    | To confirm all event will run. If this is false or do not exist. Skipped/validation_check arguments below are expected in the payload. | Boolean        | true                           |
-| skip_unlock_bucket         | Allow skipping unlocking bucket                                                                                                        | Boolean        | true                           |
-| skip_submit_batch_job      | Allow skipping submitting batch job                                                                                                    | Boolean        | true                           |
-| skip_update_dynamodb       | Allow skipping dynamodb update                                                                                                         | Boolean        | true                           |
-| validation_check_only      | Only validation check only and return fail result.                                                                                     | Boolean        | true                           |
-| exception_postfix_filename | Skip move file for the following list of postfix                                                                                       | List of string | ["metadata.txt", ".md5", etc.] |
+| Argument                    | Description                                                                                                                            | Type           | Example                        |
+|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------|
+| submission [REQUIRED]       | Submission date in the flagship                                                                                                        | String         | "13023_3432423"                |
+| flagship_code [REQUIRED]    | Flagship code                                                                                                                          | String         | "ACG"                          |
+| run_all                     | To confirm all event will run. If this is false or do not exist. Skipped/validation_check arguments below are expected in the payload. | Boolean        | true                           |
+| skip_unlock_bucket          | Allow skipping unlocking bucket                                                                                                        | Boolean        | true                           |
+| skip_submit_batch_job       | Allow skipping submitting batch job                                                                                                    | Boolean        | true                           |
+| skip_update_dynamodb        | Allow skipping dynamodb update                                                                                                         | Boolean        | true                           |
+| skip_generate_manifest_file | Allow skipping generating new `manifest.txt file` from manifest dynamodb.                                                              | Boolean        | true                           |
+| validation_check_only       | Only validation check only and return fail result.                                                                                     | Boolean        | true                           |
+| exception_postfix_filename  | Skip move file for the following list of postfix                                                                                       | List of string | ["metadata.txt", ".md5", etc.] |
 
 
   
