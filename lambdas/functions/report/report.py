@@ -2,7 +2,7 @@
 # 1. Check if data transfer has completed successfully
 # 2. Check if batch job failing
 # 3. Check if pipeline result failing
-# 4. Report Weekly for failing batch job/results
+# 4. Report on ready to transfer file
 
 import os
 import logging
@@ -31,6 +31,8 @@ def handler(event, context):
     }
     """
 
+
+    # For file transfer check type
     # Parse event
     submission_prefix = event["submission_prefix"]
 
@@ -68,3 +70,6 @@ def handler(event, context):
     logger.info(json.dumps(json.dumps(json_report, indent=4)))
 
     return json_report
+
+
+    # Checktype for ready to transfer

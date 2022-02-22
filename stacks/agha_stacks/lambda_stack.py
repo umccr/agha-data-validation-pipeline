@@ -99,6 +99,7 @@ class LambdaStack(core.NestedStack):
             environment={
                 'STAGING_BUCKET': bucket_name['staging_bucket']
             },
+            memory_size=1769,
             role=folder_lock_lambda_role
         )
 
@@ -145,6 +146,7 @@ class LambdaStack(core.NestedStack):
                 'SENDER_EMAIL': notification["sender_email"]
             },
             role=notification_lambda_role,
+            memory_size=1769,
             layers=[
                 util_layer,
             ]
@@ -208,6 +210,7 @@ class LambdaStack(core.NestedStack):
                 'STAGING_BUCKET': bucket_name['staging_bucket']
             },
             role=validation_manager_lambda_role,
+            memory_size=1769,
             layers=[
                 util_layer,
                 runtime_layer
@@ -270,6 +273,7 @@ class LambdaStack(core.NestedStack):
                 "AUTORUN_VALIDATION_JOBS": autorun_validation_jobs
             },
             role=manifest_processor_lambda_role,
+            memory_size=1769,
             layers=[
                 util_layer,
                 runtime_layer
@@ -318,6 +322,7 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["e-tag"]
             },
             role=s3_event_recorder_lambda_role,
+            memory_size=1769,
             layers=[
                 util_layer,
                 runtime_layer
@@ -379,6 +384,7 @@ class LambdaStack(core.NestedStack):
                 'FOLDER_LOCK_LAMBDA_ARN': self.folder_lock_lambda.function_arn,
                 'S3_RECORDER_LAMBDA_ARN': self.s3_event_recorder_lambda.function_arn
             },
+            memory_size=1769,
             role=s3_event_router_lambda_role
         )
 
@@ -470,12 +476,12 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_ARCHIVE_RESULT_TABLE_NAME': dynamodb_table["result-bucket-archive"]
             },
             role=data_transfer_manager_lambda_role,
+            memory_size=1769,
             layers=[
                 util_layer,
                 runtime_layer
             ]
         )
-
 
         ################################################################################
         # Report lambda
@@ -496,7 +502,7 @@ class LambdaStack(core.NestedStack):
             ]
         )
 
-        self.data_transfer_manager_lambda = lambda_.Function(
+        self.report_lambda = lambda_.Function(
             self,
             'ReportLambda',
             function_name=f"{namespace}-report",
@@ -508,9 +514,9 @@ class LambdaStack(core.NestedStack):
             environment={
                 # Buckets
                 'STAGING_BUCKET': bucket_name['staging_bucket'],
-
             },
             role=report_lambda_role,
+            memory_size=1769,
             layers=[
                 util_layer,
                 runtime_layer

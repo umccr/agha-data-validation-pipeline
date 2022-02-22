@@ -430,11 +430,9 @@ def get_resource():
         return DYNAMODB_RESOURCE
     else:
         if os.getenv('AWS_ENDPOINT'):
-            logger.info("Using local DynamoDB instance")
             DYNAMODB_RESOURCE = boto3.resource(
                 service_name='dynamodb', endpoint_url=os.getenv('AWS_ENDPOINT'))
         else:
-            logger.info("Using AWS DynamoDB instance")
             DYNAMODB_RESOURCE = boto3.resource(service_name='dynamodb')
         return DYNAMODB_RESOURCE
 
