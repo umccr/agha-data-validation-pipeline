@@ -475,3 +475,44 @@ class LambdaStack(core.NestedStack):
                 runtime_layer
             ]
         )
+
+
+        ################################################################################
+        # Report lambda
+
+        report_lambda_role = iam.Role(
+            self,
+            'ReportLambdaRole',
+            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonSSMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonS3ReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'IAMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonDynamoDBFullAccess')
+            ]
+        )
+
+        self.data_transfer_manager_lambda = lambda_.Function(
+            self,
+            'ReportLambda',
+            function_name=f"{namespace}-report",
+            handler='report.handler',
+            runtime=lambda_.Runtime.PYTHON_3_8,
+            timeout=core.Duration.seconds(300),
+            retry_attempts=0,
+            code=lambda_.Code.from_asset('lambdas/functions/report'),
+            environment={
+                # Buckets
+                'STAGING_BUCKET': bucket_name['staging_bucket'],
+
+            },
+            role=report_lambda_role,
+            layers=[
+                util_layer,
+                runtime_layer
+            ]
+        )

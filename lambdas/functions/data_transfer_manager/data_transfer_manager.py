@@ -268,7 +268,7 @@ def handler(event, context):
     if event.get("skip_update_dynamodb"):
         logger.info('Skip update dynamodb flag is raised. Skipping ...')
     else:
-        logger.info(f'Batch Job list: {json.dumps(dynamodb_job, indent=4)}')
+        logger.info(f'Batch Job list: {json.dumps([item.__dict__ for item in dynamodb_job], indent=4, cls=util.JsonSerialEncoder)}')
         dynamodb.batch_write_records(table_name=DYNAMODB_STORE_TABLE_NAME,
                                      records=dynamodb_job)
         dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_STORE_TABLE_NAME,
