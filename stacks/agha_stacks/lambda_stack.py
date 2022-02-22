@@ -498,8 +498,17 @@ class LambdaStack(core.NestedStack):
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     'IAMReadOnlyAccess'),
                 iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'AmazonDynamoDBFullAccess')
-            ]
+                    'AmazonDynamoDBReadOnlyAccess')
+            ],
+        )
+
+        report_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    's3:GetBucketPolicy',
+                ],
+                resources=[f'arn:aws:s3:::{bucket_name["staging_bucket"]}']
+            )
         )
 
         self.report_lambda = lambda_.Function(
@@ -514,6 +523,8 @@ class LambdaStack(core.NestedStack):
             environment={
                 # Buckets
                 'STAGING_BUCKET': bucket_name['staging_bucket'],
+                # DynamodDB
+                'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
             },
             role=report_lambda_role,
             memory_size=1769,
