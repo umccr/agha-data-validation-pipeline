@@ -18,7 +18,7 @@ from cleanup_manager import handler
 
 def create_cleanup_manager_payload():
     return {
-        "submission_directory": "AC/20210923_151606"
+        "submission_directory": "AC/20210531_162251"
     }
 
 

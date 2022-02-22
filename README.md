@@ -258,9 +258,9 @@ Payload needed for check:
 
 
 ### cleanup_manager
-| Argument                    | Description                  | Type           | Example         |
-|-----------------------------|------------------------------|----------------|-----------------|
-| directory_prefix [REQUIRED] | Directory prefix to clean up | String         | "AC/2022-02-02" |
+| Argument                    | Description                  | Type           | Example          |
+|-----------------------------|------------------------------|----------------|------------------|
+| directory_prefix [REQUIRED] | Directory prefix to clean up | String         | "AC/2022-02-02/" |
 
 
 #### Invoke function example
