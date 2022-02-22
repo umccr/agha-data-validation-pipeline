@@ -17,7 +17,8 @@ from report import handler
 
 def create_report_payload():
     return {
-        "report_type": "passed_validation",
+        "report_type": "file_transfer_check",
+        "payload": {"submission_prefix":"AC/20210923_151606/"}
     }
 
 

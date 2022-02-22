@@ -492,23 +492,12 @@ class LambdaStack(core.NestedStack):
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'AmazonSSMReadOnlyAccess'),
-                iam.ManagedPolicy.from_aws_managed_policy_name(
                     'AmazonS3ReadOnlyAccess'),
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     'IAMReadOnlyAccess'),
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     'AmazonDynamoDBReadOnlyAccess')
             ],
-        )
-
-        report_lambda_role.add_to_policy(
-            iam.PolicyStatement(
-                actions=[
-                    's3:GetBucketPolicy',
-                ],
-                resources=[f'arn:aws:s3:::{bucket_name["staging_bucket"]}']
-            )
         )
 
         self.report_lambda = lambda_.Function(
