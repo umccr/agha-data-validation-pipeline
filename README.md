@@ -234,6 +234,28 @@ Optional Arguments
 | tasks_skipped              | Allow skipping some tasks. By default, it will run all tasks. List of tasks: ['CHECKSUM_VALIDATION','FILE_VALIDATION','CREATE_INDEX', 'CREATE_COMPRESS'] | List of string | ['CHECKSUM_VALIDATION']        |
 | exception_postfix_filename | Skip checking on file in this list of postfix                                                                                                            | List of string | ["metadata.txt", ".md5", etc.] |
 
+### report
+
+
+| Argument               | Description                                                                      | Type   | Example             |
+|------------------------|----------------------------------------------------------------------------------|--------|---------------------|
+| report_type [REQUIRED] | What kind of report needed, Options: ['file_transfer_check','passed_validation'] | String | "passed_validation" |
+| payload                | The payload depends on what report_type selected.                                | Object | {...}               |
+
+Payload needed for check:
+- file_transfer_check
+
+| Argument                     | Description                          | Type   | Example         |
+|------------------------------|--------------------------------------|--------|-----------------|
+| submission_prefix [REQUIRED] | What submission needed for the check | String | "AC/2022-02-02" |
+
+- passed_validation
+
+| Argument                        | Description                              | Type           | Example     |
+|---------------------------------|------------------------------------------|----------------|-------------|
+| exception_postfix_filename_list | Any particular postfix file name to skip | String of list | ["xxx.tsv"] |
+
+
 
 ### cleanup_manager
 | Argument                    | Description                  | Type           | Example         |

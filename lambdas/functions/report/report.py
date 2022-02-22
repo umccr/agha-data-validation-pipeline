@@ -12,9 +12,7 @@ import boto3
 from util import agha, s3, batch
 
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
-MANIFEST_PROCESSOR_LAMBDA_ARN = os.environ.get('MANIFEST_PROCESSOR_LAMBDA_ARN')
-FOLDER_LOCK_LAMBDA_ARN = os.environ.get('FOLDER_LOCK_LAMBDA_ARN')
-S3_RECORDER_LAMBDA_ARN = os.environ.get('S3_RECORDER_LAMBDA_ARN')
+STORE_BUCKET = os.environ.get('STORE_BUCKET')
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -33,7 +31,9 @@ def handler(event, context):
 
     """
 
+    ################################################################################
     # For file transfer check type
+    ################################################################################
     if event.get('report_type') == 'file_transfer_check':
         """
         Payload expected in this type:
@@ -41,8 +41,13 @@ def handler(event, context):
             "submission_prefix": "AC/2022-02-22"
         }
         """
+        logger.info('Checking for file_transfer_check')
 
-        submission_prefix = event["submission_prefix"]
+        submission_prefix = event['payload']["submission_prefix"]
+
+        if submission_prefix is None:
+            logger.error('Invalid payload')
+            return "Invalid Payload"
 
         # Get all files value in staging bucket
         try:
@@ -78,8 +83,9 @@ def handler(event, context):
 
         return json_report
 
-
+    ################################################################################
     # Checktype for ready to transfer
+    ################################################################################
     elif event.get('report_type') == 'passed_validation':
         """
         OPTIONAL:
@@ -87,6 +93,7 @@ def handler(event, context):
             exception_postfix_filename_list:[]
         }
         """
+        logger.info('Checking for passed validation')
 
         # Get a list of submitted file from s3 bucket policy
         s3_client = boto3.client('s3')
@@ -95,20 +102,31 @@ def handler(event, context):
         folder_lock_statement = s3.find_folder_lock_statement(bucket_policy)
         folder_lock_resource = folder_lock_statement.get('Resource')
 
-        # Get exception file list when specified
-        exception_postfix_file = event.get('exception_postfix_filename_list')
+        s3_key_staging = [resource.strip(f'arn:aws:s3:::{STAGING_BUCKET}/').strip('*') for resource in folder_lock_resource]
+
+        # Get submission directory in store bucket
+        store_submission_directory = []
+        for flagship_code in agha.FlagShip.list_flagship_enum():
+            query_directory = flagship_code + '/'
+            store_submission_directory.extend(s3.aws_s3_ls(STORE_BUCKET, query_directory))
+
+        # Remove keys that had already been submitted to the store bucket
+        s3_to_check = list(set(s3_key_staging)-set(store_submission_directory))
 
         # Define result array
         passed_submission_list = []
 
-        for resource in folder_lock_resource:
+        logger.info(f'S3 key to check: {json.dumps(s3_to_check, indent=4)}')
+
+        # Get exception file list when specified
+        exception_postfix_file = event.get('payload').get('exception_postfix_filename_list')
+
+        for submission_prefix in s3_to_check:
             # directory prefix for the submission (Stripping resource arn)
-            submission_prefix = resource.strip(f'arn:aws:s3:::{STAGING_BUCKET}/').strip('*')
 
             if submission_prefix.startswith('TEST'):
                 continue
 
-            print('submission_prefix: ', submission_prefix)
             fail_status_check_result = batch.run_status_result_check(submission_prefix)
 
             fail_batch_job = batch.run_batch_check(staging_directory_prefix=submission_prefix,
@@ -117,5 +135,7 @@ def handler(event, context):
             if len(fail_batch_job) < 0 and len(fail_status_check_result) < 0:
                 passed_submission_list.append(submission_prefix)
 
-        # print(passed_submission_list)
-        return passed_submission_list
+        logger.info(f'Ready to transfer list: {passed_submission_list}')
+        return {
+            "ready_to_transfer_s3_key": passed_submission_list
+        }
