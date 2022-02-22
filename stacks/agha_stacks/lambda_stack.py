@@ -533,3 +533,56 @@ class LambdaStack(core.NestedStack):
                 runtime_layer
             ]
         )
+
+        ################################################################################
+        # cleanup_manager lambda
+
+        cleanup_manager_lambda_role = iam.Role(
+            self,
+            'CleanupManagerLambdaRole',
+            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonSSMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonS3FullAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'IAMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonDynamoDBReadOnlyAccess')
+            ],
+        )
+
+        cleanup_manager_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    'lambda:InvokeFunction'
+                ],
+                resources=[
+                    self.folder_lock_lambda.function_arn,
+                ]
+            )
+        )
+
+        self.cleanup_manager_lambda = lambda_.Function(
+            self,
+            'CleanupManagerLambda',
+            function_name=f"{namespace}-cleanup-manager",
+            handler='cleanup_manager.handler',
+            runtime=lambda_.Runtime.PYTHON_3_8,
+            timeout=core.Duration.seconds(300),
+            retry_attempts=0,
+            code=lambda_.Code.from_asset('lambdas/functions/cleanup_manager'),
+            environment={
+                # Buckets
+                'STAGING_BUCKET': bucket_name['staging_bucket'],
+                # Lambdas
+                'FOLDER_LOCK_LAMBDA_ARN': self.folder_lock_lambda.function_arn,
+            },
+            role=cleanup_manager_lambda_role,
+            memory_size=1769,
+            layers=[
+                util_layer,
+                runtime_layer
+            ]
+        )

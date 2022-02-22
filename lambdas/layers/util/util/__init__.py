@@ -187,3 +187,13 @@ def replace_record_decimal_object(record):
 def get_record_from_given_field_and_panda_df(panda_df, fieldname_lookup: str, fieldvalue_lookup: str):
     file_info = panda_df.loc[panda_df[fieldname_lookup] == fieldvalue_lookup].iloc[0]
     return file_info
+
+
+def call_lambda(lambda_arn: str, payload: dict):
+    lambda_client = boto3.client('lambda')
+    response = lambda_client.invoke(
+        FunctionName=lambda_arn,
+        InvocationType='Event',
+        Payload=json.dumps(payload)
+    )
+    return response

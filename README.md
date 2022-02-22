@@ -170,7 +170,7 @@ Archive tables is the history table, it will record all changes to the current s
 
 ### Lambda Arguments
 
-The following are arguments supported on each lambda.
+The following are arguments supported on each lambda. Recommended invoking lambda asynchronously.
 
 ### data_transfer_manager
 
@@ -235,12 +235,19 @@ Optional Arguments
 | exception_postfix_filename | Skip checking on file in this list of postfix                                                                                                            | List of string | ["metadata.txt", ".md5", etc.] |
 
 
+### cleanup_manager
+| Argument                    | Description                  | Type           | Example         |
+|-----------------------------|------------------------------|----------------|-----------------|
+| directory_prefix [REQUIRED] | Directory prefix to clean up | String         | "AC/2022-02-02" |
+
 
 #### Invoke function example
+Recommended invoke lambda asynchronously 
 ```bash
 aws lambda invoke \
     --function-name {function_name} \
     --cli-binary-format raw-in-base64-out \
+	--invocation-type Event \
     --payload '{
       "manifest_fp": "Cardiac/20210711_170230/manifest.txt",
       "manifest_dynamodb_key_prefix": "Cardiac/20210711_170230/"
