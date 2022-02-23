@@ -58,7 +58,7 @@ def handler(event, context):
     ################################################################################
     try:
         logger.info(f'Deleting file from staging bucket, List of s3_key: {json.dumps(deletion_key_list, indent=4)} ')
-        res = s3.delete_s3_object_from_key(deletion_key_list)
+        res = s3.delete_s3_object_from_key(bucket_name=STAGING_BUCKET, key_list=deletion_key_list)
         logger.debug(f'Deletion response {res}')
 
         # Double check if it is empty
