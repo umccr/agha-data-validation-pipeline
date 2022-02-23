@@ -54,25 +54,23 @@ def handler(event, context):
             deletion_key_list.append(s3_key)
 
     ################################################################################
-    # Second Stage - Check and List for batch deletion file
+    # Second Stage - Delete files
     ################################################################################
-    try:
-        logger.info(f'Deleting file from staging bucket, List of s3_key: {json.dumps(deletion_key_list, indent=4)} ')
-        res = s3.delete_s3_object_from_key(bucket_name=STAGING_BUCKET, key_list=deletion_key_list)
-        logger.debug(f'Deletion response {res}')
 
-        # Double check if it is empty
-        remain_list_files = s3.get_s3_object_metadata(STAGING_BUCKET, submission_directory)
-        remain_s3_list = [metadata['Key'] for metadata in remain_list_files]
-        if len(remain_list_files) > 0:
-            logger.info(f'Some files are not deleted as it is not an index or uncompressed file.')
-            logger.info(f'Remaining file: {json.dumps(remain_s3_list, indent=4)}')
-        logger.info(f'Deletion job success!')
+    # If deletion key_list exist, delete the file
+    if len(deletion_key_list) > 0:
+        try:
+            logger.info(f'Deleting file from staging bucket, List of s3_key: {json.dumps(deletion_key_list, indent=4)} ')
+            res = s3.delete_s3_object_from_key(bucket_name=STAGING_BUCKET, key_list=deletion_key_list)
+            logger.debug(f'Deletion response {res}')
+            logger.info(f'Deletion job success!')
 
-    except Exception as e:
-        logger.error('Something went wrong on deleting s3 keys')
-        logger.error(e)
-        return f'Something went wrong. Error: {e}'
+        except Exception as e:
+            logger.error('Something went wrong on deleting s3 keys')
+            logger.error(e)
+            return f'Something went wrong. Error: {e}'
+    else:
+        logger.info(f'No data to delete, proceeding next stage')
 
     ################################################################################
     # Third stage - Create Readme to not use this bucket directory again.

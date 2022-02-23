@@ -496,7 +496,9 @@ class LambdaStack(core.NestedStack):
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     'IAMReadOnlyAccess'),
                 iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'AmazonDynamoDBReadOnlyAccess')
+                    'AmazonDynamoDBReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'service-role/AWSLambdaBasicExecutionRole')
             ],
         )
 
@@ -536,7 +538,9 @@ class LambdaStack(core.NestedStack):
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     'IAMReadOnlyAccess'),
                 iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'AmazonDynamoDBReadOnlyAccess')
+                    'AmazonDynamoDBReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'service-role/AWSLambdaBasicExecutionRole')
             ],
         )
 
