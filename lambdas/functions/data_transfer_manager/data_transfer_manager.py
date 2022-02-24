@@ -51,8 +51,7 @@ def handler(event, context):
     :param context: not used
     """
 
-    logger.info('Processing event:')
-    logger.info(json.dumps(event))
+    logger.info(f'Processing event: {json.dumps(event, indent=4)}')
 
     # Parse event data and get record
     try:
