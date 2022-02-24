@@ -9,7 +9,7 @@ import logging
 import json
 import boto3
 
-from util import agha, s3, batch
+from util import agha, s3, batch, submission_data
 
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
 STORE_BUCKET = os.environ.get('STORE_BUCKET')
@@ -140,6 +140,91 @@ def handler(event, context):
         return {
             "ready_to_transfer_s3_key": passed_submission_list
         }
+
+    ################################################################################
+    # Checktype for ready to transfer
+    ################################################################################
+    elif event.get('report_type') == 'store_bucket_check':
+        """
+        {
+            "submission_prefix": "AC/2022-02-22"
+        }
+        """
+        logger.info(f'\'store_bucket_check\' option selected.')
+        logger.info(f'Processing event: {event}')
+
+        payload = StoreBucketPayload()
+        dict_payload = event.get('payload')
+
+        payload.set_payload(**dict_payload)
+
+        manifest_orig_key = payload.submission_prefix + 'manifest.orig'
+        logger.debug(f'Manifest key: {manifest_orig_key}')
+
+        manifest_orig_pd = submission_data.retrieve_manifest_data(bucket_name=STORE_BUCKET,
+                                                                  manifest_key=manifest_orig_key)
+
+        manifest_orig_filename_list = manifest_orig_pd['filename'].tolist()
+        logger.info(f'List of filename in \'manifest.orig\': {json.dumps(manifest_orig_filename_list, indent=4)}')
+
+        # Grab for filename from 'manifest.orig' that should exist in the bucket
+        manifest_orig_filename_to_check = []
+        for manifest_orig_filename in manifest_orig_filename_list:
+
+            if submission_data.is_file_skipped(manifest_orig_filename, payload.exception_postfix_file):
+                continue
+            else:
+                manifest_orig_filename_to_check.append(manifest_orig_filename)
+
+        # Grab s3_key exist in store bucket
+        store_metadata_list = s3.get_s3_object_metadata(bucket_name=STORE_BUCKET,
+                                                        directory_prefix=payload.submission_prefix)
+        store_filename_list = [metadata['Key'].split('/')[-1] for metadata in store_metadata_list]
+        logger.info(f'Filename in store bucket: {json.dumps(store_filename_list, indent=4)}')
+
+        # Comparing files in the manifest.orig but not in the manifest store
+        manifest_orig_diff_store = list(set(manifest_orig_filename_list) - set(store_filename_list))
+        logger.info(f'Comparing filename exist in original manifest but not in store bucket. '
+                    f'Result {json.dumps(manifest_orig_diff_store, indent=4)}')
+
+        # Checking file that could be altered and only the altered file is being stored (e.g. uncompressed file)
+        uncompress_file = []
+        for filename in manifest_orig_diff_store:
+            if agha.FileType.is_compressable_file(filename) and not agha.FileType.is_compress_file(filename):
+                uncompress_file.append(filename)
+
+        remove_uncompress_file = list(set(manifest_orig_diff_store) - set(uncompress_file))
+        len_remove_uncompress_file = len(remove_uncompress_file)
+        logger.info(f'Difference after removing uncompress file: {remove_uncompress_file}')
+        logger.info(f'Total number of difference: {len_remove_uncompress_file}')
+
+        if len_remove_uncompress_file > 0:
+            message = f'Contain missing file. Expected file: {json.dumps(remove_uncompress_file, indent=4)}'
+            logger.critical(message)
+            return message
+        else:
+            message = 'OK. All file matched with original manifest.'
+            logger.info(message)
+            return message
+
+
+class StoreBucketPayload:
+    def __init__(self):
+        self.submission_prefix = None
+        self.exception_postfix_file = None
+
+    def set_payload(self, submission_prefix=None, exception_postfix_file=None):
+
+        # Mandatory payload
+        if submission_prefix is None:
+            raise ValueError(f'Incorrect payload')
+
+        # Sanitize
+        if not submission_prefix.endswith('/'):
+            submission_prefix = submission_prefix + '/'
+
+        self.submission_prefix = submission_prefix
+        self.exception_postfix_file = exception_postfix_file
 
 
 class FileTransferPayload:
