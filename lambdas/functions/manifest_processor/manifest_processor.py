@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import pandas as pd
 
 # From layers
 import sys
@@ -138,21 +139,18 @@ def handler(event, context):
         validate_event_data(event_record)
 
         # Store submission data into a class
-        logger.info("Parsing s3 event record to class")
         data = submission_data.SubmissionData.create_submission_data_object_from_s3_event(event_record)
 
         # Set submitter information
         notification.set_submitter_information_from_s3_event(event_record)
 
         # Pull file metadata from S3
-        logger.info('Grab s3 object metadata')
         data.file_metadata = s3.get_s3_object_metadata(data.bucket_name, data.submission_prefix)
-        logger.info('File metadata content:')
-        print(data.file_metadata)
+        logger.info(f'File metadata in the current s3 content: {json.dumps(data.file_metadata, indent=4, cls=util.JsonSerialEncoder)}')
 
         # Collect manifest data and then validate
-        logger.info('Retrieve manifest metadata')
         data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_s3_key)
+        logger.info(f"Current manifest filename data: {json.dumps(data.manifest_data['filename'].tolist(), indent=4)}")
 
         try:
             file_list, data.files_extra = submission_data.validate_manifest(data, exception_filename,
@@ -181,6 +179,13 @@ def handler(event, context):
         logger.info(f'Processing {len(file_list)} number of file_list, and {len(data.files_extra)} \
                     number of files_extra')
 
+        # Grab dynamodb FILE record
+        staging_file_record = dynamodb.get_batch_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                                     partition_key=dynamodb.FileRecordPartitionKey.FILE_RECORD.value,
+                                                                     sort_key_prefix=data.submission_prefix
+                                                                     )
+        staging_file_record_df = pd.json_normalize(staging_file_record)
+
         for filename in file_list:
 
             sort_key = f'{data.submission_prefix}/{filename}'
@@ -189,30 +194,25 @@ def handler(event, context):
             agha_study_id = submission_data.find_study_id_from_manifest_df_and_filename(data.manifest_data, filename)
             provided_checksum = submission_data.find_checksum_from_manifest_df_and_filename(data.manifest_data,
                                                                                             filename)
-            logger.info(f"Variables extracted from manifest file for '{filename}'.")
-            logger.info(f"AGHA_STUDY_ID:{agha_study_id}, PROVIDED_CHECKSUM:{provided_checksum}")
+            logger.debug(f"Variables extracted from manifest file for '{filename}'.")
+            logger.debug(f"AGHA_STUDY_ID:{agha_study_id}, PROVIDED_CHECKSUM:{provided_checksum}")
 
             # Search if file exist at s3
-            logger.info('Getting dynamodb item from file_record partition and sort key')
-            file_record_response = dynamodb.get_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                                                    partition_key=dynamodb.FileRecordPartitionKey.FILE_RECORD.value,
-                                                                    sort_key_prefix=sort_key)
-            logger.info('file_record_response')
-            logger.info(json.dumps(file_record_response, indent=4, cls=util.JsonSerialEncoder))
+            query_submission_df = staging_file_record_df.loc[(staging_file_record_df['sort_key'] == sort_key)]
 
-            # If no File record found database. Warn and exit the application
-            if file_record_response['Count'] == 0:
+            if len(query_submission_df) == 0:
                 notification.log_and_store_message(f"No such file found at bucket:{DYNAMODB_STAGING_TABLE_NAME}\
                  s3_key:{sort_key}", 'warning')
                 notification.notify_and_exit()
+            logger.info(f'File check in s3 bucket: OK.')
 
-            file_record_json = file_record_response['Items'][0]
+            file_etag = query_submission_df['etag'].values[0]
 
             # Check if the file eTag has appear else than this staging bucket and warn if so.
             logger.info('Check if the same Etag has exist in the database')
-            etag_response = dynamodb.get_item_from_pk(DYNAMODB_ETAG_TABLE_NAME, file_record_json["etag"])
-            logger.info('eTag query response:')
-            logger.info(json.dumps(etag_response, indent=4, cls=util.JsonSerialEncoder))
+            etag_response = dynamodb.get_item_from_pk(DYNAMODB_ETAG_TABLE_NAME, file_etag)
+            logger.debug('eTag query response:')
+            logger.debug(json.dumps(etag_response, indent=4, cls=util.JsonSerialEncoder))
 
             if etag_response['Count'] > 1:
                 s3_duplicate_list = []
@@ -341,10 +341,14 @@ def handler(event, context):
                                          object_list=staging_dynamodb_batch_write_list)
             dynamodb.batch_write_objects(table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
                                          object_list=archive_staging_dynamodb_batch_write_list)
+        else:
+            logger.info(f'\'skip_update_dynamodb\' payload is True. Skipping ...')
 
         # Send notification to submitter for the submission if not skipped
         if not event.get("skip_send_notification"):
             notification.send_notifications()
+        else:
+            logger.info(f'\'skip_send_notification\' payload is True. Skipping ...')
 
         if AUTORUN_VALIDATION_JOBS == 'yes' and not skip_auto_validation:
             # Invoke validation manager for automation
