@@ -40,7 +40,6 @@ def handler(event, context):
 
     Additional optional payload that can be set on the lambda
     {
-        "skip_unlock_bucket": "true",
         "skip_submit_batch_job": "true",
         "skip_update_dynamodb": "true",
         "validation_check_only": "true",
@@ -207,53 +206,6 @@ def handler(event, context):
         logger.error('Aborting!')
         return {"StatusCode": 406, "body": f"Something went wrong on moving manifest records from staging to store.\n"
                                            f",Error: {e}"}
-
-    # Unlock bucket
-    if event.get("skip_unlock_bucket"):
-        logger.info('Skip unlock bucket flag is raised. Skipping...')
-    else:
-        try:
-            get_bucket_policy_response = S3_CLIENT.get_bucket_policy(Bucket=STAGING_BUCKET)
-            logger.debug("Received policy response:")
-            logger.debug(json.dumps(get_bucket_policy_response))
-            bucket_policy = json.loads(get_bucket_policy_response['Policy'])
-
-            folder_lock_statement = s3.find_folder_lock_statement(bucket_policy)
-            logger.debug(f"folder_lock_statement: {folder_lock_statement}")
-
-            folder_lock_resource = folder_lock_statement.get('Resource')
-
-            resource = construct_resource_from_s3_key_and_bucket(STAGING_BUCKET, submission_directory) + '*'
-
-            if isinstance(folder_lock_resource, list):
-
-                try:
-                    folder_lock_resource.remove(resource)
-                except Exception:
-                    raise ValueError('Folder lock resource not found')
-
-                bucket_policy_json = json.dumps(bucket_policy)
-                logger.info("New bucket policy:")
-                logger.info(bucket_policy_json)
-
-                response = S3_CLIENT.put_bucket_policy(Bucket=STAGING_BUCKET, Policy=bucket_policy_json)
-                logger.debug(f"BucketPolicy update response: {response}")
-
-            elif isinstance(folder_lock_resource, str) and folder_lock_resource == resource:
-
-                logger.debug(f"Only one resource found in the folder lock policy. Removing it...")
-                bucket_policy['Statement'].remove(folder_lock_statement)
-                bucket_policy_json = json.dumps(bucket_policy)
-                response = S3_CLIENT.put_bucket_policy(Bucket=STAGING_BUCKET, Policy=bucket_policy_json)
-                logger.debug(f"BucketPolicy update response: {response}")
-
-            else:
-                logger.critical("Unknown bucket policy. Raising an error")
-                raise ValueError('Unknown Bucket policy')
-
-        except Exception as e:
-            logger.critical(e)
-            logger.critical('Continue with the risk of fail to delete files in the staging bucket.')
 
     # Submit Batch jobs
     if event.get("skip_submit_batch_job"):

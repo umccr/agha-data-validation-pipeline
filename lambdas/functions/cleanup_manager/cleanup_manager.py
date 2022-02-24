@@ -87,22 +87,3 @@ def handler(event, context):
                                     s3_key_destination=readme_key)
     logger.info('Uploaded README file')
 
-    ################################################################################
-    # Fourth stage - Invoke folder lock lambda
-    ################################################################################
-    logger.info('Locking folder')
-    payload = [
-        {
-            "s3": {
-                "bucket": {
-                    "name": STAGING_BUCKET
-                },
-                "object": {
-                    "key": readme_key
-                }
-            }
-        }
-    ]
-    folder_lock_response = util.call_lambda(FOLDER_LOCK_LAMBDA_ARN, {"Records": payload})
-    logger.debug(f'Lock lambda response: {folder_lock_response}')
-    logger.info(f'Lock lambda has been triggered.')

@@ -19,7 +19,6 @@ def create_manifest_record_payload():
     return     {
         "flagship_code": "AC",
         "submission": "20210531_162251",
-        "skip_unlock_bucket": True,
     }
 
 
