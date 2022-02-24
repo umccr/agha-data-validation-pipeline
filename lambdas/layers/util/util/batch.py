@@ -189,9 +189,9 @@ def run_status_result_check(submission_directory: str) -> list:
         filter_key = Attr('value').ne('PASS')  # Not equal to PASS
 
         items = dynamodb.get_batch_item_from_pk_and_sk(table_name=DYNAMODB_RESULT_TABLE_NAME,
-                                                      partition_key=partition_key_to_search,
-                                                      sort_key_prefix=submission_directory,
-                                                      filter_expr=filter_key)
+                                                       partition_key=partition_key_to_search,
+                                                       sort_key_prefix=submission_directory,
+                                                       filter_expr=filter_key)
         if len(items) > 0:
             fail_s3_key.extend(items)
 
