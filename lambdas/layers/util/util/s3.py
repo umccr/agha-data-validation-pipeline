@@ -221,3 +221,10 @@ def upload_s3_object_local_file(bucket_name: str, local_file: str, s3_key_destin
         Key=s3_key_destination,
     )
     return res
+
+
+def upload_s3_object_from_string(bucket_name: str, byte_of_string: str, s3_key_destination: str):
+    s3_client = util.get_client('s3')
+    res = s3_client.put_object(Body=byte_of_string, Bucket=bucket_name, Key=s3_key_destination)
+
+    return res

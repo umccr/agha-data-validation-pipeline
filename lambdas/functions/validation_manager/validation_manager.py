@@ -73,7 +73,7 @@ def handler(event, context):
     dynamodb_result_update = list()
 
     logger.info('Processing event at validation manager lambda:')
-    logger.info(json.dumps(event))
+    logger.info(json.dumps(event, indent=4))
 
     # Parse event data and get record
     validate_event_data(event)
@@ -93,9 +93,10 @@ def handler(event, context):
     manifest_fp = event.get('manifest_fp')
     if manifest_fp is not None and 'manifest_dynamodb_key_prefix' in event:
         submission_prefix = os.path.dirname(event['manifest_fp'])
-        manifest_record_dynamodb_staging = dynamodb.get_batch_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                                                                  partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
-                                                                                  sort_key_prefix=submission_prefix)
+        manifest_record_dynamodb_staging = dynamodb.get_batch_item_from_pk_and_sk(
+            table_name=DYNAMODB_STAGING_TABLE_NAME,
+            partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+            sort_key_prefix=submission_prefix)
         manifest_record_dynamodb_df = pd.json_normalize(manifest_record_dynamodb_staging)
 
         # Find filename included list
@@ -115,6 +116,7 @@ def handler(event, context):
     else:
         assert False
 
+    ################################################################################
     # Process each record and prepare Batch commands
     batch_job_data = list()
 
@@ -123,17 +125,24 @@ def handler(event, context):
                                                                           sort_key_prefix=data.submission_prefix)
     file_record_dynamodb_df = pd.json_normalize(file_record_dynamodb_staging)
 
-    # Possibility of being fetched before
+    # Possibility of being fetched at above line, having if-condition to prevent re-fetch
     if manifest_record_dynamodb_staging is None:
-        manifest_record_dynamodb_staging = dynamodb.get_batch_item_from_pk_and_sk(table_name=DYNAMODB_STAGING_TABLE_NAME,
-                                                                                  partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
-                                                                                  sort_key_prefix=data.submission_prefix)
+        manifest_record_dynamodb_staging = dynamodb.get_batch_item_from_pk_and_sk(
+            table_name=DYNAMODB_STAGING_TABLE_NAME,
+            partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+            sort_key_prefix=data.submission_prefix)
         manifest_record_dynamodb_df = pd.json_normalize(manifest_record_dynamodb_staging)
 
     for filename in data.filename_accepted:
 
         # Get partition key and existing records
         sort_key = f'{data.submission_prefix}/{filename}'
+
+        # Skipping exception validation defined in payload
+        if event.get('exception_postfix_filename') is not None:
+            postfix_exception_list = event.get('exception_postfix_filename')
+            if len([filename for postfix in postfix_exception_list if filename.endswith(postfix)]) > 0:
+                continue
 
         # Find checksum file from file record
         try:
@@ -175,7 +184,7 @@ def handler(event, context):
             return
 
         # Create job data
-        logger.info(f'Creating batch job for, s3_key:{sort_key}')
+        logger.debug(f'Creating batch job for, s3_key:{sort_key}')
         job_data = batch.create_job_data(s3_key=sort_key, partition_key=dynamodb.ResultPartitionKey.FILE.value,
                                          checksum=provided_checksum, tasks_list=tasks_list,
                                          output_prefix=data.output_prefix, filesize=filesize)
@@ -193,18 +202,14 @@ def handler(event, context):
             dynamodb_result_update.append(running_status)
 
     # Submit Batch jobs
+    logger.info(f'Submitting batch job to queue. batch job data list: {json.dumps(batch_job_data, indent=4)}')
     for job_data in batch_job_data:
-        logger.info('Job submitted')
-        logger.info(json.dumps(job_data))
-
         # Submit job to batch
         batch_res = batch.submit_batch_job(job_data)
-
-        # Update DynamoDb status to running
-        logger.info(json.dumps(batch_res, indent=4, cls=util.JsonSerialEncoder))
+        logger.debug(f'Submit batch job res: {batch_res}')
     logger.info(f'Batch job has executed. Submit {len(batch_job_data)} number of job')
 
-    # Update status of dynamodb to RUNNING (Need to configure which task to set to running)
+    # # Update status of dynamodb to RUNNING (Need to configure which task to set to running)
     if not event.get('skip_update_dynamodb') == 'true':
         dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME, records=dynamodb_result_update)
         dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,

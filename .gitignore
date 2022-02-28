@@ -38,3 +38,5 @@ var/
 *.iml
 
 foo.py
+/scripts/rerun-checksum/
+*cdk.context.json

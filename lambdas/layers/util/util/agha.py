@@ -47,6 +47,10 @@ class FlagShip(Enum):
                 return fs
         return FlagShip.UNKNOWN
 
+    @staticmethod
+    def list_flagship_enum() -> List:
+        return [flagship.preferred_code() for flagship in FlagShip]
+
 
 FEXT_FASTQ = ['.fq', '.fq.gz', '.fastq', '.fastq.gz']
 FEXT_BAM = ['.bam']

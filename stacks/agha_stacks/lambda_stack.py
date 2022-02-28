@@ -1,5 +1,5 @@
 import json
-
+import os
 from aws_cdk import (
     aws_lambda as lambda_,
     aws_s3_notifications as s3notification,
@@ -64,6 +64,46 @@ class LambdaStack(core.NestedStack):
         )
 
         ################################################################################
+        # cleanup_manager lambda
+
+        cleanup_manager_lambda_role = iam.Role(
+            self,
+            'CleanupManagerLambdaRole',
+            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonS3FullAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'IAMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonDynamoDBReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'service-role/AWSLambdaBasicExecutionRole')
+            ],
+        )
+
+        self.cleanup_manager_lambda = lambda_.Function(
+            self,
+            'CleanupManagerLambda',
+            function_name=f"{namespace}-cleanup-manager",
+            handler='cleanup_manager.handler',
+            runtime=lambda_.Runtime.PYTHON_3_8,
+            timeout=core.Duration.seconds(300),
+            retry_attempts=0,
+            code=lambda_.Code.from_asset('lambdas/functions/cleanup_manager'),
+            environment={
+                # Buckets
+                'STAGING_BUCKET': bucket_name['staging_bucket']
+            },
+            role=cleanup_manager_lambda_role,
+            memory_size=1769,
+            layers=[
+                util_layer,
+                runtime_layer
+            ]
+        )
+
+        ################################################################################
         # Folder lock Lambda
 
         folder_lock_lambda_role = iam.Role(
@@ -72,7 +112,8 @@ class LambdaStack(core.NestedStack):
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name(
-                    'service-role/AWSLambdaBasicExecutionRole')
+                    'service-role/AWSLambdaBasicExecutionRole'
+                )
             ]
         )
 
@@ -87,6 +128,7 @@ class LambdaStack(core.NestedStack):
             )
         )
 
+        folder_lock_exception_role_id = json.dumps([cleanup_manager_lambda_role.role_id, batch.batch_instance_role.role_id])
         self.folder_lock_lambda = lambda_.Function(
             self,
             'FolderLockLambda',
@@ -97,8 +139,11 @@ class LambdaStack(core.NestedStack):
             retry_attempts=0,
             code=lambda_.Code.from_asset('lambdas/functions/folder_lock/'),
             environment={
-                'STAGING_BUCKET': bucket_name['staging_bucket']
+                'STAGING_BUCKET': bucket_name['staging_bucket'],
+                'AWS_ACCOUNT_NUMBER': os.environ.get('CDK_DEFAULT_ACCOUNT'),
+                'FOLDER_LOCK_EXCEPTION_ROLE_ID': folder_lock_exception_role_id
             },
+            memory_size=1769,
             role=folder_lock_lambda_role
         )
 
@@ -145,6 +190,7 @@ class LambdaStack(core.NestedStack):
                 'SENDER_EMAIL': notification["sender_email"]
             },
             role=notification_lambda_role,
+            memory_size=1769,
             layers=[
                 util_layer,
             ]
@@ -208,6 +254,7 @@ class LambdaStack(core.NestedStack):
                 'STAGING_BUCKET': bucket_name['staging_bucket']
             },
             role=validation_manager_lambda_role,
+            memory_size=1769,
             layers=[
                 util_layer,
                 runtime_layer
@@ -270,6 +317,7 @@ class LambdaStack(core.NestedStack):
                 "AUTORUN_VALIDATION_JOBS": autorun_validation_jobs
             },
             role=manifest_processor_lambda_role,
+            memory_size=1769,
             layers=[
                 util_layer,
                 runtime_layer
@@ -318,6 +366,7 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["e-tag"]
             },
             role=s3_event_recorder_lambda_role,
+            memory_size=1769,
             layers=[
                 util_layer,
                 runtime_layer
@@ -379,6 +428,7 @@ class LambdaStack(core.NestedStack):
                 'FOLDER_LOCK_LAMBDA_ARN': self.folder_lock_lambda.function_arn,
                 'S3_RECORDER_LAMBDA_ARN': self.s3_event_recorder_lambda.function_arn
             },
+            memory_size=1769,
             role=s3_event_router_lambda_role
         )
 
@@ -411,6 +461,7 @@ class LambdaStack(core.NestedStack):
             ]
         )
 
+        # Permission to modify staging bucket policy
         data_transfer_manager_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
@@ -422,9 +473,19 @@ class LambdaStack(core.NestedStack):
             )
         )
 
+        # Permission to put object at store bucket
+        data_transfer_manager_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    's3:PutObject'
+                ],
+                resources=[f'arn:aws:s3:::{bucket_name["store_bucket"]}/*']
+            )
+        )
+
+        # Permission to submit batch job
         resources = batch_queue_arn_list.copy()
         resources.append(batch.batch_s3_job_definition.job_definition_arn)
-
         data_transfer_manager_lambda_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[
@@ -433,6 +494,7 @@ class LambdaStack(core.NestedStack):
                 resources=resources
             )
         )
+
         self.data_transfer_manager_lambda = lambda_.Function(
             self,
             'DataTransferManagerLambda',
@@ -441,7 +503,6 @@ class LambdaStack(core.NestedStack):
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(300),
             retry_attempts=0,
-            reserved_concurrent_executions=1,
             code=lambda_.Code.from_asset('lambdas/functions/data_transfer_manager'),
             environment={
                 # Batch
@@ -459,6 +520,49 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_ARCHIVE_RESULT_TABLE_NAME': dynamodb_table["result-bucket-archive"]
             },
             role=data_transfer_manager_lambda_role,
+            memory_size=1769,
+            layers=[
+                util_layer,
+                runtime_layer
+            ]
+        )
+
+        ################################################################################
+        # Report lambda
+
+        report_lambda_role = iam.Role(
+            self,
+            'ReportLambdaRole',
+            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonS3ReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'IAMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'AmazonDynamoDBReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'service-role/AWSLambdaBasicExecutionRole')
+            ],
+        )
+
+        self.report_lambda = lambda_.Function(
+            self,
+            'ReportLambda',
+            function_name=f"{namespace}-report",
+            handler='report.handler',
+            runtime=lambda_.Runtime.PYTHON_3_8,
+            timeout=core.Duration.seconds(300),
+            retry_attempts=0,
+            code=lambda_.Code.from_asset('lambdas/functions/report'),
+            environment={
+                # Buckets
+                'STAGING_BUCKET': bucket_name['staging_bucket'],
+                # DynamodDB
+                'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
+            },
+            role=report_lambda_role,
+            memory_size=1769,
             layers=[
                 util_layer,
                 runtime_layer

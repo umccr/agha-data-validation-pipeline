@@ -430,11 +430,9 @@ def get_resource():
         return DYNAMODB_RESOURCE
     else:
         if os.getenv('AWS_ENDPOINT'):
-            logger.info("Using local DynamoDB instance")
             DYNAMODB_RESOURCE = boto3.resource(
                 service_name='dynamodb', endpoint_url=os.getenv('AWS_ENDPOINT'))
         else:
-            logger.info("Using AWS DynamoDB instance")
             DYNAMODB_RESOURCE = boto3.resource(service_name='dynamodb')
         return DYNAMODB_RESOURCE
 
@@ -584,6 +582,10 @@ def get_item_from_pk(table_name: str, partition_key: str):
 
 
 def get_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix: str, filter: str = None):
+    """
+    [DEPRECATED] please use get_batch_item_from_pk_and_sk below. That function will ensure all data from the specific
+    query and/or filter is being fetched, while this function will only return the first 1MB of data.
+    """
     ddb = get_resource()
     tbl = ddb.Table(table_name)
 
@@ -626,7 +628,7 @@ def get_field_list_from_dynamodb_record(table_name: str, field_name: str, partit
     return field_list
 
 
-def get_batch_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix: str):
+def get_batch_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix: str, filter_expr: str = None):
     ddb = get_resource()
     tbl = ddb.Table(table_name)
 
@@ -638,7 +640,14 @@ def get_batch_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_
     func_parameter = {
         "KeyConditionExpression": key_expr
     }
+
+    if filter_expr:
+        func_parameter["FilterExpression"] = filter_expr
+
+    # Init query
     response = tbl.query(**func_parameter)
+
+    # Extend result with query
     result_item.extend(response['Items'])
 
     # Re-fetch until the last

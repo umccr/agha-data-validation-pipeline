@@ -41,7 +41,7 @@ class BatchStack(core.NestedStack):
 
         compute_environment_spec_list = [
             {
-                'type':'small',
+                'type': 'small',
                 'queue_name': batch_environment['batch_queue_name']['small'],
                 'compute_environment_name': batch_environment['compute_environment_name']['small'],
                 'instance_type': instance_types_2_vcpu,
@@ -70,7 +70,7 @@ class BatchStack(core.NestedStack):
             },
         ]
 
-        batch_instance_role = iam.Role(
+        self.batch_instance_role = iam.Role(
             self,
             'BatchInstanceRole',
             assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
@@ -85,7 +85,7 @@ class BatchStack(core.NestedStack):
         batch_instance_profile = iam.CfnInstanceProfile(
             self,
             'BatchInstanceProfile',
-            roles=[batch_instance_role.role_name],
+            roles=[self.batch_instance_role.role_name],
             instance_profile_name='agha-batch-instance-profile-2.0',
         )
 
@@ -111,8 +111,6 @@ class BatchStack(core.NestedStack):
 
         # Defining ebs storage
         for compute_environment_spec in compute_environment_spec_list:
-
-
             block_device_mappings = [
                 ec2.CfnLaunchTemplate.BlockDeviceMappingProperty(
                     device_name='/dev/xvda',

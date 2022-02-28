@@ -170,20 +170,20 @@ Archive tables is the history table, it will record all changes to the current s
 
 ### Lambda Arguments
 
-The following are arguments supported on each lambda.
+The following are arguments supported on each lambda. Recommended invoking lambda asynchronously.
 
 ### data_transfer_manager
 
-| Argument                   | Description                                                                                                                            | Type           | Example                        |
-|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------|
-| submission [REQUIRED]      | Submission date in the flagship                                                                                                        | String         | "13023_3432423"                |
-| flagship_code [REQUIRED]   | Flagship code                                                                                                                          | String         | "ACG"                          |
-| run_all                    | To confirm all event will run. If this is false or do not exist. Skipped/validation_check arguments below are expected in the payload. | Boolean        | true                           |
-| skip_unlock_bucket         | Allow skipping unlocking bucket                                                                                                        | Boolean        | true                           |
-| skip_submit_batch_job      | Allow skipping submitting batch job                                                                                                    | Boolean        | true                           |
-| skip_update_dynamodb       | Allow skipping dynamodb update                                                                                                         | Boolean        | true                           |
-| validation_check_only      | Only validation check only and return fail result.                                                                                     | Boolean        | true                           |
-| exception_postfix_filename | Skip move file for the following list of postfix                                                                                       | List of string | ["metadata.txt", ".md5", etc.] |
+| Argument                    | Description                                                                                                                            | Type           | Example                        |
+|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------|
+| submission [REQUIRED]       | Submission date in the flagship                                                                                                        | String         | "13023_3432423"                |
+| flagship_code [REQUIRED]    | Flagship code                                                                                                                          | String         | "ACG"                          |
+| run_all                     | To confirm all event will run. If this is false or do not exist. Skipped/validation_check arguments below are expected in the payload. | Boolean        | true                           |
+| skip_submit_batch_job       | Allow skipping submitting batch job                                                                                                    | Boolean        | true                           |
+| skip_update_dynamodb        | Allow skipping dynamodb update                                                                                                         | Boolean        | true                           |
+| skip_generate_manifest_file | Allow skipping generating new `manifest.txt file` from manifest dynamodb.                                                              | Boolean        | true                           |
+| validation_check_only       | Only validation check only and return fail result.                                                                                     | Boolean        | true                           |
+| exception_postfix_filename  | Skip move file for the following list of postfix                                                                                       | List of string | ["metadata.txt", ".md5", etc.] |
 
 
   
@@ -233,13 +233,42 @@ Optional Arguments
 | tasks_skipped              | Allow skipping some tasks. By default, it will run all tasks. List of tasks: ['CHECKSUM_VALIDATION','FILE_VALIDATION','CREATE_INDEX', 'CREATE_COMPRESS'] | List of string | ['CHECKSUM_VALIDATION']        |
 | exception_postfix_filename | Skip checking on file in this list of postfix                                                                                                            | List of string | ["metadata.txt", ".md5", etc.] |
 
+### report
+
+
+| Argument               | Description                                                                      | Type   | Example             |
+|------------------------|----------------------------------------------------------------------------------|--------|---------------------|
+| report_type [REQUIRED] | What kind of report needed, Options: ['file_transfer_check','passed_validation'] | String | "passed_validation" |
+| payload                | The payload depends on what report_type selected.                                | Object | {...}               |
+
+Payload needed for check:
+- file_transfer_check
+
+| Argument                     | Description                          | Type   | Example         |
+|------------------------------|--------------------------------------|--------|-----------------|
+| submission_prefix [REQUIRED] | What submission needed for the check | String | "AC/2022-02-02" |
+
+- passed_validation
+
+| Argument                        | Description                              | Type           | Example     |
+|---------------------------------|------------------------------------------|----------------|-------------|
+| exception_postfix_filename_list | Any particular postfix file name to skip | String of list | ["xxx.tsv"] |
+
+
+
+### cleanup_manager
+| Argument                    | Description                  | Type           | Example          |
+|-----------------------------|------------------------------|----------------|------------------|
+| directory_prefix [REQUIRED] | Directory prefix to clean up | String         | "AC/2022-02-02/" |
 
 
 #### Invoke function example
+Recommended invoke lambda asynchronously 
 ```bash
 aws lambda invoke \
     --function-name {function_name} \
     --cli-binary-format raw-in-base64-out \
+	--invocation-type Event \
     --payload '{
       "manifest_fp": "Cardiac/20210711_170230/manifest.txt",
       "manifest_dynamodb_key_prefix": "Cardiac/20210711_170230/"
