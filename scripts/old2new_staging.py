@@ -107,36 +107,28 @@ def generate_manifest_commands(old_to_new_map: dict):
 def compare_bucket_etags():
     prefix = ''
 
-    # # get all Etags from the old bucket
-    # old_etags = defaultdict(list)
-    # for s3_object in get_listing(bucket=BUCKET_NAME_STAGING_OLD, prefix=prefix):
-    #     etag = s3_object['ETag'].strip('"')
-    #     key = s3_object['Key']
-    #     old_etags[etag].append(key)
-
-    # with open('../tmp/temp-etag-staging-old.json', 'w') as convert_file:
-    #     convert_file.write(json.dumps(old_etags, indent=6))
-
-    with open('../tmp/temp-etag-staging-old.json', 'r') as convert_file:
-        old_etags = json.loads(convert_file.read())
-
-    print(f"Number of ETags in old staging bucket: {len(old_etags.keys())}")
-
-
-    # # get all Etags from the new bucket
+    # # get all Etags from the new staging bucket
     # new_etags = defaultdict(list)
     # for s3_object in get_listing(bucket=BUCKET_NAME_STAGING_NEW, prefix=prefix):
     #     etag = s3_object['ETag'].strip('"')
     #     key = s3_object['Key']
     #     new_etags[etag].append(key)
-
+    #
     # with open('../tmp/temp-etag-staging-new.json', 'w') as convert_file:
     #     convert_file.write(json.dumps(new_etags, indent=6))
 
     with open('../tmp/temp-etag-staging-new.json', 'r') as convert_file:
         new_etags = json.loads(convert_file.read())
 
-    print(f"Number of ETags in new staging bucket: {len(new_etags.keys())}")
+    print("\n\nReporting duplicated ETags in STAGING-2.0 bucket")
+    cnt = 0
+    for etag, objs in new_etags.items():
+        if len(objs) > 1:
+            cnt += 1
+            print(f"ETag: {etag}, Objects: {objs}")
+
+    print(f"Number of total ETags in new staging bucket: {len(new_etags.keys())}")
+    print(f"Number of ETags with duplication: {cnt}")
 
     # # get all Etags from the new store
     # store_etags = defaultdict(list)
@@ -151,16 +143,48 @@ def compare_bucket_etags():
     with open('../tmp/temp-etag-store-new.json', 'r') as convert_file:
         store_etags = json.loads(convert_file.read())
 
+    print("\n\nReporting duplicated ETags in STORE-2.0 bucket")
+    cnt = 0
+    for etag, objs in store_etags.items():
+        if len(objs) > 1:
+            cnt += 1
+            print(f"ETag: {etag}, Objects: {objs}")
+
     print(f"Number of ETags in new store bucket: {len(store_etags.keys())}")
+    print(f"Number of ETags with duplication: {cnt}")
 
     # Compare the ETags
-    mismatch_cnt = 0
-    for old_etag in old_etags.keys():
-        if old_etag in new_etags.keys() or old_etag in store_etags.keys():
-            continue
-        mismatch_cnt += 1
-        print(f"ETag not found: {old_etags[old_etag]}")
-    print(f"Number of ETags not found: {mismatch_cnt}")
+    # mismatch_cnt = 0
+    # for old_etag in old_etags.keys():
+    #     if old_etag in new_etags.keys() or old_etag in store_etags.keys():
+    #         continue
+    #     mismatch_cnt += 1
+    #     print(f"ETag not found: {old_etags[old_etag]}")
+    # print(f"Number of ETags not found: {mismatch_cnt}")
+
+
+def compare_submissions_staging_store():
+    subs_staging = list()
+    old_roots = s3.aws_s3_ls(bucket_name=BUCKET_NAME_STAGING_NEW, prefix='')
+    for old_root in old_roots:
+        prefixes = s3.aws_s3_ls(bucket_name=BUCKET_NAME_STAGING_NEW, prefix=old_root)
+        subs_staging.extend(prefixes)
+    print(f"NUmber of submissions in staging: {len(subs_staging)}")
+
+    subs_store = list()
+    old_roots = s3.aws_s3_ls(bucket_name=BUCKET_NAME_STORE_NEW, prefix='')
+    for old_root in old_roots:
+        prefixes = s3.aws_s3_ls(bucket_name=BUCKET_NAME_STORE_NEW, prefix=old_root)
+        subs_store.extend(prefixes)
+    print(f"NUmber of submissions in staging: {len(subs_store)}")
+
+    for sub_staging in subs_staging:
+        if sub_staging not in subs_store:
+            print(f"Staging submission not in store: {sub_staging}")
+
+    for sub_store in subs_store:
+        if sub_store not in subs_staging:
+            print(f"ERROR: Store submission not in staging: {sub_store}")
 
 
 if __name__ == '__main__':
@@ -177,4 +201,7 @@ if __name__ == '__main__':
     #     print(cmd)
 
     compare_bucket_etags()
+
+    # compare_submissions_staging_store()
+
     print("All done.")
