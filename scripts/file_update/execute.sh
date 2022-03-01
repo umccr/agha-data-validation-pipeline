@@ -3,10 +3,10 @@
 ######################################################################################################
 # TODO: Fill this this section for the migration
 # TODO: Please also export your AWS credentials to AWS_PROFILE
-export BUCKET_LOCATION="agha-staging-dev"
+export BUCKET_LOCATION="agha-gdr-store-2.0"
 export PARTITION_KEY="TYPE:MANIFEST"
-export SOURCE_SORT_KEY="ACG/20210722_090101/SBJ00592-somatic-PASS.vcf.gz"
-export TARGET_SORT_KEY="AZ/1234567890/SBJ00592-somatic-PASS.vcf.gz"
+export TARGET_SORT_KEY="ABC/0123456789/SOME-FILE.vcf.gz"
+export SOURCE_SORT_KEY="XYZ/987654321/SOME-FILE.vcf.gz"
 export OVERRIDE_VALUE='{"agha_study_id":"abcde"}'  # Make sure it is a JSON string object
 
 # Update manifest.txt file in submission level by toggling 'UPDATE_MANIFEST_TXT' variable
@@ -24,9 +24,9 @@ export DYNAMODB_ETAG_TABLE_NAME='agha-gdr-e-tag'
 export DYNAMODB_RESULT_TABLE_NAME='agha-gdr-result-bucket'
 export DYNAMODB_STAGING_TABLE_NAME='agha-gdr-staging-bucket'
 export DYNAMODB_STORE_TABLE_NAME='agha-gdr-store-bucket'
-export STAGING_BUCKET='agha-staging-dev'
-export RESULT_BUCKET='agha-results-dev'
-export STORE_BUCKET='agha-store-dev'
+export STAGING_BUCKET='agha-gdr-staging-2.0'
+export RESULT_BUCKET='agha-gdr-results-2.0'
+export STORE_BUCKET='agha-gdr-store-2.0'
 
 ######################################################################################################
 
