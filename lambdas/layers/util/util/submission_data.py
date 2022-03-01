@@ -189,9 +189,11 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
             continue
 
         # Study ID
-        if not AGHA_ID_RE.match(row.agha_study_id):
-            message = f'Malformed AGHA study ID: {row.filename} ({row.agha_study_id})'
-            messages_error.append(message)
+        agha_study_id_list = row.agha_study_id.split(',')  # Separate by commas for multi study-id
+        for agha_study_id in agha_study_id_list:
+            if not AGHA_ID_RE.match(agha_study_id):
+                message = f'Malformed AGHA study ID: {row.filename} ({agha_study_id})'
+                messages_error.append(message)
         # Checksum
         if not MD5_RE.match(row.checksum) and not skip_checksum_check:
             message = f'Malformed MD5 checksum: {row.filename} ({row.checksum})'
