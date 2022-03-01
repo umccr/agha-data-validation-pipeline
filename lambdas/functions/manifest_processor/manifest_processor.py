@@ -204,7 +204,7 @@ def handler(event, context):
                 notification.log_and_store_message(f"No such file found at bucket:{DYNAMODB_STAGING_TABLE_NAME}\
                  s3_key:{sort_key}", 'warning')
                 notification.notify_and_exit()
-            logger.info(f'File check in s3 bucket: OK.')
+            logger.debug(f'File check \'{sort_key}\' in s3 bucket: OK.')
 
             file_etag = query_submission_df['etag'].values[0]
 
@@ -278,7 +278,7 @@ def handler(event, context):
                 manifest_status_record.additional_information = [report_info]
 
             notification.log_and_store_message(
-                'Trigger of validation pipeline has been disabled due to UNRECOGNIZED/UNRECOGNIZED filetype found.',
+                'Trigger of validation pipeline has been disabled due to UNRECOGNIZED filetype found.',
                 'critical')
             notification.log_and_store_message(f'Please check/resubmit submitted file.', 'critical')
             notification.log_and_store_message(
@@ -288,8 +288,7 @@ def handler(event, context):
             # List all duplicates file
             notification.log_and_store_message(
                 "The following list are files of unrecognized file.<br>")
-            list_of_duplicate_files_email_format = json.dumps(data.files_extra, indent=4, sort_keys=True).replace(
-                ' ', '&nbsp;').replace('\n', '<br>')
+            list_of_duplicate_files_email_format = json.dumps(data.files_extra, indent=4, sort_keys=True)
             notification.log_and_store_message(list_of_duplicate_files_email_format)
 
             # Skip the auto validation
@@ -321,8 +320,7 @@ def handler(event, context):
             # List all duplicates file
             notification.log_and_store_message(
                 "The following list are files with the same eTag at multiple location.<br>")
-            list_of_duplicate_files_email_format = json.dumps(duplicate_etag_list, indent=4, sort_keys=True).replace(
-                ' ', '&nbsp;').replace('\n', '<br>')
+            list_of_duplicate_files_email_format = json.dumps(duplicate_etag_list, indent=4, sort_keys=True)
             notification.log_and_store_message(list_of_duplicate_files_email_format)
 
             # Skip the auto validation

@@ -81,7 +81,9 @@ def log_and_store_message(message, level='info'):
     elif level == 'warning':
         message = f'WARNING: {message}'
 
-    MESSAGE_STORE.append(message)
+    email_message_format = message.replace(' ', '&nbsp;').replace('\n', '<br>')
+
+    MESSAGE_STORE.append(email_message_format)
 
 def log_and_store_list_message(list_messages, level='info'):
 
