@@ -45,8 +45,8 @@ def get_arguments():
 
 def mode_and_modify_result(args):
 
-    results_source_s3_key = args.source_s3_key + '__results.json'
-    results_target_s3_key = args.target_s3_key + '__results.json'
+    original_source_s3_key = args.source_s3_key
+    original_target_s3_key = args.target_s3_key
 
     # Convert filename to submitted naming (convert to uncompress if submitted uncompress)
     if agha.FileType.is_compress_file(args.source_s3_key):
@@ -58,8 +58,11 @@ def mode_and_modify_result(args):
         )
         if dydb_res['Count'] == 1:
 
-            results_source_s3_key = f"{args.source_s3_key.strip('.gz')}__results.json"
-            results_target_s3_key = f"{args.target_s3_key.strip('.gz')}__results.json"
+            original_source_s3_key = f"{args.source_s3_key.strip('.gz')}"
+            original_target_s3_key = f"{args.target_s3_key.strip('.gz')}"
+
+    results_source_s3_key = args.source_s3_key + '__results.json'
+    results_target_s3_key = args.target_s3_key + '__results.json'
 
     # Try to grab results list file
     try:
@@ -91,8 +94,8 @@ def mode_and_modify_result(args):
     ######################################################################################################
     # Moving log files
 
-    s3_uri_source=f"s3://{RESULT_BUCKET}/{args.source_s3_key}__log.txt"
-    s3_uri_target=f"s3://{RESULT_BUCKET}/{args.target_s3_key}__log.txt"
+    s3_uri_source=f"s3://{RESULT_BUCKET}/{original_source_s3_key}__log.txt"
+    s3_uri_target=f"s3://{RESULT_BUCKET}/{original_target_s3_key}__log.txt"
     os.system(f"aws s3 mv {s3_uri_source} {s3_uri_target}")
 
 

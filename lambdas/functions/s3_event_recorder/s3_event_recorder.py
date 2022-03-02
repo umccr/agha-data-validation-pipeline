@@ -314,9 +314,9 @@ def delete_manifest_file_record(manifest_record_table_name, manifest_record_arch
     # Delete MANIFEST file record
     # Grab from existing record for archive record
     logger.info('Grab Manifest data before deletion')
-    manifest_res = dynamodb.get_item_from_pk_and_sk(table_name=manifest_record_table_name,
-                                                    partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
-                                                    sort_key_prefix=db_record.sort_key)
+    manifest_res = dynamodb.get_item_from_exact_pk_and_sk(table_name=manifest_record_table_name,
+                                                          partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                                                          sort_key=db_record.sort_key)
 
     logger.info(f'Get manifest record response:')
     logger.info(json.dumps(manifest_res, cls=util.DecimalEncoder))
