@@ -36,18 +36,16 @@ DYNAMODB_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_RESULT_TABLE_NAME')
 DYNAMODB_ARCHIVE_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_RESULT_TABLE_NAME')
 DYNAMODB_ETAG_TABLE_NAME = os.environ.get('DYNAMODB_ETAG_TABLE_NAME')
 
+FLAGSHIP_LIST_CHOICE = list(set(agha.FlagShip.list_flagship_enum()) - {'TEST', 'UNKNOWN'})
+
 
 def get_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--bucket_name', required=True, type=str, choices=[STAGING_BUCKET, STORE_BUCKET],
                         help='The bucket name to search (either the staging/store name)')
-    parser.add_argument('--flagship', required=True, type=str, choices=agha.FlagShip.list_flagship_enum(),
+    parser.add_argument('--flagship', required=True, type=str, choices=FLAGSHIP_LIST_CHOICE,
                         help='Directory prefix for the submission. Example: EE')
     return parser.parse_args()
-
-
-def count_1(a):
-    return str(a) + "bebe"
 
 
 def find_and_duplicates(bucket_name, flagship):
@@ -86,7 +84,7 @@ def find_and_duplicates(bucket_name, flagship):
     deletion_s3_list = to_delete_df['Key'].tolist()
     print(f" File to delete from s3 store: {json.dumps(deletion_s3_list, indent=4)}")
 
-    # s3.delete_s3_object_from_key(bucket_name=bucket_name, key_list=deletion_s3_list)
+    s3.delete_s3_object_from_key(bucket_name=bucket_name, key_list=deletion_s3_list)
 
     ################################################################################
     # Link associated file after post process after deletion
@@ -106,7 +104,6 @@ def find_and_duplicates(bucket_name, flagship):
 
 
 if __name__ == '__main__':
-
     args = get_arguments()
 
     find_and_duplicates(args.bucket_name, args.flagship)
