@@ -11,6 +11,7 @@ import util
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+S3_CLIENT = util.get_client('s3')
 
 class S3EventType(Enum):
     """
