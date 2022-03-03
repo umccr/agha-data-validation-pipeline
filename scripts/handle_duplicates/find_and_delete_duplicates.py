@@ -76,7 +76,7 @@ def find_and_duplicates(bucket_name, flagship):
 
     # Find the deletion list (difference between duplicated_df and records_to_keep_df)
     to_delete_df = pd.concat([duplicates_record, records_to_keep]).drop_duplicates(keep=False)
-    print(f"Number of records to delete{len(to_delete_df)}")
+    print(f"Number of records to delete: {len(to_delete_df)}")
 
     ################################################################################
     # Deleting ...

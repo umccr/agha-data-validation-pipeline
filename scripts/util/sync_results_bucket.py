@@ -40,9 +40,29 @@ def get_arguments():
     return parser.parse_args()
 
 
+def find_file_base_name(result_filename):
+    basename = result_filename
+
+    # Remove '__log.txt' and '__results.json' postfix
+    if basename.endswith('__log.txt'):
+        basename = basename.strip('__log.txt')
+    elif basename.endswith('__results.json'):
+        basename = basename.strip('__results.json')
+
+    # Remove any indexing file postfix
+    if basename.endswith('.bai'):
+        basename = basename.strip('.bai')
+    elif basename.endswith('.tbi'):
+        basename = basename.strip('.tbi')
+
+    # Remove any compressing file postfix
+    if basename.endswith('.gz'):
+        basename = basename.strip('.gz')
+
+    return basename
+
 
 def sync_result_bucket(args):
-
     # TODO: Which bucket to sync to (staging/store bucket or staging/store manifest dynamodb table)
     sync_from = args.sync_from
     # TODO: Change the submission prefix
@@ -62,6 +82,9 @@ def sync_result_bucket(args):
         print('Unexpected value, please specify the corrct sync_from variable')
         return
 
+    # Remove any file ending with .gz
+    filename_main_bucket = [find_file_base_name(filename) for filename in filename_main_bucket]
+
     # Grab results file data
     metadata_list_results_bucket = s3.get_s3_object_metadata(bucket_name=RESULT_BUCKET,
                                                              directory_prefix=sort_key_prefix)
@@ -72,33 +95,20 @@ def sync_result_bucket(args):
     for s3_key in s3key_results_bucket:
         result_filename = s3_key.split('/')[-1]
 
-        # Strip ending data to get exact filename appear in the staging/store bucket
-        if result_filename.endswith('__log.txt'):
-            basename = result_filename.strip('__log.txt')
-        elif result_filename.endswith('__results.json'):
-            basename = result_filename.strip('__results.json')
-        elif result_filename.endswith('.bai'):
-            basename = result_filename.strip('.bai')
-        elif result_filename.endswith('.tbi'):
-            basename = result_filename.strip('.tbi')
-        elif result_filename.endswith('.gz'):
-            basename = result_filename.strip('.gz')
-        else:
-            continue
+        basename = find_file_base_name(result_filename)
 
         # Appending list for removal if it is not in the main bucket
         if basename not in filename_main_bucket:
             list_for_deletion.append(s3_key)
 
     # Print result for deletion list before executing it
-    print(' File to delete from s3 results:', json.dumps(list_for_deletion, indent=4))
+    print('Number of files to delete: ', len(list_for_deletion))
+    print('File to delete from s3 results: ', json.dumps(list_for_deletion, indent=4))
 
-    res = s3.delete_s3_object_from_key(RESULT_BUCKET, list_for_deletion)
-    print(res)
+    s3.delete_s3_object_from_key(RESULT_BUCKET, list_for_deletion)
 
 
 if __name__ == '__main__':
-
     args = get_arguments()
 
     sync_result_bucket(args)

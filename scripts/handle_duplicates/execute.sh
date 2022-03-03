@@ -4,7 +4,7 @@
 # TODO: Fill this this section for the migration
 # TODO: Please also export your AWS credentials to AWS_PROFILE
 export BUCKET_NAME="agha-gdr-store-2.0"
-export FLAGSHIP="EE"
+export FLAGSHIP="SOMEFLAGSHIP"
 
 # Update manifest.txt file in submission level by toggling 'UPDATE_MANIFEST_TXT' variable
 # Ideally you would only trigger this for the last move file in the submission
