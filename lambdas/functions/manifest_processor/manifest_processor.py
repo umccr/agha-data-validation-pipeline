@@ -167,6 +167,10 @@ def handler(event, context):
             manifest_status_record_archive = manifest_status_record.create_archive_dictionary('ObjectCreated/Update')
             dynamodb.write_record_from_dict(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, manifest_status_record_archive)
 
+            notification.MESSAGE_STORE.append('')  # Appending empty line
+            notification.log_and_store_message(f'Trigger of validation pipeline has been disabled. Please check the above error.',
+                                               'critical')
+
             notification.notify_and_exit()
             raise ValueError(e)
 
@@ -263,10 +267,9 @@ def handler(event, context):
         if skip_checksum_validation:
             validation_payload['tasks_skipped'] = [batch.Tasks.CHECKSUM_VALIDATION.value]
 
-        number_of_duplicates = len(duplicate_etag_list)
+        number_of_unrecognized_file = len(data.files_extra)
         notification.log_and_store_message(
-            f'<br>Number of duplicates file found in this submission with other submissions: {number_of_duplicates}')
-
+            f'Number of unrecognized filetype: {number_of_unrecognized_file}')
         if len(data.files_extra) > 0:
             report_info = {
                 "topic": "UNSUPPORTED extension file type found.",
@@ -277,6 +280,7 @@ def handler(event, context):
             else:
                 manifest_status_record.additional_information = [report_info]
 
+            notification.MESSAGE_STORE.append('')  # Appending empty line
             notification.log_and_store_message(
                 'Trigger of validation pipeline has been disabled due to UNRECOGNIZED filetype found.',
                 'critical')
@@ -286,15 +290,19 @@ def handler(event, context):
                 'critical')
 
             # List all duplicates file
+            notification.MESSAGE_STORE.append('')  # Appending empty line
             notification.log_and_store_message(
-                "The following list are files of unrecognized file.<br>")
+                "The following list are files of unrecognized file.")
             list_of_duplicate_files_email_format = json.dumps(data.files_extra, indent=4, sort_keys=True)
             notification.log_and_store_message(list_of_duplicate_files_email_format)
-
+            notification.MESSAGE_STORE.append('')  # Appending empty line
             # Skip the auto validation
             skip_auto_validation = True
 
         # Detecting duplicate payload
+        number_of_duplicates = len(duplicate_etag_list)
+        notification.log_and_store_message(
+            f'<br>Number of duplicates file found in this submission with other submissions: {number_of_duplicates}')
         if number_of_duplicates > 0:
             report_info = {
                 "topic": "Duplicate files found in this submission with other submissions",
@@ -306,6 +314,7 @@ def handler(event, context):
             else:
                 manifest_status_record.additional_information = [report_info]
 
+            notification.MESSAGE_STORE.append('')  # Appending empty line
             notification.log_and_store_message(
                 'Trigger of validation pipeline has been disabled due to duplicate submission has been found.',
                 'critical')

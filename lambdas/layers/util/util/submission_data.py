@@ -210,7 +210,7 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
 
     # Notify with success message
     notification.MESSAGE_STORE.append('----------' * 3)
-    message = f'Manifest successfully validated.'
+    message = f'Manifest content file successfully validated.'
     notification.log_and_store_message(message)
 
     # NOTE(SW): returning files that are on S3 and (1) in manifest, and (2) not in manifest. This
