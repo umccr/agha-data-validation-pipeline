@@ -232,16 +232,16 @@ def write_standard_file_record(file_record_table_name: str, archive_file_record_
     # Write to database
     logger.info(f'Updating records at {file_record_table_name}')
     write_res = dynamodb.write_record_from_class(file_record_table_name, file_record)
-    logger.info(f'Updating {file_record_table_name} table response:')
-    logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
+    logger.debug(f'Updating {file_record_table_name} table response:')
+    logger.debug(json.dumps(write_res, cls=util.DecimalEncoder))
 
     # Write Archive record
     db_record_archive = dynamodb.ArchiveFileRecord.create_archive_file_record_from_file_record(
         file_record, s3.S3EventType.EVENT_OBJECT_CREATED.value)
     logger.info(f'Updating records at {archive_file_record_table_name}')
     write_res = dynamodb.write_record_from_class(archive_file_record_table_name, db_record_archive)
-    logger.info(f'Updating {archive_file_record_table_name} table response:')
-    logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
+    logger.debug(f'Updating {archive_file_record_table_name} table response:')
+    logger.debug(json.dumps(write_res, cls=util.DecimalEncoder))
 
     # Construct ETag record
     etag_record = dynamodb.ETagFileRecord(
@@ -252,8 +252,8 @@ def write_standard_file_record(file_record_table_name: str, archive_file_record_
     # Updating ETag record
     logger.info(f'Updating ETag file to the ETag record')
     write_res = dynamodb.write_record_from_class(etag_table_name, etag_record)
-    logger.info(f'Updating {etag_table_name} table response:')
-    logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
+    logger.debug(f'Updating {etag_table_name} table response:')
+    logger.debug(json.dumps(write_res, cls=util.DecimalEncoder))
 
 
 def delete_standard_file_record(file_record_table_name: str, archive_file_record_table_name: str,
@@ -269,18 +269,16 @@ def delete_standard_file_record(file_record_table_name: str, archive_file_record
     """
 
     # Get existing file item to delete
-    logger.info(f'Getting item to delete at {file_record_table_name}')
-    get_item_res = dynamodb.get_item_from_pk_and_sk(
+    get_item_res = dynamodb.get_item_from_exact_pk_and_sk(
         table_name=file_record_table_name,
         partition_key=file_record.partition_key,
-        sort_key_prefix=file_record.sort_key)
-    logger.info(f'Get Item response:')
+        sort_key=file_record.sort_key)
+    logger.info(f'Getting item to delete from {file_record_table_name}. Item to delete response:')
     logger.info(json.dumps(get_item_res, cls=util.DecimalEncoder))
 
     # Delete FILE record
-    logger.info(f'Updating records at {file_record_table_name}')
     delete_item = dynamodb.delete_record_from_record_class(file_record_table_name, file_record)
-    logger.info(f'Delete the following record from {file_record_table_name} table')
+    logger.info(f'Deleting records from {file_record_table_name} table. Deleted Item:')
     print(delete_item)
 
     # Archive database
@@ -289,11 +287,11 @@ def delete_standard_file_record(file_record_table_name: str, archive_file_record
     logger.info(f'Updating records at {archive_file_record_table_name}. Archive table:')
     logger.info(json.dumps(db_record_archive.__dict__, cls=util.DecimalEncoder))
     write_res = dynamodb.write_record_from_class(archive_file_record_table_name, db_record_archive)
-    logger.info(f'Updating {archive_file_record_table_name} table response:')
-    logger.info(json.dumps(write_res, cls=util.DecimalEncoder))
+    logger.debug(f'Updating {archive_file_record_table_name} table response:')
+    logger.debug(json.dumps(write_res, cls=util.DecimalEncoder))
 
     if get_item_res['Count'] > 0:
-        logger.info('Existing record found')
+        logger.debug('Existing record found')
         record_json = get_item_res['Items'][0]
 
         logger.info('Deleting record From eTag table')
@@ -304,16 +302,15 @@ def delete_standard_file_record(file_record_table_name: str, archive_file_record
             bucket_name=record_json["bucket_name"])
 
         # delete from etag table
-        logger.info(f'Deleting from {etag_table_name}')
         delete_item = dynamodb.delete_record_from_record_class(etag_table_name, etag_record)
-        logger.info(f'Delete the following record from {etag_table_name} table')
+        logger.info(f'Deleting from {etag_table_name}. Deleted records:')
         logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))
 
 
 def delete_manifest_file_record(manifest_record_table_name, manifest_record_archive_table_name, db_record):
     # Delete MANIFEST file record
     # Grab from existing record for archive record
-    logger.info('Grab Manifest data before deletion')
+    logger.debug('Grab Manifest data before deletion')
     manifest_res = dynamodb.get_item_from_exact_pk_and_sk(table_name=manifest_record_table_name,
                                                           partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
                                                           sort_key=db_record.sort_key)
@@ -330,33 +327,32 @@ def delete_manifest_file_record(manifest_record_table_name, manifest_record_arch
 
         # Delete from record
         delete_item = dynamodb.delete_record_from_record_class(manifest_record_table_name, manifest_record)
-        logger.info(f'Delete the following record from {manifest_record_table_name} table')
+        logger.info(f'Delete the following record from {manifest_record_table_name} table.')
         logger.info(json.dumps(delete_item, cls=util.DecimalEncoder))
 
         # Archive database
         db_record_archive = dynamodb.ArchiveManifestFileRecord. \
             create_archive_manifest_record_from_manifest_record(manifest_record,
                                                                 s3.S3EventType.EVENT_OBJECT_REMOVED.value)
-        logger.info(f'Updating records at {manifest_record_archive_table_name}')
+        logger.info(f'Updating records at {manifest_record_archive_table_name}. Item:')
+        logger.info(f'{json.dumps(manifest_record_archive_table_name, indent=4, cls=util.JsonSerialEncoder)}')
         write_res = dynamodb.write_record_from_class(manifest_record_archive_table_name, db_record_archive)
-        logger.info(f'Updating {manifest_record_archive_table_name} table response:')
-        logger.info(json.dumps(write_res, indent=4, cls=util.JsonSerialEncoder))
+        logger.debug(f'Updating {manifest_record_archive_table_name} table response:')
+        logger.debug(json.dumps(write_res, indent=4, cls=util.JsonSerialEncoder))
 
 
 def delete_manifest_status_record(table_name, archive_table_name, db_record):
     # Delete MANIFEST file record
     # Grab from existing record for archive record
     logger.info('Grab Manifest data before deletion')
-    status_manifest_res = dynamodb.get_item_from_pk_and_sk(table_name=table_name,
-                                                           partition_key=dynamodb.FileRecordPartitionKey.STATUS_MANIFEST.value,
-                                                           sort_key_prefix=db_record.sort_key)
+    status_manifest_res = dynamodb.get_item_from_exact_pk_and_sk(table_name=table_name,
+                                                                 partition_key=dynamodb.FileRecordPartitionKey.STATUS_MANIFEST.value,
+                                                                 sort_key=db_record.sort_key)
 
     logger.info(f'Get manifest record response:')
     logger.info(json.dumps(status_manifest_res, indent=4, cls=util.JsonSerialEncoder))
 
     if status_manifest_res["Count"] == 1:
-        logger.info(f'Deleting {status_manifest_res["Count"]} number of records')
-
         # Delete from record
         delete_item = dynamodb.delete_record_from_dictionary(table_name, status_manifest_res)
         logger.info(f'Delete the following record from {table_name} table')
@@ -368,8 +364,8 @@ def delete_manifest_status_record(table_name, archive_table_name, db_record):
         archive_dict['archive_log'] = 'ObjectDeleted'
         archive_dict['sort_key'] = archive_dict['sort_key'] + ':' + util.get_datetimestamp()
         write_res = dynamodb.write_record_from_dict(archive_table_name, archive_dict)
-        logger.info(f'Updating {archive_table_name} table response:')
-        logger.info(json.dumps(write_res, indent=4, cls=util.JsonSerialEncoder))
+        logger.debug(f'Updating {archive_table_name} table response:')
+        logger.debug(json.dumps(write_res, indent=4, cls=util.JsonSerialEncoder))
 
 
 def validate_batch_job_result(batch_result: dict):
@@ -385,9 +381,9 @@ def validate_batch_job_result(batch_result: dict):
 
 
 def get_checksum_from_manifest_record(table_name, staging_s3_key):
-    record_response = dynamodb.get_item_from_pk_and_sk(table_name=table_name,
-                                                       partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
-                                                       sort_key_prefix=staging_s3_key)
+    record_response = dynamodb.get_item_from_exact_pk_and_sk(table_name=table_name,
+                                                             partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                                                             sort_key=staging_s3_key)
     logger.info(f'Manifest record response:')
     print(record_response)
     if 'Items' not in record_response:
