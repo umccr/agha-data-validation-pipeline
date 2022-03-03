@@ -60,7 +60,7 @@ s3_uri_source="s3://${BUCKET_LOCATION}/${SOURCE_SORT_KEY}"
 s3_uri_target="s3://${BUCKET_LOCATION}/${TARGET_SORT_KEY}"
 aws s3 mv "${s3_uri_source}" "${s3_uri_target}"
 
- Update manifest.txt file for each submission
+# Update manifest.txt file for each submission
 if [ "$UPDATE_MANIFEST_TXT" == true ] && [ "$BUCKET_LOCATION" == $STORE_BUCKET ]; then
   echo "Updating manifest.txt file (in source and target submission)"
   python manifest_txt_update.py --s3_key_object $SOURCE_SORT_KEY
