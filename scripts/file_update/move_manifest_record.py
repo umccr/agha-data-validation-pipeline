@@ -90,6 +90,9 @@ def move_and_update_manifest_record(event_payload):
     new_flagship_code = new_sort_key.split('/')[0]
     dynamodb_item['flagship'] = new_flagship_code
 
+    # Change submission field
+    dynamodb_item['submission'] = os.path.dirname(new_sort_key)
+
     # Change date modified
     dynamodb_item['date_modified'] = util.get_datetimestamp()
 
