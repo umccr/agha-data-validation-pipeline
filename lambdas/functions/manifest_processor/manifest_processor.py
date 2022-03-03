@@ -146,7 +146,8 @@ def handler(event, context):
 
         # Pull file metadata from S3
         data.file_metadata = s3.get_s3_object_metadata(data.bucket_name, data.submission_prefix)
-        logger.info(f'File metadata in the current s3 content: {json.dumps(data.file_metadata, indent=4, cls=util.JsonSerialEncoder)}')
+        logger.info(
+            f'File metadata in the current s3 content: {json.dumps(data.file_metadata, indent=4, cls=util.JsonSerialEncoder)}')
 
         # Collect manifest data and then validate
         data.manifest_data = submission_data.retrieve_manifest_data(data.bucket_name, data.manifest_s3_key)
@@ -168,8 +169,9 @@ def handler(event, context):
             dynamodb.write_record_from_dict(DYNAMODB_ARCHIVE_STAGING_TABLE_NAME, manifest_status_record_archive)
 
             notification.MESSAGE_STORE.append('')  # Appending empty line
-            notification.log_and_store_message(f'Trigger of validation pipeline has been disabled. Please check the above error.',
-                                               'critical')
+            notification.log_and_store_message(
+                f'Trigger of validation pipeline has been disabled. Please check the above error.',
+                'critical')
 
             notification.notify_and_exit()
             raise ValueError(e)
@@ -334,9 +336,6 @@ def handler(event, context):
 
             # Skip the auto validation
             skip_auto_validation = True
-        else:
-            notification.MESSAGE_STORE.append('')
-            notification.log_and_store_message('Continuing with file validation.')
 
         staging_dynamodb_batch_write_list.append(manifest_status_record.__dict__)
         archive_staging_dynamodb_batch_write_list.append(
@@ -351,13 +350,11 @@ def handler(event, context):
         else:
             logger.info(f'\'skip_update_dynamodb\' payload is True. Skipping ...')
 
-        # Send notification to submitter for the submission if not skipped
-        if not event.get("skip_send_notification"):
-            notification.send_notifications()
-        else:
-            logger.info(f'\'skip_send_notification\' payload is True. Skipping ...')
-
         if AUTORUN_VALIDATION_JOBS == 'yes' and not skip_auto_validation:
+
+            notification.MESSAGE_STORE.append('')
+            notification.log_and_store_message('Continuing with file validation.')
+
             # Invoke validation manager for automation
             client_lambda = util.get_client('lambda')
 
@@ -367,6 +364,14 @@ def handler(event, context):
                 Payload=json.dumps(validation_payload)
             )
             print(lambda_res)
+        else:
+            notification.log_and_store_message('Validation pipeline for this submission is disabled.')
+
+        # Send notification to submitter for the submission if not skipped
+        if not event.get("skip_send_notification"):
+            notification.send_notifications()
+        else:
+            logger.info(f'\'skip_send_notification\' payload is True. Skipping ...')
 
 
 def validate_event_data(event_record):
@@ -405,6 +410,8 @@ def validate_manual_trigger_payload(event_payload: dict) -> None:
                     event_payload[args] = json.loads(bool_payload.lower())
                 except json.JSONDecodeError:
                     raise ValueError(f'\'{args}\' has an invalid boolean')
+
+            event_payload["skip_auto_validation"] = True  # Any skipping would disable auto validation trigger
 
     # Check if exception_postfix_filename is a list
     if (list_args := event_payload.get('exception_postfix_filename')) is not None:
