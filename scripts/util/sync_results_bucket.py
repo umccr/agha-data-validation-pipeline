@@ -73,6 +73,10 @@ def sync_result_bucket(args):
         metadata_list_main_bucket = s3.get_s3_object_metadata(bucket_name=sync_from, directory_prefix=sort_key_prefix)
         filename_main_bucket = [metadata['Key'].split('/')[-1] for metadata in metadata_list_main_bucket]
 
+        # Removing index file from the main bucket
+        # Index file is to be ignored as it will not have its own results/log file
+        filename_main_bucket = [key for key in filename_main_bucket if not agha.FileType.is_index_file(key)]
+
     elif sync_from == DYNAMODB_STAGING_TABLE_NAME or sync_from == DYNAMODB_STORE_TABLE_NAME:
         item_res = dynamodb.get_batch_item_from_pk_and_sk(table_name=sync_from,
                                                           partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
@@ -84,14 +88,12 @@ def sync_result_bucket(args):
 
     # Remove any file ending with .gz
     filename_main_bucket = [find_file_base_name(filename) for filename in filename_main_bucket]
-
     # Grab results file data
     metadata_list_results_bucket = s3.get_s3_object_metadata(bucket_name=RESULT_BUCKET,
                                                              directory_prefix=sort_key_prefix)
     s3key_results_bucket = [metadata['Key'] for metadata in metadata_list_results_bucket]
 
     list_for_deletion = []
-
     for s3_key in s3key_results_bucket:
         result_filename = s3_key.split('/')[-1]
 
@@ -102,8 +104,8 @@ def sync_result_bucket(args):
             list_for_deletion.append(s3_key)
 
     # Print result for deletion list before executing it
-    print('Number of files to delete: ', len(list_for_deletion))
     print('File to delete from s3 results: ', json.dumps(list_for_deletion, indent=4))
+    print('Number of files to delete: ', len(list_for_deletion))
 
     s3.delete_s3_object_from_key(RESULT_BUCKET, list_for_deletion)
 

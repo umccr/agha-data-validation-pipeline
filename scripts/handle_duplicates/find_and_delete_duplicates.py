@@ -82,7 +82,8 @@ def find_and_duplicates(bucket_name, flagship):
     # Deleting ...
 
     deletion_s3_list = to_delete_df['Key'].tolist()
-    print(f" File to delete from s3 store: {json.dumps(deletion_s3_list, indent=4)}")
+    print(f"Number of Index files deleted: {len([key for key in deletion_s3_list if agha.FileType.is_index_file(key)])}")
+    print(f"File to delete from s3 store: {json.dumps(deletion_s3_list, indent=4)}")
 
     s3.delete_s3_object_from_key(bucket_name=bucket_name, key_list=deletion_s3_list)
 
@@ -92,6 +93,7 @@ def find_and_duplicates(bucket_name, flagship):
     time.sleep(5)  # Just some buffer time to let lambda s3_event listener to finish execute
 
     submission_prefix_list = list(set([('/'.join(key.split('/')[:-1]) + '/') for key in deletion_s3_list]))
+    submission_prefix_list.sort()
 
     for submission in submission_prefix_list:
 
