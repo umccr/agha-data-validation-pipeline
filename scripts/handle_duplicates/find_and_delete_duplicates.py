@@ -78,10 +78,32 @@ def find_and_duplicates(bucket_name, flagship):
     to_delete_df = pd.concat([duplicates_record, records_to_keep]).drop_duplicates(keep=False)
     print(f"Number of records to delete: {len(to_delete_df)}")
 
+    duplicate_list_to_delete = to_delete_df['Key'].tolist()
+
+    deletion_s3_list = duplicate_list_to_delete.copy()
+
+    # Add index file to the deletion list if the main file is in the deletion list
+    for key in [s3_key for s3_key in duplicate_list_to_delete if
+                not agha.FileType.is_index_file(s3_key) and agha.FileType.from_name(s3_key).get_name()]:
+
+        try:
+            if key.endswith('vcf.gz'):
+                key += '.tbi'
+
+            elif key.endswith('.bam'):
+                key += '.bai'
+
+            else:
+                continue
+
+            util.get_record_from_given_field_and_panda_df(metadata_df, 'Key', key)
+            deletion_s3_list.append(key)
+        except IndexError:
+            continue
+
     ################################################################################
     # Deleting ...
 
-    deletion_s3_list = to_delete_df['Key'].tolist()
     print(f"Number of Index files deleted: {len([key for key in deletion_s3_list if agha.FileType.is_index_file(key)])}")
     print(f"File to delete from s3 store: {json.dumps(deletion_s3_list, indent=4)}")
 
