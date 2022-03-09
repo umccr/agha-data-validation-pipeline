@@ -190,7 +190,8 @@ def handler(event, context):
         # Checking file that could be altered and only the altered file is being stored (e.g. uncompressed file)
         uncompress_file = []
         for filename in manifest_orig_diff_store:
-            if agha.FileType.is_compressable_file(filename) and not agha.FileType.is_compress_file(filename):
+            if agha.FileType.is_compressable_file(filename) and not agha.FileType.is_compress_file(filename) and \
+                    f"{filename}.gz" in store_filename_list:
                 uncompress_file.append(filename)
 
         remove_uncompress_file = list(set(manifest_orig_diff_store) - set(uncompress_file))

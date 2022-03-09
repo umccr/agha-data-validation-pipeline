@@ -558,6 +558,7 @@ class LambdaStack(core.NestedStack):
             environment={
                 # Buckets
                 'STAGING_BUCKET': bucket_name['staging_bucket'],
+                'STORE_BUCKET': bucket_name['store_bucket'],
                 # DynamodDB
                 'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
             },
