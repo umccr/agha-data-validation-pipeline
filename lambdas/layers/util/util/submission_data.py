@@ -81,6 +81,10 @@ def retrieve_manifest_data(bucket_name: str, manifest_key: str):
         manifest_str = io.BytesIO(manifest_obj['Body'].read())
         manifest_data = pd.read_csv(manifest_str, sep='\t', encoding='utf8')
         manifest_data.fillna(value='not provided', inplace=True)
+
+        # Removing leading/trailing spaces in the column
+        manifest_data['filename'] = manifest_data['filename'].str.strip()
+
     except Exception as e:
         message = f'could not convert manifest into DataFrame:\r{e}'
         logger.error(message)
