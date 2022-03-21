@@ -58,13 +58,22 @@ def handler(event, context):
             file_list = s3.get_s3_object_metadata(STAGING_BUCKET, payload.submission_prefix)
 
         except ValueError:
-
-            message = json.dumps({
-                "reason": "Something went wrong when looking up the directory. Please check the submission_prefix payload.",
-            }, indent=4)
-
-            logger.error(message)
-            return message
+            # All files submission might all be moved to store bucket
+            # Checking submission in store bucket
+            try:
+                store_file_list = s3.get_s3_object_metadata(STORE_BUCKET, payload.submission_prefix)
+                if len(store_file_list) > 0:
+                    logger.info('All file has been transferred to store bucket')
+                    file_list = []
+                else:
+                    raise ValueError('No data found')
+            except ValueError:
+                # Something really went wrong
+                message = json.dumps({
+                    "reason": "Something went wrong when looking up the directory. Please check the submission_prefix payload.",
+                }, indent=4)
+                logger.error(message)
+                return message
 
         # Unexpected file list
         unexpected_file_list = []
