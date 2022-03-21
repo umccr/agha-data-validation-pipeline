@@ -8,7 +8,7 @@ import util
 from util import s3, agha
 
 STAGING_BUCKET = os.environ.get('STAGING_BUCKET')
-FOLDER_LOCK_LAMBDA_ARN = os.environ.get('FOLDER_LOCK_LAMBDA_ARN')
+STORE_BUCKET = os.environ.get('STORE_BUCKET')
 
 # Logging
 logger = logging.getLogger()
@@ -40,10 +40,22 @@ def handler(event, context):
         metadata_list = s3.get_s3_object_metadata(bucket_name=STAGING_BUCKET, directory_prefix=submission_directory)
         s3_key_list = [metadata['Key'] for metadata in metadata_list]
     except ValueError:
-        logger.error(f'No \'{submission_directory}\' found in staging bucket')
-        return {
-            "reason": f'No \'{submission_directory}\' found in staging bucket'
-        }
+
+        # All files submission might all be moved to store bucket
+        # Checking submission in store bucket
+        try:
+            store_file_list = s3.get_s3_object_metadata(STORE_BUCKET, submission_directory)
+            if len(store_file_list) > 0:
+                logger.info('All file has been transferred to store bucket')
+                s3_key_list = []
+            else:
+                raise ValueError('No data found')
+        except ValueError:
+
+            logger.error(f'No \'{submission_directory}\' found in staging bucket')
+            return {
+                "reason": f'No \'{submission_directory}\' found in staging bucket'
+            }
 
     deletion_key_list = []
     for s3_key in s3_key_list:
@@ -52,7 +64,6 @@ def handler(event, context):
         if agha.FileType.is_index_file(s3_key) or \
                 (agha.FileType.is_compressable_file(s3_key) and not agha.FileType.is_compress_file(s3_key)):
             deletion_key_list.append(s3_key)
-
     ################################################################################
     # Second Stage - Delete files
     ################################################################################
@@ -60,7 +71,8 @@ def handler(event, context):
     # If deletion key_list exist, delete the file
     if len(deletion_key_list) > 0:
         try:
-            logger.info(f'Deleting file from staging bucket, List of s3_key: {json.dumps(deletion_key_list, indent=4)} ')
+            logger.info(
+                f'Deleting file from staging bucket, List of s3_key: {json.dumps(deletion_key_list, indent=4)} ')
             res = s3.delete_s3_object_from_key(bucket_name=STAGING_BUCKET, key_list=deletion_key_list)
             logger.debug(f'Deletion response {res}')
             logger.info(f'Deletion job success!')
@@ -86,4 +98,3 @@ def handler(event, context):
                                     byte_of_string=file_content,
                                     s3_key_destination=readme_key)
     logger.info('Uploaded README file')
-

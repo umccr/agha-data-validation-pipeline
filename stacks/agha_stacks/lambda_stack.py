@@ -93,6 +93,7 @@ class LambdaStack(core.NestedStack):
             code=lambda_.Code.from_asset('lambdas/functions/cleanup_manager'),
             environment={
                 # Buckets
+                'STORE_BUCKET': bucket_name['store_bucket'],
                 'STAGING_BUCKET': bucket_name['staging_bucket']
             },
             role=cleanup_manager_lambda_role,

@@ -18,7 +18,7 @@ from cleanup_manager import handler
 
 def create_cleanup_manager_payload():
     return {
-        "submission_directory": "BM/2021-01-16/"
+        "submission_directory": "ICCon/2022-03-21/"
     }
 
 
