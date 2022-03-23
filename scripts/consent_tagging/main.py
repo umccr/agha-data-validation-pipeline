@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import pandas as pd
+from enum import Enum
 from typing import Dict, List
 from boto3.dynamodb.conditions import Attr
 
@@ -35,11 +36,28 @@ cd scripts/consent_tagging
 python3 main.py
 """
 
+
+class Action(Enum):
+    ADD_CONSENT = "ADD_CONSENT"
+    REMOVE_CONSENT = "REMOVE_CONSENT"
+
+    def __str__(self):
+        return self.value
+
+    @staticmethod
+    def convert_to_enum(name: str):
+        for action in Action:
+            if name in action.value:
+                return action
+        raise ValueError
+
+
 def get_argument():
     return {
-        "dry_run": True,
-        "agha_study_id_list": ['A0128001'],
-        "flagship": 'GI'
+        "dry_run": False,
+        "agha_study_id_list": ['A00000'],
+        "flagship": agha.FlagShip.GENETIC_IMMUNOLOGY.preferred_code(),  # Please refer to preferred_code() in class in https://github.com/umccr/agha-data-validation-pipeline/blob/d17f55d8642dff0921b088f18884c50a536c12d8/lambdas/layers/util/util/agha.py#L9
+        "action_type": Action.REMOVE_CONSENT  # Please refer to Action class above
     }
 
 
@@ -62,10 +80,12 @@ def parse_from_excel_by_pandas():
         except ValueError:
             continue
 
-        pd_df = pd_df.loc[pd_df['What kind of data sharing is the participant eligible for?'] == 'All ethically-approved research projects']
+        pd_df = pd_df.loc[pd_df[
+                              'What kind of data sharing is the participant eligible for?'] == 'All ethically-approved research projects']
 
         agha_study_id_list = pd_df['Study Number:'].to_list()
         sort_key_modify_list = run_modify_tagging(agha_study_id_list=agha_study_id_list, flagship=flagship,
+                                                  action_type=Action.ADD_CONSENT,
                                                   dry_run=False)
 
         # Appending to report
@@ -78,7 +98,7 @@ def parse_from_excel_by_pandas():
         f.close()
 
 
-def run_modify_tagging(agha_study_id_list: List, flagship: str, dry_run: bool):
+def run_modify_tagging(agha_study_id_list: List, flagship: str, action_type: Action, dry_run: bool):
     sort_key_flagship_prefix = agha.FlagShip.from_name(flagship).preferred_code()
     s3_key_list_to_tag = []
 
@@ -93,11 +113,11 @@ def run_modify_tagging(agha_study_id_list: List, flagship: str, dry_run: bool):
         s3_key_list_to_tag.extend([metadata['sort_key'] for metadata in file_list])
 
     # Start tagging object
-    print(f'Tagging the `Consent` for the following list {(len(s3_key_list_to_tag))}:',
+    print(f'List of sort_key associated with given agha_study_id ({len(s3_key_list_to_tag)}):',
           json.dumps(s3_key_list_to_tag, indent=4))
     if dry_run:
         return s3_key_list_to_tag
-    success_array, error_array = tag_object_from_s3_key_list(s3_key_list_to_tag)
+    success_array, error_array = modify_consent_tag_object_from_s3_key_list(s3_key_list_to_tag, tag_action=action_type)
 
     # Result writing and logging
     if error_array:
@@ -106,12 +126,13 @@ def run_modify_tagging(agha_study_id_list: List, flagship: str, dry_run: bool):
         err_file.write(json.dumps(error_array))
         err_file.close()
 
-    update_dynamodb(s3_key_list_to_tag)
+    if success_array:
+        update_dynamodb(success_array, action_type)
 
     return s3_key_list_to_tag
 
 
-def update_dynamodb(s3_key_list):
+def update_dynamodb(s3_key_list: List[str], action_type:Action):
     update_array = []
 
     # Fetch existing data
@@ -123,7 +144,13 @@ def update_dynamodb(s3_key_list):
                                                         sort_key=new_s3_key)
 
         dy_item = dy_res['Items'][0]
-        dy_item['Consent'] = True
+
+        if action_type == Action.ADD_CONSENT:
+            dy_item['Consent'] = True
+        elif action_type == Action.REMOVE_CONSENT:
+            del dy_item['Consent']
+        else:
+            raise ValueError
 
         update_array.append(dy_item)
 
@@ -170,7 +197,60 @@ def tag_s3_object(bucket: str, key: str, tag_set: List[dict]):
     return response
 
 
-def tag_object_from_s3_key_list(s3_key_list):
+def remove_specific_tag_from_s3_object(bucket: str, key: str, removal_tag_set: List[dict]):
+    """
+    Add tags to an S3 object.
+    TagSet in the form:
+    [
+        {
+            'Key': 'key1',
+            'Value': 'value1'
+        },
+        {
+            'Key': 'key2',
+            'Value': 'value2'
+        }
+    ]
+
+    :param bucket: the S3 bucket name the object is in
+    :param key: the full S3 key of the object
+    :param removal_tag_set: the List[dict] of tag key/value pairs
+    :return: the response of the tagging request
+    """
+
+    client_s3 = util.get_client('s3')
+
+    ######################################################################
+    # Current Boto3 SDK does not support specific tag removal
+    # This is a wrapper to retrieve current tag, remove, and re-tag the object
+
+    current_tag = client_s3.get_object_tagging(
+        Bucket=bucket,
+        Key=key
+    )
+    current_tag_set = current_tag['TagSet']
+    # Find what tag should be there and not remove
+    new_tag_set = []
+    for current_tag in current_tag_set:
+        if current_tag in removal_tag_set:
+            continue
+        else:
+            new_tag_set.append(current_tag)
+
+    # Removing all tag in the object
+    response = client_s3.delete_object_tagging(
+        Bucket=bucket,
+        Key=key
+    )
+
+    # re-apply any tag if there should exist
+    if new_tag_set:
+        tag_s3_object(bucket=bucket, key=key, tag_set=new_tag_set)
+
+    return response
+
+
+def modify_consent_tag_object_from_s3_key_list(s3_key_list: List[str], tag_action: Action):
     tag_set = [
         {
             'Key': 'Consent',
@@ -182,12 +262,18 @@ def tag_object_from_s3_key_list(s3_key_list):
     error_array = []
     for s3_key in s3_key_list:
 
-        print('tagging: ', s3_key)
-
+        print('Modifying object tag: ', s3_key)
         try:
-            tag_resp = tag_s3_object(bucket=STORE_BUCKET, key=s3_key, tag_set=tag_set)
+
+            if tag_action == Action.ADD_CONSENT:
+                tag_resp = tag_s3_object(bucket=STORE_BUCKET, key=s3_key, tag_set=tag_set)
+            elif tag_action == Action.REMOVE_CONSENT:
+                tag_resp = remove_specific_tag_from_s3_object(bucket=STORE_BUCKET, key=s3_key, removal_tag_set=tag_set)
+            else:
+                raise ValueError
+
             success_array.append(s3_key)
-        except:
+        except ValueError:
             error_array.append(s3_key)
 
     return success_array, error_array
