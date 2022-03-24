@@ -90,6 +90,13 @@ class FileType(Enum):
         return FileType.UNSUPPORTED
 
     @staticmethod
+    def from_enum_name(name: str) -> 'FileType':
+        for t in FileType:
+            if t.get_name() == name:
+                return t
+        return FileType.UNSUPPORTED
+
+    @staticmethod
     def is_indexable(filetype: str) -> bool:
         INDEXABLE_TYPE = [FileType.BAM.get_name(), FileType.CRAM.get_name(), FileType.VCF.get_name()]
         if filetype in INDEXABLE_TYPE:
