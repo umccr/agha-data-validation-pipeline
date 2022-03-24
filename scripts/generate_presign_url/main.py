@@ -94,7 +94,7 @@ def generate_presign_s3_url(agha_study_id_list: List[str], flagship: str, filety
         file_metadata['presigned_url'] = presigned_url
 
     # Write output file
-    output_filename = f"presign_url_{sort_key_flagship_prefix}_{json.dumps(agha_study_id_list)}.txt"
+    output_filename = f"presign_url_{sort_key_flagship_prefix}_{'_'.join(agha_study_id_list)}.txt"
     f = open(output_filename, 'w')
     f.write("agha_study_id\tfilename\tchecksum\tpresigned_url\n")
     for metadata in file_metadata_list:
