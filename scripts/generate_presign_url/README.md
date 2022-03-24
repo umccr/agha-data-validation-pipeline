@@ -2,17 +2,49 @@
 
 This script is to be used to create pre-signed url based on the below parameter. Pre-signed url will live for 7 days.
 
-Parameter needed to run this script.
-- `agha_study_id_list`: [`str`] - list of study_id
-- `flagship`: str - the flagship preferred code. [Check on the FlagShip class](../../lambdas/layers/util/util/agha.py#L9)
-- `filetype_list`: str - Enum class for the action type (Options: VCF, BAM, FASTQ, CRAM). Default: all filetypes. [Check on the FileType class](../../lambdas/layers/util/util/agha.py#L65)
-- `dry_run`: `bool` - only print the sort key associated with the above query
+###### Parameter
+Parameter passed as an arguments in calling the python scripts. Parameter are as follows.
+- `--study-ids`: `str` - agha_study_id to be queried. Space seperated for multiple ids.
+- `--flagship`: `str` - The flagship preferred code. [Check on the FlagShip class](../../lambdas/layers/util/util/agha.py#L9)
+- `--filetype`: `str` - The filetype that the script will find. Space seperated for multiple ids. (Options: VCF, BAM, FASTQ, CRAM). Default: all filetypes.
+- `--dryrun`: `bool` - only print the s3 key associated with the above query.
 
-The value could be populated at `get_argument()` ([main.py](main.py#L40-L50) Line 40) 
-
-After done filling the information, execute the script with:
+To execute the script, just call main.py and include the parameter.
 ```
-python3 main.py
+python3 main.py [PARAMETER HERE]
 ```
 
-NOTE: Make sure use correct AWS_PROFILE and have the permission to live for 7 days.
+###### Command example for parameter above 
+study_id : A00001, A00002, A00003  
+flagship : GI  
+filetype : BAM, FASTQ  
+
+```
+python3 main.py --study-ids A00001 A00002 A00003 --flagship GI --filetype BAM FASTQ
+```
+
+
+NOTE: Make sure use correct AWS_PROFILE and have the role that live for 7 days.
+
+## The setup before executing the script
+1. Clone this repository
+
+   ```
+    git clone https://github.com/umccr/agha-data-validation-pipeline.git
+   ```
+
+2. Go to this directory
+
+    ```
+    cd scripts/generate_presign_url
+    ```
+3. Setup an virtual environment and install packages
+   ```
+   python3 -mvenv .venv
+   source .venv/bin/activate  # This might be different for non-unix shell
+   pip install -r requirements.txt
+   ```
+4. Setup AWS_PROFILE. This aws profile must live for 
+   ```
+   export AWS_PROFILE=agha
+   ```

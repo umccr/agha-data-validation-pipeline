@@ -1,9 +1,8 @@
 import json
 import os
 import sys
-import pandas as pd
-from enum import Enum
-from typing import Dict, List
+import argparse
+from typing import List
 from boto3.dynamodb.conditions import Attr
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -40,12 +39,36 @@ python3 main.py
 
 
 def get_argument():
-    return {
-        "dry_run": False,
-        "agha_study_id_list": ['A000000'],
-        "filetype_list": ["BAM", "BAM_INDEX", "VCF"],  # Options: BAM, VCF, FASTQ. Default: All filetype
-        "flagship": "AC"  # Please refer to preferred_code() in class in https://github.com/umccr/agha-data-validation-pipeline/blob/d17f55d8642dff0921b088f18884c50a536c12d8/lambdas/layers/util/util/agha.py#L9
-    }
+    parser = argparse.ArgumentParser(description='Generate pre-signed URLs for AGHA files.')
+    parser.add_argument('--dryrun',
+                        default=False,
+                        action='store_true',
+                        help="Perform a dry run.")
+    parser.add_argument('-t', '--filetype',
+                        default=['FASTQ', 'BAM', 'CRAM', 'VCF'],
+                        nargs='+',
+                        choices=['FASTQ', 'BAM', 'CRAM', 'VCF'],
+                        help='Filetype to filter by (FASTQ, BAM, CRAM,VCF). Space separated if more than one. Default: all files')
+    parser.add_argument('-s', '--study-ids',
+                        required=True,
+                        nargs='+',
+                        help="AGHA study ID(s) to retrieve files for. Space separated if more than one.")
+    flagship_list = list(set(agha.FlagShip.list_flagship_enum())-{'UNKNOWN', 'TEST'})
+    parser.add_argument('-f', '--flagship',
+                        required=True,
+                        choices=flagship_list,
+                        help="Code of the flagship the sample belongs to.")
+    args = parser.parse_args()
+
+    print("######################"*6)
+    print('Running the following')
+    print(f"Filetype : {args.filetype}")
+    print(f"Flagship : {args.flagship}")
+    print(f"IDs      : {args.study_ids}")
+    print(f"DryRun   : {args.dryrun}")
+    print("######################"*6)
+
+    return args
 
 
 def generate_presign_s3_url(agha_study_id_list: List[str], flagship: str, filetype_list: List[str], dry_run: bool):
@@ -89,7 +112,6 @@ def generate_presign_s3_url(agha_study_id_list: List[str], flagship: str, filety
             Params={'Bucket': STORE_BUCKET, 'Key': s3_key},
             ExpiresIn=604800  # 7 full days
         )
-
         # Append presign_url to metadata
         file_metadata['presigned_url'] = presigned_url
 
@@ -132,7 +154,9 @@ def run_filetype_sanitize(filetype_list: List[str]):
 
 
 if __name__ == '__main__':
-    # parse_from_excel_by_pandas()  # For custom script
 
     args = get_argument()
-    generate_presign_s3_url(**args)
+    generate_presign_s3_url(agha_study_id_list=args.study_ids,
+                            flagship=args.flagship,
+                            filetype_list=args.filetype,
+                            dry_run=args.dryrun)
