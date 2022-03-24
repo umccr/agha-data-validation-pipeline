@@ -42,9 +42,9 @@ python3 main.py
 def get_argument():
     return {
         "dry_run": False,
-        "agha_study_id_list": ['A0921002', 'A1421006', 'A1421016', 'A1421016'],
+        "agha_study_id_list": ['A000000'],
         "filetype_list": ["BAM", "BAM_INDEX", "VCF"],  # Options: BAM, VCF, FASTQ. Default: All filetype
-        "flagship": "Mito"  # Please refer to preferred_code() in class in https://github.com/umccr/agha-data-validation-pipeline/blob/d17f55d8642dff0921b088f18884c50a536c12d8/lambdas/layers/util/util/agha.py#L9
+        "flagship": "AC"  # Please refer to preferred_code() in class in https://github.com/umccr/agha-data-validation-pipeline/blob/d17f55d8642dff0921b088f18884c50a536c12d8/lambdas/layers/util/util/agha.py#L9
     }
 
 
