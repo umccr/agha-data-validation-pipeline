@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import argparse
 import pandas as pd
 from enum import Enum
 from typing import Dict, List
@@ -27,8 +28,6 @@ RESULT_BUCKET = 'agha-gdr-results-2.0'
 STORE_BUCKET = 'agha-gdr-store-2.0'
 
 ##################################################################################################################
-# TODO: Update the following information before running the script.
-# TODO: Make sure AWS_PROFILE is set for the script to run
 # NOTE: Only works in store bucket
 """
 To run the script:
@@ -45,6 +44,17 @@ class Action(Enum):
         return self.value
 
     @staticmethod
+    def from_name(name: str):
+        for t in Action:
+            if t.value == name:
+                return t
+        raise ValueError
+
+    @staticmethod
+    def enum_to_list():
+        return [action.value for action in Action]
+
+    @staticmethod
     def convert_to_enum(name: str):
         for action in Action:
             if name in action.value:
@@ -53,12 +63,35 @@ class Action(Enum):
 
 
 def get_argument():
-    return {
-        "dry_run": False,
-        "agha_study_id_list": ['A00000'],
-        "flagship": agha.FlagShip.GENETIC_IMMUNOLOGY.preferred_code(),  # Please refer to preferred_code() in class in https://github.com/umccr/agha-data-validation-pipeline/blob/d17f55d8642dff0921b088f18884c50a536c12d8/lambdas/layers/util/util/agha.py#L9
-        "action_type": Action.REMOVE_CONSENT  # Please refer to Action class above
-    }
+    parser = argparse.ArgumentParser(description='Add/Remove consented tags')
+    parser.add_argument('--dryrun',
+                        default=False,
+                        action='store_true',
+                        help="Perform a dry run.")
+    parser.add_argument('-a', '--action',
+                        required=True,
+                        choices=Action.enum_to_list(),
+                        help='The action to add/remove consent from the given list. Option: ADD_CONSENT, REMOVE_CONSENT')
+    parser.add_argument('-s', '--study-ids',
+                        required=True,
+                        nargs='+',
+                        help="AGHA study ID(s) to retrieve files for. Space separated if more than one.")
+    flagship_list = list(set(agha.FlagShip.list_flagship_enum()) - {'UNKNOWN', 'TEST'})
+    parser.add_argument('-f', '--flagship',
+                        required=True,
+                        choices=flagship_list,
+                        help="Code of the flagship the sample belongs to.")
+    args = parser.parse_args()
+
+    print("######################" * 6)
+    print('Running the following')
+    print(f"Action   : {args.action}")
+    print(f"Flagship : {args.flagship}")
+    print(f"IDs      : {args.study_ids}")
+    print(f"DryRun   : {args.dryrun}")
+    print("######################" * 6)
+
+    return args
 
 
 def parse_from_excel_by_pandas():
@@ -112,9 +145,9 @@ def run_modify_tagging(agha_study_id_list: List, flagship: str, action_type: Act
                                                            filter_expr=filter_expr)
         s3_key_list_to_tag.extend([metadata['sort_key'] for metadata in file_list])
 
-    # Start tagging object
-    print(f'List of sort_key associated with given agha_study_id ({len(s3_key_list_to_tag)}):',
-          json.dumps(s3_key_list_to_tag, indent=4))
+        # Start tagging object
+        print(f'List of sort_key associated with given `{study_id}` ({len(s3_key_list_to_tag)}):',
+              json.dumps(s3_key_list_to_tag, indent=4))
     if dry_run:
         return s3_key_list_to_tag
     success_array, error_array = modify_consent_tag_object_from_s3_key_list(s3_key_list_to_tag, tag_action=action_type)
@@ -132,7 +165,7 @@ def run_modify_tagging(agha_study_id_list: List, flagship: str, action_type: Act
     return s3_key_list_to_tag
 
 
-def update_dynamodb(s3_key_list: List[str], action_type:Action):
+def update_dynamodb(s3_key_list: List[str], action_type: Action):
     update_array = []
 
     # Fetch existing data
@@ -283,4 +316,7 @@ if __name__ == '__main__':
     # parse_from_excel_by_pandas()  # For custom script
 
     args = get_argument()
-    run_modify_tagging(**args)
+    run_modify_tagging(agha_study_id_list=args.study_ids,
+                       flagship=args.flagship,
+                       action_type=args.action,
+                       dry_run=args.dryrun)
