@@ -3,16 +3,16 @@
 ######################################################################################################
 # TODO: Fill this this section for the migration
 # TODO: Please also export your AWS credentials to AWS_PROFILE
-export BUCKET_LOCATION="agha-gdr-store-2.0"
-export PARTITION_KEY="TYPE:MANIFEST"
-export TARGET_SORT_KEY="ABC/0123456789/SOME-FILE.vcf.gz"
-export SOURCE_SORT_KEY="XYZ/987654321/SOME-FILE.vcf.gz"
-export OVERRIDE_VALUE='{"agha_study_id":"abcde"}' # Make sure it is a JSON string object
+export BUCKET_LOCATION="${1}"
+export PARTITION_KEY="${2}"
+export SOURCE_SORT_KEY="${3}"
+export TARGET_SORT_KEY="${4}"
+export OVERRIDE_VALUE="${5}"
 
 # Update manifest.txt file in submission level by toggling 'UPDATE_MANIFEST_TXT' variable
 # Ideally you would only trigger this for the last move file in the submission
 
-export UPDATE_MANIFEST_TXT=false # Boolean value (lower case): true, false
+export UPDATE_MANIFEST_TXT="${6}" # Boolean value (lower case): true, false
 
 ######################################################################################################
 
@@ -27,6 +27,18 @@ export DYNAMODB_STORE_TABLE_NAME='agha-gdr-store-bucket'
 export STAGING_BUCKET='agha-gdr-staging-2.0'
 export RESULT_BUCKET='agha-gdr-results-2.0'
 export STORE_BUCKET='agha-gdr-store-2.0'
+
+######################################################################################################
+# Printing choices made
+
+echo "Printing selection made"
+echo "BUCKET_LOCATION: ${BUCKET_LOCATION}"
+echo "PARTITION_KEY: ${PARTITION_KEY}"
+echo "SOURCE_SORT_KEY: ${SOURCE_SORT_KEY}"
+echo "TARGET_SORT_KEY: ${TARGET_SORT_KEY}"
+echo "OVERRIDE_VALUE: ${OVERRIDE_VALUE}"
+echo "UPDATE_MANIFEST_TXT: ${UPDATE_MANIFEST_TXT}"
+
 
 ######################################################################################################
 

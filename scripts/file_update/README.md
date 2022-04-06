@@ -13,15 +13,29 @@ there is a 'TODO' section needed for the change.
 - SOURCE_SORT_KEY - current s3_key
 - TARGET_SORT_KEY - desired s3_key
 - OVERRIDE_VALUE - this is where you would fill in any changes to manifest file. PLEASE make sure it is in the correct
-json string format. E.g. if you would change agha_study_id, enter '{"agha_study_id":"abcde"}' as the value
-- UPDATE_MANIFEST_TXT - to indicate if you would want to update the manifest.txt file from dynamodb after the change
+json string format. E.g. if you would change agha_study_id, enter `{"agha_study_id":"abcde"}` as the value. If empty, you could fill this with an empty string.
+- UPDATE_MANIFEST_TXT - to indicate if you would want to update the manifest.txt file from dynamodb after the change. This update will applies to both source key and target key. Choices (lower case): true, false
 
 Additionally, please make sure AWS CLI and AWS_PROFILE is set properly.
 Profile must have the permission to modify `S3` and `DynamoDb`.
 
 After done filling the information, execute the script with:
 ```
-./execute.sh
+./execute.sh {BUCKET_LOCATION} {PARTITION_KEY} {SOURCE_SORT_KEY} {TARGET_SORT_KEY} {OVERRIDE_VALUE} {UPDATE_MANIFEST_TXT}
+```
+
+Example:
+```bash
+./execute.sh agha-gdr-store-2.0 TYPE:MANIFEST ABC/0123456789/SOME-FILE.vcf.gz XYZ/987654321/SOME-FILE.vcf.gz '{"agha_study_id":"abcde"}' false
+```
+
+#### Alternative of execution
+
+You could create a custom python script to execute the change script. This would be useful if you would need to query a list of files that need to be changed. Example of executing from a python script is from `main.py`.
+
+Execute this with
+```bash
+python3 main.py
 ```
 
 ___
