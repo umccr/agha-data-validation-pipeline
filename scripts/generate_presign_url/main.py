@@ -40,6 +40,9 @@ python3 main.py
 
 def get_argument():
     parser = argparse.ArgumentParser(description='Generate pre-signed URLs for AGHA files.')
+    parser.add_argument('-o', '--out-file',
+                        default='presigned-urls.txt',
+                        help="Name of the output file. Default: presigned-urls.txt")
     parser.add_argument('--dryrun',
                         default=False,
                         action='store_true',
@@ -66,12 +69,17 @@ def get_argument():
     print(f"Flagship : {args.flagship}")
     print(f"IDs      : {args.study_ids}")
     print(f"DryRun   : {args.dryrun}")
+    print(f"OutFile  : {args.out_file}")
     print("######################"*6)
 
     return args
 
 
-def generate_presign_s3_url(agha_study_id_list: List[str], flagship: str, filetype_list: List[str], dry_run: bool):
+def generate_presign_s3_url(agha_study_id_list: List[str],
+                            flagship: str,
+                            filetype_list: List[str],
+                            dry_run: bool,
+                            out_file: str):
     sort_key_flagship_prefix = agha.FlagShip.from_name(flagship).preferred_code()
     filetype_list = run_filetype_sanitize(filetype_list)
     file_metadata_list = []
@@ -116,8 +124,7 @@ def generate_presign_s3_url(agha_study_id_list: List[str], flagship: str, filety
         file_metadata['presigned_url'] = presigned_url
 
     # Write output file
-    output_filename = f"presign_url_{sort_key_flagship_prefix}_{'_'.join(agha_study_id_list)}.txt"
-    f = open(output_filename, 'w')
+    f = open(out_file, 'w')
     f.write("agha_study_id\tfilename\tchecksum\tpresigned_url\n")
     for metadata in file_metadata_list:
         # parse data
@@ -129,7 +136,7 @@ def generate_presign_s3_url(agha_study_id_list: List[str], flagship: str, filety
         f.write(f"{study_id}\t{filename}\t{checksum}\t{presigned_url}\n")
     f.close()
 
-    print(f"PresignUrl generated. Checkout: {output_filename}")
+    print(f"PresignUrl generated. Checkout: {out_file}")
 
 
 def run_filetype_sanitize(filetype_list: List[str]):
@@ -159,4 +166,5 @@ if __name__ == '__main__':
     generate_presign_s3_url(agha_study_id_list=args.study_ids,
                             flagship=args.flagship,
                             filetype_list=args.filetype,
-                            dry_run=args.dryrun)
+                            dry_run=args.dryrun,
+                            out_file=args.out_file)
