@@ -24,9 +24,9 @@ def execute_change():
         os.system(f"./execute.sh "
                   f"{STORE_BUCKET} "
                   f"{dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value} "
-                  f"{key}"
+                  f"{key} "
                   f"{new_key} "
-                  f"""''"""
+                  f"""'' """
                   f"true")
         time.sleep(1)  # Allow for time buffering
 
