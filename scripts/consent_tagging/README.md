@@ -8,7 +8,7 @@ Parameter needed to run this script.
 - `--study-ids`: `str` - agha_study_id to be queried. Space seperated for multiple ids.
 - `--flagship`: `str` - The flagship preferred code. [Check on the FlagShip class](../../lambdas/layers/util/util/agha.py#L9)
 - `--action`: `str` - Action to add/remove consent (Options: ADD_CONSENT, REMOVE_CONSENT).
-- `--dry_run`: `bool` - to print the affected files on s3 without modifying anything. Add `--dryrun` to set this to True
+- `--dryrun`: `bool` - to print the affected files on s3 without modifying anything. Add `--dryrun` to set this to True
 
 The value could be populated at `get_argument()` (`main.py` Line 55) 
 
