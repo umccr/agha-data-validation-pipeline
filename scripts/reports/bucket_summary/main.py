@@ -1,6 +1,5 @@
 import sys
 import os
-import json
 import argparse
 import pandas as pd
 import boto3
