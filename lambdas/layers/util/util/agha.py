@@ -59,7 +59,7 @@ FEXT_CRAM = ['.cram']
 FEXT_CRAM_INDEX = ['.crai']
 FEXT_VCF = ['vcf.gz', 'vcf']
 FEXT_VCF_INDEX = ['.tbi']
-FEXT_MANIFEST = ['manifest.txt', '.manifest']
+FEXT_MANIFEST = ['manifest.txt', '.manifest', 'manifest.orig']
 
 
 class FileType(Enum):
