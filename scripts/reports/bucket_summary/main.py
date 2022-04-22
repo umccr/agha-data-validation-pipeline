@@ -36,8 +36,8 @@ class Report:
         for p in msg.split('\n'):
             self.msg_buffer.append(f"{self.INDENT * level}{p}")
 
-    def flush(self):
-        f = open(self.filename, 'w')
+    def flush(self, python_open_mode: str = 'a'):
+        f = open(self.filename, python_open_mode)
 
         print(f"Writing {len(self.msg_buffer)} messages:")
         for message in self.msg_buffer:
@@ -95,7 +95,6 @@ class Data:
 
 
 def parse_json_with_pandas(data_list):
-
     pd_df = pd.json_normalize(data_list)
     pd_df.fillna(value=False, inplace=True)
     pd_df['size_in_bytes'] = pd_df['size_in_bytes'].astype(int)
@@ -128,7 +127,7 @@ def summarize_files_from_bucket(consent: bool = True):
     report_txt.add_double_line()
     report_txt.from_size_in_bytes_df(size_in_byte_df)
 
-    report_txt.flush()
+    report_txt.flush(python_open_mode='w')
 
     # Per Flagship level
     for new_flagship in flagships:
@@ -168,6 +167,7 @@ def download_dynamodb_table():
         results_data.extend(response['Items'])
 
     return results_data
+
 
 def get_argument():
     parser = argparse.ArgumentParser(description='Generate bucket summary in GDR.')
