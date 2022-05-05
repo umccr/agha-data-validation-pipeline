@@ -74,7 +74,8 @@ def handler(event, context):
     fail_batch_key = batch.run_batch_check(submission_directory, event.get("exception_postfix_filename"))
 
     # Checking if all type of test exist for the submission pass
-    fail_status_result_key = batch.run_status_result_check(submission_directory)
+    fail_status_result_key = batch.run_status_result_check(submission_directory,
+                                                           event.get("exception_postfix_filename"))
 
     if len(fail_batch_key) > 0 or len(fail_status_result_key) > 0 or event.get('validation_check_only'):
         reason = 'Validation report requested'
@@ -219,7 +220,8 @@ def handler(event, context):
     if event.get("skip_update_dynamodb"):
         logger.info('Skip update dynamodb flag is raised. Skipping ...')
     else:
-        logger.info(f'Dynamodb Job list: {json.dumps([item.__dict__ for item in dynamodb_job], indent=4, cls=util.JsonSerialEncoder)}')
+        logger.info(
+            f'Dynamodb Job list: {json.dumps([item.__dict__ for item in dynamodb_job], indent=4, cls=util.JsonSerialEncoder)}')
         dynamodb.batch_write_records(table_name=DYNAMODB_STORE_TABLE_NAME,
                                      records=dynamodb_job)
         dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_STORE_TABLE_NAME,
