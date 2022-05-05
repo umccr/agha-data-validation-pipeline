@@ -173,11 +173,21 @@ def submit_batch_job(job_data):
 ########################################################################################################################
 # The following to check the result for after batch running
 
-def run_status_result_check(submission_directory: str) -> list:
+def is_name_in_postfix_exception_list(name, postfix_exception_list) -> bool:
+
+    for exception in postfix_exception_list:
+        if name.endswith(exception):
+            return True
+        else:
+            continue
+
+
+def run_status_result_check(submission_directory: str, exception_list=None) -> list:
     """
     This will check if all checks generated from the batch job is valid with a PASS status. Any other value than 'PASS'
     will be returned from this function.
     :param submission_directory:
+    :param exception_list:
     :return:
     """
 
@@ -188,10 +198,18 @@ def run_status_result_check(submission_directory: str) -> list:
         partition_key_to_search = dynamodb.ResultPartitionKey.STATUS.value + ':' + each_test
         filter_key = Attr('value').ne('PASS')  # Not equal to PASS
 
-        items = dynamodb.get_batch_item_from_pk_and_sk(table_name=DYNAMODB_RESULT_TABLE_NAME,
-                                                       partition_key=partition_key_to_search,
-                                                       sort_key_prefix=submission_directory,
-                                                       filter_expr=filter_key)
+        fail_dydb_list = dynamodb.get_batch_item_from_pk_and_sk(table_name=DYNAMODB_RESULT_TABLE_NAME,
+                                                                partition_key=partition_key_to_search,
+                                                                sort_key_prefix=submission_directory,
+                                                                filter_expr=filter_key)
+
+        items = []
+        for failing_item in fail_dydb_list:
+            sort_key = failing_item["sort_key"]
+            if is_name_in_postfix_exception_list(sort_key, exception_list):
+                continue
+            else:
+                items.append(sort_key)
         if len(items) > 0:
             fail_s3_key.extend(items)
 
