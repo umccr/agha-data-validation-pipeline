@@ -18,7 +18,7 @@ This stack is used to handle and validate data received as part of the AGHA GDR 
 * [Deployment](#deployment)
 * [Usage](#usage)
 * [Lambda](#lambda)
-* [DynamodDb](#dynamodb)
+* [Database (DynamoDb)](#database)
 * [Batch](#batch)
 * [Lambda Arguments](#lambda-arguments)
 
@@ -328,7 +328,7 @@ aws lambda invoke \
 NOTE: If `aws --version` is in version 1 (aws-cli/1.X.XX), `--cli-binary-format raw-in-base64-out` flag may not be
 necessary.
 
-### Database (DynamoDb)
+## Database
 
 There are 7 tables for this pipeline which include archive tables.  
 Archive tables is the history table, it will record all changes to the current state of changes happening on the main
