@@ -193,6 +193,9 @@ def run_status_result_check(submission_directory: str, exception_list=None) -> l
 
     fail_s3_key = []
 
+    if exception_list is None:
+        exception_list = []
+
     for each_test in Tasks.tasks_to_list():
 
         partition_key_to_search = dynamodb.ResultPartitionKey.STATUS.value + ':' + each_test
