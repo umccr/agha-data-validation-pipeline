@@ -56,18 +56,18 @@ aws sts get-caller-identity >/dev/null 2>&1 || {
 
 # Move dynamodb manifest
 python move_manifest_record.py \
-  --bucket_location ${BUCKET_LOCATION} \
-  --partition_key ${PARTITION_KEY} \
-  --old_sort_key ${SOURCE_SORT_KEY} \
-  --new_sort_key ${TARGET_SORT_KEY} \
-  --value_override ${OVERRIDE_VALUE} \
+  --bucket_location "${BUCKET_LOCATION}" \
+  --partition_key "${PARTITION_KEY}" \
+  --old_sort_key "${SOURCE_SORT_KEY}" \
+  --new_sort_key "${TARGET_SORT_KEY}" \
+  --value_override "${OVERRIDE_VALUE}" \
   2>&1 || {
   echo >&2 "FAIL DYNAMODB UPDATE. ABORTING..."
   exit 1
 }
 
 # Move the file object
-if [ $SOURCE_SORT_KEY != $TARGET_SORT_KEY ]; then
+if [ "$SOURCE_SORT_KEY" != "$TARGET_SORT_KEY" ]; then
   echo "Moving Files to a different location"
   s3_uri_source="s3://${BUCKET_LOCATION}/${SOURCE_SORT_KEY}"
   s3_uri_target="s3://${BUCKET_LOCATION}/${TARGET_SORT_KEY}"
@@ -79,13 +79,13 @@ fi
 # Update manifest.txt file for each submission
 if [ "$UPDATE_MANIFEST_TXT" == true ] && [ "$BUCKET_LOCATION" == $STORE_BUCKET ]; then
   echo "Updating manifest.txt file (in source and target submission)"
-  python manifest_txt_update.py --s3_key_object $SOURCE_SORT_KEY
-  python manifest_txt_update.py --s3_key_object $TARGET_SORT_KEY
+  python manifest_txt_update.py --s3_key_object "$SOURCE_SORT_KEY"
+  python manifest_txt_update.py --s3_key_object "$TARGET_SORT_KEY"
 
 fi
 
 # Move '__results.json' location
-if [ $SOURCE_SORT_KEY != $TARGET_SORT_KEY ]; then
+if [ "$SOURCE_SORT_KEY" != "$TARGET_SORT_KEY" ]; then
   echo "Moving results json file with modification"
   python move_and_modify_results_file.py \
     --source_s3_key "${SOURCE_SORT_KEY}" \
