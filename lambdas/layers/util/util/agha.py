@@ -28,6 +28,12 @@ class FlagShip(Enum):
     INTELLECTUAL_DISABILITY = ('ID', 'Intellectual Disability', 'id')
     CARDIOVASCULAR_GENETIC_DISORDERS = ('Cardiac', 'Cardiovascular Genetic Disorders', 'CARDIAC', 'cardiac')
     HIDDEN_RENAL_GENETICS = ('HIDDEN', 'HIDDEN Renal Genetics', 'hidden')
+
+    # Mackenzie's Mission
+    MM_VCGS = ('MM_VCGS', 'MM_VCGS', 'MM_VCGS')
+    MM_NSWHP = ('MM_NSWHP', 'MM_NSWHP', 'MM_NSWHP')
+    MM_PATHWEST = ('MM_PATHWEST', 'MM_PATHWEST', 'MM_PATHWEST')
+
     TEST = ('TEST', 'Test submissions')
     UNKNOWN = ('UNKNOWN', 'Unknown flagship')
 
