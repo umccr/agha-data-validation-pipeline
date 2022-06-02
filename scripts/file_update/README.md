@@ -33,6 +33,10 @@ Example:
 
 You could create a custom python script to execute the change script. This would be useful if you would need to query a list of files that need to be changed. Example of executing from a python script is from `main.py`.
 
+At the `__main__` function at the bottom of the file, there are 2 functions that could be executed. Choosing one of the function to run depending on what is needed.
+The `execute_change()` function will change on a single file, while `update_files_from_new_manifest()` means you provide a new manifest file to match with the current data.  
+_NOTE: You will need to fill information in the variable to execute these functions (There is a section at the beginning of the function)._
+
 Execute this with
 ```bash
 python3 main.py
