@@ -13,9 +13,13 @@ import util
 from util import notification, s3, agha
 
 MANIFEST_REQUIRED_COLUMNS = {'filename', 'checksum', 'agha_study_id'}
+
 # Manifest field validation related
 AGHA_ID_RE = re.compile('^A[0-9]{7,8}(?:_[a-zA-Z0-9]+)?$')
 MD5_RE = re.compile('^[0-9a-f]{32}$')
+
+# MM study_id regex
+MM_ID_RE = re.compile('^[0-9]{6}(?:_[a-zA-Z0-9]+)?$')
 
 # Logging
 logger = logging.getLogger()
@@ -195,7 +199,7 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
         # Study ID
         agha_study_id_list = row.agha_study_id.split(',')  # Separate by commas for multi study-id
         for agha_study_id in agha_study_id_list:
-            if not AGHA_ID_RE.match(agha_study_id):
+            if not AGHA_ID_RE.match(agha_study_id) and not MM_ID_RE.match(agha_study_id):
                 message = f'Malformed AGHA study ID: {row.filename} ({agha_study_id})'
                 messages_error.append(message)
         # Checksum
