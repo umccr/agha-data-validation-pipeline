@@ -5,6 +5,8 @@ from aws_cdk import (
     aws_s3_notifications as s3notification,
     aws_iam as iam,
     aws_s3 as s3,
+    aws_events as events,
+    aws_events_targets as targets,
     core
 )
 
@@ -129,7 +131,8 @@ class LambdaStack(core.NestedStack):
             )
         )
 
-        folder_lock_exception_role_id = json.dumps([cleanup_manager_lambda_role.role_id, batch.batch_instance_role.role_id])
+        folder_lock_exception_role_id = json.dumps(
+            [cleanup_manager_lambda_role.role_id, batch.batch_instance_role.role_id])
         self.folder_lock_lambda = lambda_.Function(
             self,
             'FolderLockLambda',
@@ -569,4 +572,57 @@ class LambdaStack(core.NestedStack):
                 util_layer,
                 runtime_layer
             ]
+        )
+
+        ################################################################################################################
+        # Adding Rule to forward event
+        batch_notification_lambda_role = iam.Role(
+            self,
+            'BatchNotificationLambdaRole',
+            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonSSMReadOnlyAccess')
+            ],
+        )
+        self.batch_notification_lambda = lambda_.Function(
+            self,
+            'BatchNotificationLambda',
+            function_name=f"{namespace}-batch-notification",
+            handler='report.handler',
+            runtime=lambda_.Runtime.PYTHON_3_8,
+            timeout=core.Duration.seconds(300),
+            retry_attempts=0,
+            code=lambda_.Code.from_asset('lambdas/functions/batch_notification'),
+            role=batch_notification_lambda_role,
+            memory_size=1769,
+            environment={
+                'RESULTS_BUCKET': bucket_name['results_bucket'],
+                'STAGING_BUCKET': bucket_name['staging_bucket'],
+                'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
+                'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
+                'JOB_DEFINITION_ARN': batch.batch_job_definition.job_definition_arn,
+                'S3_JOB_DEFINITION_ARN': batch.batch_s3_job_definition.job_definition_arn
+            },
+            layers=[
+                util_layer,
+                runtime_layer
+            ]
+        )
+
+        # Adding event to forward to this lambda
+        batch_rule = events.Rule(
+            self,
+            "BatchNotificationRule",
+            description="Invoke function when job state from batch change.",
+            enabled=True,
+            event_pattern=events.EventPattern(
+                source=["aws.batch"],
+                detail_type=["Batch Job State Change"],
+                detail={
+                    "jobQueue": batch_queue_arn_list,
+                    "status": ["FAILED", "SUCCEEDED"]
+                }
+            ),
+            targets=[targets.LambdaFunction(self.batch_notification_lambda)]
         )
