@@ -215,6 +215,7 @@ def handler(event, context):
             if len(expected_list) != (len(metadata_store_list) - number_file_skipped):
                 logger.info(f'Expected{len(expected_list)} \nCurrent: {(len(metadata_store_list) - number_file_skipped)}')
                 logger.info('Incomplete files, waiting for more events')
+                return
 
             else:
                 # Check store check via report lambda
