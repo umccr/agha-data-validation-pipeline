@@ -582,14 +582,26 @@ class LambdaStack(core.NestedStack):
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole'),
-                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonSSMReadOnlyAccess')
+                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonSSMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonDynamoDBReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonS3ReadOnlyAccess'),
             ],
+        )
+        batch_notification_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    "lambda:InvokeFunction"
+                ],
+                resources=[
+                    self.report_lambda.function_arn,
+                ]
+            )
         )
         self.batch_notification_lambda = lambda_.Function(
             self,
             'BatchNotificationLambda',
             function_name=f"{namespace}-batch-notification",
-            handler='report.handler',
+            handler='batch_notification.handler',
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=core.Duration.seconds(300),
             retry_attempts=0,
@@ -597,12 +609,18 @@ class LambdaStack(core.NestedStack):
             role=batch_notification_lambda_role,
             memory_size=1769,
             environment={
-                'RESULTS_BUCKET': bucket_name['results_bucket'],
-                'STAGING_BUCKET': bucket_name['staging_bucket'],
+                # Bucket
+                'STAGING_BUCKET': bucket_name["staging_bucket"],
+                'STORE_BUCKET': bucket_name["store_bucket"],
+                'RESULT_BUCKET': bucket_name["results_bucket"],
+                # Dynamodb
                 'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
                 'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
-                'JOB_DEFINITION_ARN': batch.batch_job_definition.job_definition_arn,
-                'S3_JOB_DEFINITION_ARN': batch.batch_s3_job_definition.job_definition_arn
+                'DYNAMODB_STORE_TABLE_NAME': dynamodb_table["store-bucket"],
+                # Batches
+                'VALIDATE_FILE_JOB_DEFINITION_ARN': batch.batch_job_definition.job_definition_arn,
+                'S3_MOVE_JOB_DEFINITION_ARN': batch.batch_s3_job_definition.job_definition_arn,
+                'REPORT_LAMBDA_ARN': self.report_lambda.function_arn
             },
             layers=[
                 util_layer,
@@ -611,17 +629,33 @@ class LambdaStack(core.NestedStack):
         )
 
         # Adding event to forward to this lambda
-        batch_rule = events.Rule(
+        self.batch_validation_state_change_rule = events.Rule(
             self,
-            "BatchNotificationRule",
-            description="Invoke function when job state from batch change.",
+            "BatchNotificationFileValidationRule",
+            description="Invoke function when job SUCCEEDED/FAILED from batch job file validation.",
             enabled=True,
             event_pattern=events.EventPattern(
                 source=["aws.batch"],
                 detail_type=["Batch Job State Change"],
                 detail={
-                    "jobQueue": batch_queue_arn_list,
+                    "jobDefinition": [batch.batch_job_definition.job_definition_arn],
                     "status": ["FAILED", "SUCCEEDED"]
+                }
+            ),
+            targets=[targets.LambdaFunction(self.batch_notification_lambda)]
+        )
+
+        self.batch_s3_transfer_state_change_rule = events.Rule(
+            self,
+            "BatchNotificationS3TransferRule",
+            description="Invoke function when job succeed from s3 batch job transfer.",
+            enabled=True,
+            event_pattern=events.EventPattern(
+                source=["aws.batch"],
+                detail_type=["Batch Job State Change"],
+                detail={
+                    "jobDefinition": [batch.batch_s3_job_definition.job_definition_arn],
+                    "status": ["SUCCEEDED"]
                 }
             ),
             targets=[targets.LambdaFunction(self.batch_notification_lambda)]

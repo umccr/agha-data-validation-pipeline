@@ -15,12 +15,18 @@ from unittest import mock
 
 from batch_notification import handler
 
+S3_MOVE_JOB_ARN = 'arn:aws:batch:ap-southeast-2:602836945884:job-definition/agha-gdr-s3-manipulation:15'
+VALIDATE_FILE_JOB_ARN = 'arn:aws:batch:ap-southeast-2:602836945884:job-definition/agha-gdr-validate-file:15'
+
 
 class BatchNotificationUnitTestCase(unittest.TestCase):
 
     def test_batch_notification(self):
-        event_payload = make_mock_data(status='FAILED', command=['--s3_key', 'AG/123/file.fastq.gz'])
-
+        event_payload = make_mock_data(
+            status='SUCCEEDED',
+            job_arn=S3_MOVE_JOB_ARN,
+            command=['--s3_key',
+                     'ABCDE/123_hello_world.fastq.gz'])
         res = handler(event_payload, {})
 
         print(res)
@@ -30,7 +36,7 @@ if __name__ == '__main__':
     unittest.main()
 
 
-def make_mock_data(status: str, command: [str]):
+def make_mock_data(status: str, job_arn: str, command: [str]):
     return {
         "version": "0",
         "id": "c8f9c4b5-76e5-d76a-f980-7011e206042b",
@@ -43,8 +49,8 @@ def make_mock_data(status: str, command: [str]):
             "arn:aws:batch:us-east-1:123456789012:job/4c7599ae-0a82-49aa-ba5a-4727fcce14a8"
         ],
         "detail": {
-            "jobArn": "arn:aws:batch:us-east-1:123456789012:job/4c7599ae-0a82-49aa-ba5a-4727fcce14a8",
-            "jobName": "event-test",
+            "jobArn": job_arn,
+            "jobName": 'job_name',
             "jobId": "4c7599ae-0a82-49aa-ba5a-4727fcce14a8",
             "jobQueue": "arn:aws:batch:us-east-1:123456789012:job-queue/PexjEHappyPathCanary2JobQueue",
             "status": status,

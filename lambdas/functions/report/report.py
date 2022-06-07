@@ -151,7 +151,7 @@ def handler(event, context):
         }
 
     ################################################################################
-    # Checktype for ready to transfer
+    # Check file in store bucket same as manifest
     ################################################################################
     elif event.get('report_type') == 'store_bucket_check':
         """
