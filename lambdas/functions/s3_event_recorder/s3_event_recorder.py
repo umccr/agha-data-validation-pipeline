@@ -25,6 +25,9 @@ DYNAMODB_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_RESULT_TABLE_NAME')
 DYNAMODB_ARCHIVE_RESULT_TABLE_NAME = os.environ.get('DYNAMODB_ARCHIVE_RESULT_TABLE_NAME')
 DYNAMODB_ETAG_TABLE_NAME = os.environ.get('DYNAMODB_ETAG_TABLE_NAME')
 
+# Lambda ARN
+BATCH_NOTIFICATION_LAMBDA = os.environ.get('BATCH_NOTIFICATION_LAMBDA')
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -119,6 +122,12 @@ def handler(event, context):
                                            etag_table_name=DYNAMODB_ETAG_TABLE_NAME,
                                            file_record=db_record)
 
+                # Send notification through batch_notification lambda
+                util.call_lambda(lambda_arn=BATCH_NOTIFICATION_LAMBDA, payload={
+                    "event_type": 'STORE_FILE_UPLOAD',
+                    "s3_key": db_record.s3_key
+                })
+
             elif s3_record.event_type == s3.S3EventType.EVENT_OBJECT_REMOVED:
 
                 # Delete FILE record
@@ -198,6 +207,12 @@ def handler(event, context):
                     # Write record to db
                     dynamodb.batch_write_records(DYNAMODB_RESULT_TABLE_NAME, dynamodb_put_item_list)
                     dynamodb.batch_write_records(DYNAMODB_ARCHIVE_RESULT_TABLE_NAME, dynamodb_archive_put_item_list)
+
+                # Send notification through batch_notification lambda
+                util.call_lambda(lambda_arn=BATCH_NOTIFICATION_LAMBDA, payload={
+                    "event_type": 'VALIDATION_RESULT_UPLOAD',
+                    "s3_key": db_record.s3_key
+                })
 
             elif s3_record.event_type == s3.S3EventType.EVENT_OBJECT_REMOVED:
 

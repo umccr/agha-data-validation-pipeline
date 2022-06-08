@@ -15,8 +15,4 @@ os.environ["STAGING_BUCKET"] = 'agha-gdr-staging-2.0'
 os.environ["RESULTS_BUCKET"] = 'agha-gdr-results-2.0'
 os.environ["STORE_BUCKET"] = 'agha-gdr-store-2.0'
 os.environ[
-    "S3_MOVE_JOB_DEFINITION_ARN"] = 'arn:aws:batch:ap-southeast-2:602836945884:job-definition/agha-gdr-s3-manipulation:15'
-os.environ[
-    "VALIDATE_FILE_JOB_DEFINITION_ARN"] = 'arn:aws:batch:ap-southeast-2:602836945884:job-definition/agha-gdr-validate-file:15'
-os.environ[
     "REPORT_LAMBDA_ARN"] = 'arn:aws:lambda:ap-southeast-2:602836945884:function:agha-gdr-validation-pipeline-report'

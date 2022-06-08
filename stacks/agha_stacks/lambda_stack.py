@@ -367,7 +367,7 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
                 'DYNAMODB_STORE_TABLE_NAME': dynamodb_table["store-bucket"],
                 'DYNAMODB_ARCHIVE_STORE_TABLE_NAME': dynamodb_table["store-bucket-archive"],
-                'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["e-tag"]
+                'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["e-tag"],
             },
             role=s3_event_recorder_lambda_role,
             memory_size=1769,
@@ -575,7 +575,7 @@ class LambdaStack(core.NestedStack):
         )
 
         ################################################################################################################
-        # Adding Rule to forward event
+        # Adding Lambda to send notification
         batch_notification_lambda_role = iam.Role(
             self,
             'BatchNotificationLambdaRole',
@@ -618,8 +618,6 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
                 'DYNAMODB_STORE_TABLE_NAME': dynamodb_table["store-bucket"],
                 # Batches
-                'VALIDATE_FILE_JOB_DEFINITION_ARN': batch.batch_job_definition.job_definition_arn,
-                'S3_MOVE_JOB_DEFINITION_ARN': batch.batch_s3_job_definition.job_definition_arn,
                 'REPORT_LAMBDA_ARN': self.report_lambda.function_arn
             },
             layers=[
@@ -628,35 +626,16 @@ class LambdaStack(core.NestedStack):
             ]
         )
 
-        # Adding event to forward to this lambda
-        self.batch_validation_state_change_rule = events.Rule(
-            self,
-            "BatchNotificationFileValidationRule",
-            description="Invoke function when job SUCCEEDED/FAILED from batch job file validation.",
-            enabled=True,
-            event_pattern=events.EventPattern(
-                source=["aws.batch"],
-                detail_type=["Batch Job State Change"],
-                detail={
-                    "jobDefinition": [batch.batch_job_definition.job_definition_arn],
-                    "status": ["FAILED", "SUCCEEDED"]
-                }
-            ),
-            targets=[targets.LambdaFunction(self.batch_notification_lambda)]
+        # Allow event recorder to invoke this function
+        # After recording event, notification might be sent
+        s3_event_recorder_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    "lambda:InvokeFunction"
+                ],
+                resources=[
+                    self.batch_notification_lambda.function_arn,
+                ]
+            )
         )
-
-        self.batch_s3_transfer_state_change_rule = events.Rule(
-            self,
-            "BatchNotificationS3TransferRule",
-            description="Invoke function when job succeed from s3 batch job transfer.",
-            enabled=True,
-            event_pattern=events.EventPattern(
-                source=["aws.batch"],
-                detail_type=["Batch Job State Change"],
-                detail={
-                    "jobDefinition": [batch.batch_s3_job_definition.job_definition_arn],
-                    "status": ["SUCCEEDED"]
-                }
-            ),
-            targets=[targets.LambdaFunction(self.batch_notification_lambda)]
-        )
+        self.s3_event_recorder_lambda.add_environment('BATCH_NOTIFICATION_LAMBDA', self.batch_notification_lambda.function_arn)
