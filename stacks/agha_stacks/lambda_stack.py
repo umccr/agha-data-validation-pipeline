@@ -5,6 +5,8 @@ from aws_cdk import (
     aws_s3_notifications as s3notification,
     aws_iam as iam,
     aws_s3 as s3,
+    aws_events as events,
+    aws_events_targets as targets,
     core
 )
 
@@ -129,7 +131,8 @@ class LambdaStack(core.NestedStack):
             )
         )
 
-        folder_lock_exception_role_id = json.dumps([cleanup_manager_lambda_role.role_id, batch.batch_instance_role.role_id])
+        folder_lock_exception_role_id = json.dumps(
+            [cleanup_manager_lambda_role.role_id, batch.batch_instance_role.role_id])
         self.folder_lock_lambda = lambda_.Function(
             self,
             'FolderLockLambda',
@@ -364,7 +367,7 @@ class LambdaStack(core.NestedStack):
                 'DYNAMODB_ARCHIVE_STAGING_TABLE_NAME': dynamodb_table["staging-bucket-archive"],
                 'DYNAMODB_STORE_TABLE_NAME': dynamodb_table["store-bucket"],
                 'DYNAMODB_ARCHIVE_STORE_TABLE_NAME': dynamodb_table["store-bucket-archive"],
-                'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["e-tag"]
+                'DYNAMODB_ETAG_TABLE_NAME': dynamodb_table["e-tag"],
             },
             role=s3_event_recorder_lambda_role,
             memory_size=1769,
@@ -570,3 +573,69 @@ class LambdaStack(core.NestedStack):
                 runtime_layer
             ]
         )
+
+        ################################################################################################################
+        # Adding Lambda to send notification
+        batch_notification_lambda_role = iam.Role(
+            self,
+            'BatchNotificationLambdaRole',
+            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonSSMReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonDynamoDBReadOnlyAccess'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('AmazonS3ReadOnlyAccess'),
+            ],
+        )
+        batch_notification_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    "lambda:InvokeFunction"
+                ],
+                resources=[
+                    self.report_lambda.function_arn,
+                ]
+            )
+        )
+        self.batch_notification_lambda = lambda_.Function(
+            self,
+            'BatchNotificationLambda',
+            function_name=f"{namespace}-batch-notification",
+            handler='batch_notification.handler',
+            runtime=lambda_.Runtime.PYTHON_3_8,
+            timeout=core.Duration.seconds(300),
+            retry_attempts=0,
+            code=lambda_.Code.from_asset('lambdas/functions/batch_notification'),
+            role=batch_notification_lambda_role,
+            memory_size=1769,
+            environment={
+                # Bucket
+                'STAGING_BUCKET': bucket_name["staging_bucket"],
+                'STORE_BUCKET': bucket_name["store_bucket"],
+                'RESULT_BUCKET': bucket_name["results_bucket"],
+                # Dynamodb
+                'DYNAMODB_RESULT_TABLE_NAME': dynamodb_table["result-bucket"],
+                'DYNAMODB_STAGING_TABLE_NAME': dynamodb_table["staging-bucket"],
+                'DYNAMODB_STORE_TABLE_NAME': dynamodb_table["store-bucket"],
+                # Batches
+                'REPORT_LAMBDA_ARN': self.report_lambda.function_arn
+            },
+            layers=[
+                util_layer,
+                runtime_layer
+            ]
+        )
+
+        # Allow event recorder to invoke this function
+        # After recording event, notification might be sent
+        s3_event_recorder_lambda_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    "lambda:InvokeFunction"
+                ],
+                resources=[
+                    self.batch_notification_lambda.function_arn,
+                ]
+            )
+        )
+        self.s3_event_recorder_lambda.add_environment('BATCH_NOTIFICATION_LAMBDA', self.batch_notification_lambda.function_arn)

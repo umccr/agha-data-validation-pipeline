@@ -191,7 +191,9 @@ A quick summary for each function.
     - Could check if all files listed in orignal manifest file is in STORE bucket
     - Could check staging file should only contain indexed and uncompressed files
     - Could give report wich submission are ready to be transferred by the data-transfer-manager lambda
-
+- **batch_notification** - Will notify via slack when batch job completed
+    - The lambda will notify when batch job has completed with validation or have completed move from staging to store bucket.
+    - The lambda will be invoked after updating dynamodb (s3_event_recorder lambda)
 _*arguments are defined below_
 
 ##### Lambdas layer
