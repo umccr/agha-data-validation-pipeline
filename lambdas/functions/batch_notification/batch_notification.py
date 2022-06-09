@@ -23,8 +23,6 @@ REPORT_LAMBDA_ARN = os.environ.get('REPORT_LAMBDA_ARN')
 # Logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-stream_handler = logging.StreamHandler(sys.stdout)
-logger.addHandler(stream_handler)
 
 S3_CLIENT = boto3.client('s3')
 CLIENT_SSM = util.get_client('ssm')
@@ -88,6 +86,7 @@ def handler(event, context):
                 send_slack_notification(heading=f'Data Validation Check (`{submission_prefix}`)',
                                         title='Status: FAILED',
                                         message=message)
+                return
 
             else:
                 # Ready to be stored in the bucket
@@ -114,6 +113,7 @@ def handler(event, context):
                 send_slack_notification(heading=f'Data Validation Check (`{submission_prefix}`)',
                                         title='Status: SUCCEEDED',
                                         message=message + aws_cmd)
+                return
 
     elif event_type == EventType.STORE_FILE_UPLOAD.value:
         # Check number of file same as number of manifest
@@ -179,6 +179,7 @@ def handler(event, context):
                 send_slack_notification(heading=f'Data S3 Store (`{submission_prefix}`)',
                                         title='Status: FAILED',
                                         message=message)
+                return
             else:
                 message = 'File in store has all files defined in original manifest. '
                 aws_invoke_cmd = "" \
@@ -196,6 +197,7 @@ def handler(event, context):
                 send_slack_notification(heading=f'Data S3 Store (`{submission_prefix}`)',
                                         title='Status: SUCCEEDED',
                                         message=message + aws_invoke_cmd)
+                return
 
 
 def call_report_lambda(payload: dict):

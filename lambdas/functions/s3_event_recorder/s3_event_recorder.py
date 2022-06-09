@@ -208,11 +208,11 @@ def handler(event, context):
                     dynamodb.batch_write_records(DYNAMODB_RESULT_TABLE_NAME, dynamodb_put_item_list)
                     dynamodb.batch_write_records(DYNAMODB_ARCHIVE_RESULT_TABLE_NAME, dynamodb_archive_put_item_list)
 
-                # Send notification through batch_notification lambda
-                util.call_lambda(lambda_arn=BATCH_NOTIFICATION_LAMBDA, payload={
-                    "event_type": 'VALIDATION_RESULT_UPLOAD',
-                    "s3_key": db_record.s3_key
-                })
+                    # Send notification through batch_notification lambda
+                    util.call_lambda(lambda_arn=BATCH_NOTIFICATION_LAMBDA, payload={
+                        "event_type": 'VALIDATION_RESULT_UPLOAD',
+                        "s3_key": db_record.s3_key
+                    })
 
             elif s3_record.event_type == s3.S3EventType.EVENT_OBJECT_REMOVED:
 
