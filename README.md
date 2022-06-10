@@ -71,13 +71,6 @@ The stack has some software requirements for deploy:
 * Docker
 * Python3
 
-### Create virtual environment
-
-```bash
-python3 -m venv .venv/
-pip install -r requirements.txt
-```
-
 ### Configure
 
 The cdk application will mostly configure the infrastructure as shown in the picture. Just make sure constants props
@@ -125,6 +118,40 @@ cdk deploy AGHAValidationCodePipeline/AGHAValidationPipelineStage/agha-gdr-valid
 
 Again, make sure aws profile is correctly set up as mentioned above.
 
+###### Local Development
+
+####### Setting Up
+
+Create virtual enviroment
+```bash
+python3 -m venv .venv
+```
+To activate it 
+```bash
+source .venv/bin/activate
+```
+
+Install dependencies
+```bash
+make install
+```
+
+####### Running DynamoDb locally
+Run Dynamodb locally
+```bash
+make up
+make build
+```
+
+To load some mock-data.
+```bash
+make loaddata
+```
+####### Finishing
+To shut local development
+```bash
+make down
+```
 ## Usage
 
 ### Automatic triggering (manifest file uploaded)
@@ -437,7 +464,7 @@ Look at `batch.py` in lambda layer util for check_type
 
 Value:
 
-- CREATE_CHECKSUM or CREATE_INDEX:
+- CREATE_COMPRESS or CREATE_INDEX:
   ```json
     [
         {
