@@ -11,7 +11,7 @@ This stack is used to handle and validate data received as part of the AGHA GDR 
 5. generate validation reports _[planned]_
 
 ## Table of contents
-
+* [S3 Data Sharing](#s3-data-sharing)
 * [Schematic](#schematic)
 * [How it works](#how-it-works)
 * [Prerequisites](#prerequisites)
@@ -21,6 +21,9 @@ This stack is used to handle and validate data received as part of the AGHA GDR 
 * [Database (DynamoDb)](#database)
 * [Batch](#batch)
 * [Lambda Arguments](#lambda-arguments)
+
+## S3 Data Sharing
+We support S3 data sharing for data in store to other S3 in the `same ap-southeast-2` region. Instructions are at the docs folder ([click here](./gdr-s3-data-sharing.md)).
 
 ## Schematic
 
@@ -221,6 +224,9 @@ A quick summary for each function.
 - **batch_notification** - Will notify via slack when batch job completed
     - The lambda will notify when batch job has completed with validation or have completed move from staging to store bucket.
     - The lambda will be invoked after updating dynamodb (s3_event_recorder lambda)
+- **gdr_s3_data_sharing** - Will share data via s3 from store bucket to destination bucket
+    - The lambda will add new policy to batch instance role for s3-data-sharing.
+    - The lambda will create and submit batch job to copy over files to s3.
 _*arguments are defined below_
 
 ##### Lambdas layer
@@ -240,6 +246,7 @@ _*arguments are defined below_
 - **s3_validation:** This will trigger validation submitted through the pipeline. For time being, checks are: checksum,
   validate filetype, and create_index. (Script)[https://github.com/umccr/agha-data-validation-scripts].
 - **data_transfer_manager:** This would use AWS/CLI Image and use MV command to move data from staging to store
+- **gdr_s3_data_sharing:** This would use AWS/CLI Image and use the CP command to copy files from store bucket to other specified bucket.
 
 ### Lambda Arguments
 

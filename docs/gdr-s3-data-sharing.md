@@ -46,13 +46,13 @@ https://docs.aws.amazon.com/AmazonS3/latest/userguide/GetStartedWithS3.html
 
 1. Search on S3 on the search bar, and open the S3 service console.
 2. Click on the `Create bucket` button.
-3. Enter a Bucket name, that is globally unique. Meaning no other people will have this name even on different AWS account. There is some bucket naming rules that can be found [here](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html).
+3. Enter a Bucket name, that is globally unique. Meaning no other people will have this name even on different AWS account. There is some bucket naming rules that need to be followed ([Check it here](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html)).
 4. Select AWS Region to `Asia Pacific (Sydney) ap-southeast-2`. Do **NOT** miss this step.
 5. You leave the rest as default and hit the `Create bucket` button.
 6. Your bucket is created!
 
 ### Taking the S3 ARN (Amazon Resource Number)
-In AWS every resources is lablled with an ID called Amazon Resource Number. We need this so that we could refer this resource with this number.
+In AWS, every resource is labeled with an ID called Amazon Resource Number. We need this so that we could refer this resource in the future.
 
 1. Click on the S3 bucket with the name you created on top. (Could use search bucket name if needed)
 2. On the tabs, click on properties. You could see this arn values. Copy this ARN value
