@@ -21,7 +21,7 @@ In summary:
   <br/><img src="./screenshot/sign-in-button.png" width="300px"/><br/>
 3. Fill in the form with the information needed. (For support plan, you could choose `Basic support - Free`)
 4. <br/><img src="./screenshot/sign-up-page.png" width="300px"/> <img src="./screenshot/support-plan-page.png" width="300px"/><br/>
-5. After you have verify the email, go to your aws console.  
+5. You may need to verify your account (Check your email). After you have verified the email, go to your aws console.  
   <br/><img src="./screenshot/sign-up-complete.png" width="300px"/><br/>
   You could click on the `Go to the AWS Management Console` or head back to https://aws.amazon.com/ and click `Sign In` button.
 5. Select `Root user` , and fill in the email and password to logged in as a root-user.
@@ -74,8 +74,8 @@ Before we can send you the data requested to your S3 bucket. You need to give us
 We need to create what actions allowed for the permissions.
 1. Click on the S3 bucket with the name you created on top. (Could use search bucket name if needed)
 2. On the tabs, click on `Permissions`. Scroll to see `Bucket policy`, and click on edit.
-  <br/><img src="./screenshot/s3-policy.png" width="300px"/><br/>
-4. Copy the following JSON or append with the following policy. Replace `Resource` value with the bucket ARN above.
+  <br/><img src="./screenshot/s3-policy.png" width="500px"/><br/>
+3. Copy the following JSON or append with the following policy. Change the `REPLACE_HERE` below (for `Resource`) value with the bucket ARN above. NOTE: `Resource` has a postfix of `/*`.  
     ```json
     {
       "Version": "2012-10-17",
@@ -91,7 +91,7 @@ We need to create what actions allowed for the permissions.
               "s3:PutObjectAcl",
               "s3:GetBucketLocation"
           ],
-          "Resource": "REPLACE_WITH_YOUR_OWN_BUCKET_ARN_ABOVE"
+          "Resource": "REPLACE_HERE/*"
       }
       ]
     }
@@ -99,12 +99,12 @@ We need to create what actions allowed for the permissions.
 
 ## Step 4 - Let the AGHA-GDR administrator know
 
-Your account is ready for the file being tranferred.
+Your account is ready for the file being transferred.
 
-Send us your bucket ARN and we will able to copy files over to your bucket.
+Send us your bucket ARN, and we will be able to copy files over to your bucket.
 
 
 ## Notes
 
-- When we copy the data to your S3 bucket. The data belongs to you and you will be charge for s3 storage. You could try to save cost if you change S3 classes. Ref: [S3 classes](https://aws.amazon.com/s3/storage-classes/), [S3 pricing](https://aws.amazon.com/s3/pricing/)
+- When we copy the data to your S3 bucket. The data belongs to you, and you will be charge for s3 storage. You could try to save cost if you change S3 classes. Ref: [S3 classes](https://aws.amazon.com/s3/storage-classes/), [S3 pricing](https://aws.amazon.com/s3/pricing/)
 - Data transferred within AWS at the same region (ap-southeast-2) will incur no fee, for example you open the file via AWS ec2 (Virtual Machine). But if you decide to download this file somewhere else. This will attract egress cost.

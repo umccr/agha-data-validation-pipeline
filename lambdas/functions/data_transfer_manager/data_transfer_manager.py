@@ -91,6 +91,10 @@ def handler(event, context):
             "fail_validation_result_s3_key": fail_status_result_key
         }, indent=4)
 
+        f = open("nswhp_06_06_2022.json",'w' )
+        f.write(message)
+        f.close()
+
         logger.error(message)
         return message
 
