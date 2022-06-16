@@ -7,6 +7,7 @@ import re
 import sys
 
 import util
+import botocore
 from util import batch, dynamodb
 
 S3_CLIENT = util.get_client('s3')
@@ -43,17 +44,20 @@ def handler(event, context):
     logger.info("Processing event:")
     logger.info(json.dumps(event, indent=4))
 
+    # Check event format
+    validate_event(event)
+
     # Parsing
     destination_s3_arn = event['destination_s3_arn'].strip('/*')
     source_s3_key_list = event['source_s3_key_list']
-    destination_s3_key_prefix = event['destination_s3_key_prefix']
+    destination_s3_key_prefix = event['destination_s3_key_prefix'].strip('/')
+    destination_bucket_name = destination_s3_arn.split(':::')[-1]
 
     ################################################
     # Check bucket location
     # The reason that we transfer via S3 is to prevent any egress cost.
     # If bucket location is not at the same region. Egress cost will still occur.
 
-    destination_bucket_name = destination_s3_arn.split(':::')[-1]
     bucket_location = get_s3_location(destination_bucket_name)
     logger.info(f'Destination bucket location: {bucket_location}')
 
@@ -64,7 +68,6 @@ def handler(event, context):
 
     ################################################
     # Add this S3 ARN to instance role to allow batch push data to destination
-    logger.info('ARN added to IAM role')
 
     new_iam_policy = {
         "Version": "2012-10-17",
@@ -76,45 +79,54 @@ def handler(event, context):
                     "s3:PutObject",
                     "s3:PutObjectAcl"
                 ],
-                "Resource": f"{destination_s3_arn}/*"
-
+                "Resource": [
+                    destination_s3_arn,
+                    f"{destination_s3_arn}/*"
+                ]
             }
         ]
     }
 
     # Create new policy
-    create_policy_response = IAM_CLIENT.create_policy(
-        PolicyName=f"{destination_s3_arn}-bucket-policy",
-        PolicyDocument=json.dumps(new_iam_policy),
-        Description='The policy to allow push object to s3',
-        Tags=[
-            {
-                'Key': 'Creator',
-                'Value': 'agha-gdr-validation-pipeline-s3-data-sharing-lambda'
-            },
-        ]
-    )
-    logger.debug(
-        f'New policy created. Response: {json.dumps(create_policy_response, indent=4, cls=util.JsonSerialEncoder)}')
-    policy_arn = create_policy_response["Policy"]["Arn"]
+    try:
+        create_policy_response = IAM_CLIENT.create_policy(
+            PolicyName=f"gdr-s3-sharing-{destination_bucket_name}-put-bucket-policy",
+            PolicyDocument=json.dumps(new_iam_policy),
+            Description='The policy to allow push object to s3',
+            Tags=[
+                {
+                    'Key': 'Stack',
+                    'Value': 'lambda-agha-gdr-s3-data-sharing'
+                },
+            ]
+        )
 
-    # Attach policy to the instance role
-    response_attach_policy = IAM_CLIENT.attach_role_policy(
-        RoleName=S3_DATA_SHARING_BATCH_INSTANCE_ROLE_NAME,
-        PolicyArn=policy_arn
-    )
+        print(create_policy_response)
+        logger.debug(
+            f'New policy created. Response: {json.dumps(create_policy_response, indent=4, cls=util.JsonSerialEncoder)}')
+        policy_arn = create_policy_response["Policy"]["Arn"]
 
-    logger.info(f"Successfully add new policy to the '{S3_DATA_SHARING_BATCH_INSTANCE_ROLE_NAME}' role.")
+        # Attach policy to the instance role
+        response_attach_policy = IAM_CLIENT.attach_role_policy(
+            RoleName=S3_DATA_SHARING_BATCH_INSTANCE_ROLE_NAME,
+            PolicyArn=policy_arn
+        )
+        logger.info(f"Successfully add new policy to the '{S3_DATA_SHARING_BATCH_INSTANCE_ROLE_NAME}' role.")
+
+    except IAM_CLIENT.exceptions.EntityAlreadyExistsException:
+        logger.info('Policy has exist, proceeding to batch submission.')
+        pass
 
     ################################################
     # Find what needs to be transfer and create batch job
     logger.info('List of jobs need to be copied')
 
     batch_job_list = []
+    curr_datetimestamp = util.get_datetimestamp()
     for source_s3_key in source_s3_key_list:
         filename = s3.get_s3_filename_from_s3_key(source_s3_key)
 
-        destination_s3_key = f"destination_s3_key_prefix/{filename}"
+        destination_s3_key = f"{destination_s3_key_prefix}/{curr_datetimestamp}/{filename}"
 
         batch_job = create_cli_s3_object_batch_job(source_bucket_name=STORE_BUCKET, source_s3_key=source_s3_key,
                                                    destination_bucket_name=destination_bucket_name,
@@ -123,14 +135,10 @@ def handler(event, context):
 
     ################################################
     # Submitting job
-
     logger.info(f'Batch Job list: {json.dumps(batch_job_list, indent=4)}')
     for job_data in batch_job_list:
         submit_s3_data_sharing_batch_job(job_data)
     logger.info(f'Batch job has executed. Submit {len(batch_job_list)} number of job')
-
-    ################################################
-    # Notify if any
 
 
 def get_s3_location(bucket_name):
@@ -171,3 +179,30 @@ def submit_s3_data_sharing_batch_job(job_data):
             'command': command
         }
     )
+
+
+def validate_event(event):
+    # Check payload existence
+    if 'destination_s3_arn' not in event:
+        logger.error('Invalid event. `destination_s3_arn` is expected')
+        sys.exit(0)
+    if 'destination_s3_key_prefix' not in event:
+        logger.error('Invalid event. `destination_s3_key_prefix` is expected')
+        sys.exit(0)
+    if 'source_s3_key_list' not in event:
+        logger.error('Invalid event. `source_s3_key_list` is expected')
+        sys.exit(0)
+
+    # Check payload content
+    if isinstance(event['destination_s3_arn'], str) and not event['destination_s3_arn'].startswith("arn:aws:s3:::"):
+        logger.error('Invalid `destination_s3_arn` payload.')
+        sys.exit(0)
+
+    if isinstance(event['destination_s3_key_prefix'], str):
+        logger.error('Invalid `destination_s3_key_prefix` payload.')
+        sys.exit(0)
+
+    if isinstance(event['source_s3_key_list'], list):
+        logger.error('Invalid `source_s3_key_list` payload.')
+        sys.exit(0)
+

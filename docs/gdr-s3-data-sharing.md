@@ -64,7 +64,7 @@ In AWS, every resource is labeled with an ID called Amazon Resource Number. We n
 **TL;DR**  
 Allow AGHA-Service account to upload to S3.  
 
-AWS AGHA role ARN: `arn:aws:iam::602836945884:role/agha-gdr-s3-data-sharing`
+AWS AGHA account number: `602836945884`
 
 ___
 
@@ -75,7 +75,7 @@ We need to create what actions allowed for the permissions.
 1. Click on the S3 bucket with the name you created on top. (Could use search bucket name if needed)
 2. On the tabs, click on `Permissions`. Scroll to see `Bucket policy`, and click on edit.
   <br/><img src="./screenshot/s3-policy.png" width="500px"/><br/>
-3. Copy the following JSON or append with the following policy. Change the `REPLACE_HERE` below (for `Resource`) value with the bucket ARN above. NOTE: `Resource` has a postfix of `/*`.  
+3. Copy the following JSON or append with the following policy. Change the `REPLACE_HERE` below (for `Resource`) value with the bucket ARN above. NOTE: One of the `Resource` value a postfix of `/*`.  
     ```json
     {
       "Version": "2012-10-17",
@@ -83,7 +83,7 @@ We need to create what actions allowed for the permissions.
         {
           "Effect": "Allow",
           "Principal": {
-              "AWS": "arn:aws:iam::602836945884:role/agha-gdr-s3-data-sharing"
+              "AWS": "602836945884"
           },
           "Action": [
               "s3:GetObject",
@@ -91,7 +91,10 @@ We need to create what actions allowed for the permissions.
               "s3:PutObjectAcl",
               "s3:GetBucketLocation"
           ],
-          "Resource": "REPLACE_HERE/*"
+          "Resource": [
+            "REPLACE_HERE", 
+            "REPLACE_HERE/*"
+          ]
       }
       ]
     }

@@ -11,6 +11,7 @@ This stack is used to handle and validate data received as part of the AGHA GDR 
 5. generate validation reports _[planned]_
 
 ## Table of contents
+
 * [S3 Data Sharing](#s3-data-sharing)
 * [Schematic](#schematic)
 * [How it works](#how-it-works)
@@ -23,7 +24,9 @@ This stack is used to handle and validate data received as part of the AGHA GDR 
 * [Lambda Arguments](#lambda-arguments)
 
 ## S3 Data Sharing
-We support S3 data sharing for data in store to other S3 in the `same ap-southeast-2` region. Instructions are at the docs folder ([click here](./gdr-s3-data-sharing.md)).
+
+We support S3 data sharing for data in store to other S3 in the same `ap-southeast-2` region. Instructions are at the
+docs folder ([click here](./docs/gdr-s3-data-sharing.md)).
 
 ## Schematic
 
@@ -123,38 +126,49 @@ Again, make sure aws profile is correctly set up as mentioned above.
 
 ###### Local Development
 
-####### Setting Up
+###### # Setting Up
 
 Create virtual enviroment
+
 ```bash
 python3 -m venv .venv
 ```
-To activate it 
+
+To activate it
+
 ```bash
 source .venv/bin/activate
 ```
 
 Install dependencies
+
 ```bash
 make install
 ```
 
-####### Running DynamoDb locally
+###### # Running DynamoDb locally
+
 Run Dynamodb locally
+
 ```bash
 make up
 make build
 ```
 
 To load some mock-data.
+
 ```bash
 make loaddata
 ```
-####### Finishing
+
+###### # Finishing
+
 To shut local development
+
 ```bash
 make down
 ```
+
 ## Usage
 
 ### Automatic triggering (manifest file uploaded)
@@ -222,12 +236,13 @@ A quick summary for each function.
     - Could check staging file should only contain indexed and uncompressed files
     - Could give report wich submission are ready to be transferred by the data-transfer-manager lambda
 - **batch_notification** - Will notify via slack when batch job completed
-    - The lambda will notify when batch job has completed with validation or have completed move from staging to store bucket.
+    - The lambda will notify when batch job has completed with validation or have completed move from staging to store
+      bucket.
     - The lambda will be invoked after updating dynamodb (s3_event_recorder lambda)
 - **gdr_s3_data_sharing** - Will share data via s3 from store bucket to destination bucket
     - The lambda will add new policy to batch instance role for s3-data-sharing.
     - The lambda will create and submit batch job to copy over files to s3.
-_*arguments are defined below_
+      _*arguments are defined below_
 
 ##### Lambdas layer
 
@@ -246,7 +261,8 @@ _*arguments are defined below_
 - **s3_validation:** This will trigger validation submitted through the pipeline. For time being, checks are: checksum,
   validate filetype, and create_index. (Script)[https://github.com/umccr/agha-data-validation-scripts].
 - **data_transfer_manager:** This would use AWS/CLI Image and use MV command to move data from staging to store
-- **gdr_s3_data_sharing:** This would use AWS/CLI Image and use the CP command to copy files from store bucket to other specified bucket.
+- **gdr_s3_data_sharing:** This would use AWS/CLI Image and use the CP command to copy files from store bucket to other
+  specified bucket.
 
 ### Lambda Arguments
 
@@ -344,6 +360,14 @@ Payload needed for check:
 | Argument                    | Description                  | Type           | Example          |
 |-----------------------------|------------------------------|----------------|------------------|
 | directory_prefix [REQUIRED] | Directory prefix to clean up | String         | "AC/2022-02-02/" |
+
+### gdr_s3_data_sharing
+
+| Argument                             | Description                                     | Type   | Example                             |
+|--------------------------------------|-------------------------------------------------|--------|-------------------------------------|
+| destination_s3_arn [REQUIRED]        | Destination bucket ARN                          | String | "arn:aws:s3:::bucket_name/key_name" |
+| destination_s3_key_prefix [REQUIRED] | Destination key prefix if any. Put `/` for None | String | "/"                                 |
+| source_s3_key_list [REQUIRED]        | A list of data to transfer                      | String | ["AC/20222-02-22/ABCDE.fastq.gz"]   |
 
 #### Invoke function example
 
@@ -448,7 +472,8 @@ agha-gdr-staging-bucket-archive
 
 ---
 
-## `STATUS:{check_type}` or `DATA:{check_type}` schema 
+## `STATUS:{check_type}` or `DATA:{check_type}` schema
+
 Look at `batch.py` in lambda layer util for check_type
 
 `STATUS:{check_type}`

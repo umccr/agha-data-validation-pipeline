@@ -1,7 +1,6 @@
 from aws_cdk import (
     core,
     aws_batch as batch,
-    aws_ec2 as ec2,
     aws_ecs as ecs,
     aws_iam as iam,
     aws_lambda as lambda_,
@@ -16,51 +15,23 @@ class S3DataSharing(core.NestedStack):
         # stack properties
         namespace = self.node.try_get_context("namespace")
         dynamodb_table = self.node.try_get_context("dynamodb_table")
-        batch_environment = self.node.try_get_context("batch_environment")
         bucket_name = self.node.try_get_context("bucket_name")
-
-        ################################################################################
-        # Batch
-
-        vpc = ec2.Vpc.from_lookup(
-            self,
-            'MainVPC',
-            vpc_id=batch_environment['vpc_id']
-        )
-
-        # Only small instances (s3 cli should not need much)
-        micro_instance_type = [
-            'm3.medium',
-            'm4.large',
-            'm5.large',
-            'c3.large',
-            'c4.large',
-            'c5.large',
-        ]
 
         ####################################################
         # Allow read-only access for our own S3 and
         # put-access on destination bucket
 
-        self.s3_data_sharing_instance_role = iam.Role(
+        self.s3_data_sharing_task_role = iam.Role(
             self,
-            'S3DataSharingIntanceRole',
+            'S3DataSharingTaskRole',
             role_name="agha-gdr-s3-data-sharing",
-            assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
+            assumed_by=iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AmazonEC2ContainerServiceforEC2Role'),
+            ],
             inline_policies={
-                "s3-data-sharing-policy": iam.PolicyDocument(
+                "gdr-s3-read-store-bucket-policy": iam.PolicyDocument(
                     statements=[
-                        iam.PolicyStatement(
-                            actions=[
-                                "s3:GetObject",
-                                "s3:PutObject",
-                                "s3:PutObjectAcl",
-                                "s3:GetBucketLocation"
-                            ],
-                            resources=[
-                                f"arn:aws:s3:::{bucket_name['staging_bucket']}/TEST/*"
-                            ]
-                        ),
                         iam.PolicyStatement(
                             effect=iam.Effect.ALLOW,
                             actions=[
@@ -79,56 +50,13 @@ class S3DataSharing(core.NestedStack):
             }
         )
 
-        block_device_mappings = [
-            ec2.CfnLaunchTemplate.BlockDeviceMappingProperty(
-                device_name='/dev/xvda',
-                ebs=ec2.CfnLaunchTemplate.EbsProperty(
-                    encrypted=True,
-                    volume_size=8,
-                    volume_type='gp3'
-                )
-            ),
-        ]
-
-        batch_launch_template = ec2.CfnLaunchTemplate(
-            self,
-            f"S3DataS3SharingBatchLaunchTemplate",
-            launch_template_name=f"agha-validation-launch-template-s3-data-sharing",
-            launch_template_data=ec2.CfnLaunchTemplate.LaunchTemplateDataProperty(
-                block_device_mappings=block_device_mappings,
-            ),
-        )
-
-        batch_launch_template_spec = batch.LaunchTemplateSpecification(
-            launch_template_name=batch_launch_template.launch_template_name,
-            version='$Latest',
-        )
-
-        batch_compute_environment = batch.ComputeEnvironment(
-            self,
-            f"BatchComputeEnvironmentS3DataSharing",
-            compute_environment_name="BatchComputeEnvironmentS3DataSharing",
-            compute_resources=batch.ComputeResources(
-                vpc=vpc,
-                allocation_strategy=batch.AllocationStrategy.SPOT_CAPACITY_OPTIMIZED,
-                desiredv_cpus=0,
-                instance_role=batch_stack.batch_instance_profile.attr_arn,
-                instance_types=[ec2.InstanceType(it) for it in micro_instance_type],
-                launch_template=batch_launch_template_spec,
-                maxv_cpus=16,
-                security_groups=[batch_stack.batch_security_group],
-                spot_fleet_role=self.s3_data_sharing_instance_role,
-                type=batch.ComputeResourceType.SPOT,
-            )
-        )
-
         self.gdr_s3_sharing_job_queue = batch.JobQueue(
             self,
-            f"BatchJobQueueMicro",
+            f"GdrS3SharingJobQueue",
             job_queue_name="agha-gdr-s3-data-sharing",
             compute_environments=[
                 batch.JobQueueComputeEnvironment(
-                    compute_environment=batch_compute_environment,
+                    compute_environment=batch_stack.batch_compute_environment['small'],
                     order=1
                 )
             ]
@@ -146,6 +74,7 @@ class S3DataSharing(core.NestedStack):
                 command=['true'],
                 memory_limit_mib=200,
                 vcpus=1,
+                execution_role=self.s3_data_sharing_task_role
             ),
             retry_attempts=2
         )
@@ -209,7 +138,7 @@ class S3DataSharing(core.NestedStack):
                     "iam:CreatePolicy"
                 ],
                 resources=[
-                    self.s3_data_sharing_instance_role.role_arn,
+                    self.s3_data_sharing_task_role.role_arn,
                 ]
             )
         )
@@ -225,7 +154,7 @@ class S3DataSharing(core.NestedStack):
             code=lambda_.Code.from_asset('lambdas/functions/gdr_s3_data_sharing'),
             environment={
                 # Batch ec3 instance role
-                'S3_DATA_SHARING_BATCH_INSTANCE_ROLE_NAME': self.s3_data_sharing_instance_role.role_name,
+                'S3_DATA_SHARING_BATCH_INSTANCE_ROLE_NAME': self.s3_data_sharing_task_role.role_name,
                 # Table
                 'DYNAMODB_STORE_TABLE_NAME': dynamodb_table["store-bucket"],
                 # Batch

@@ -108,6 +108,7 @@ class BatchStack(core.NestedStack):
         )
 
         batch_queue_dict = {}
+        batch_compute_environment_dict = {}
 
         # Defining ebs storage
         for compute_environment_spec in compute_environment_spec_list:
@@ -167,8 +168,10 @@ class BatchStack(core.NestedStack):
             )
 
             batch_queue_dict[compute_environment_spec['queue_name']] = batch_job_queue
+            batch_compute_environment_dict[compute_environment_spec['type']] = batch_compute_environment
 
         self.batch_job_queue = batch_queue_dict
+        self.batch_compute_environment = batch_compute_environment_dict
 
         ################################################################################################################
         # Definition for batch job

@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
 def make_mock_data():
     return {
-        "destination_s3_arn": '',
-        "destination_s3_key_prefix": '',
-        "source_s3_key_list": ['ABCDE/121212/filename.fastq.gz']
+        "destination_s3_arn": 'arn:aws:s3:::bucket',
+        "destination_s3_key_prefix": 'test/',
+        "source_s3_key_list": ['Cardiac/2023-11-23/abcde.bam.bai']
     }
