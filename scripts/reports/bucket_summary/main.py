@@ -9,7 +9,7 @@ SOURCE_PATH = os.path.join(
     DIR_PATH, "..", "..", "..", "lambdas", "layers", "util"
 )
 sys.path.append(SOURCE_PATH)
-
+import util.dynamodb as dynamodb
 import util.agha as agha
 import util as util
 
@@ -20,7 +20,8 @@ STORE_BUCKET_NAME = 'agha-gdr-store-2.0'
 DYNAMODB_STAGING_TABLE = "agha-gdr-staging-bucket"
 DYNAMODB_STORE_TABLE = "agha-gdr-store-bucket"
 
-flagships = list(set(agha.FlagShip.list_flagship_enum())-{agha.FlagShip.UNKNOWN.preferred_code(), agha.FlagShip.UNKNOWN.preferred_code()})
+flagships = list(set(agha.FlagShip.list_flagship_enum()) - {agha.FlagShip.UNKNOWN.preferred_code(),
+                                                            agha.FlagShip.UNKNOWN.preferred_code()})
 
 
 class Report:
@@ -105,7 +106,8 @@ def summarize_files_from_bucket(consent: bool = True):
     # Some data storage
     report_txt = Report()
 
-    all_data = download_dynamodb_table()
+    all_data = dynamodb.get_batch_item_from_pk_only(DYNAMODB_STORE_TABLE,
+                                                    dynamodb.FileRecordPartitionKey.FILE_RECORD.value)
 
     pd_df = parse_json_with_pandas(all_data)
     title = f'General statistic report for \'{STORE_BUCKET_NAME}\' bucket at date {util.get_datestamp()}.'
@@ -147,25 +149,6 @@ def summarize_files_from_bucket(consent: bool = True):
         # IMPROVEMENT: Could write it to a json file for post-processing if needed.
 
         report_txt.flush()
-
-
-def download_dynamodb_table():
-    dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table(DYNAMODB_STORE_TABLE)
-
-    results_data = []
-
-    func_parameter = {}
-    response = table.scan(**func_parameter)
-    results_data.extend(response['Items'])
-
-    # Re-fetch until the last
-    while response.get('LastEvaluatedKey') is not None:
-        func_parameter['ExclusiveStartKey'] = response['LastEvaluatedKey']
-        response = table.scan(**func_parameter)
-        results_data.extend(response['Items'])
-
-    return results_data
 
 
 def get_argument():
