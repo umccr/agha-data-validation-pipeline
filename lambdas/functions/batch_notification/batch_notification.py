@@ -191,7 +191,7 @@ def handler(event, context):
                                  f"""\t----invocation-type Event \\\n""" \
                                  f"""\t--function-name agha-gdr-validation-pipeline-cleanup-manager \\\n""" \
                                  f"""\t--payload '{{\n""" \
-                                 f"""\t\t"submission_directory": "{submission_prefix}\n""" \
+                                 f"""\t\t"submission_directory": "{submission_prefix}"\n""" \
                                  f"""\t}}' \\\n""" \
                                  f"""\tresponse.json --profile=agha\n""" \
                                  "``` \n" \
