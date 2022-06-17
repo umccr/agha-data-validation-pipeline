@@ -20,8 +20,7 @@ STORE_BUCKET_NAME = 'agha-gdr-store-2.0'
 DYNAMODB_STAGING_TABLE = "agha-gdr-staging-bucket"
 DYNAMODB_STORE_TABLE = "agha-gdr-store-bucket"
 
-flagships = ['Leuko', 'GI', 'EE', 'BM', 'HIDDEN', 'chILDRANZ', 'AC', 'Mito', 'KidGen', 'ID',
-             'ICCon', 'Cardiac']
+flagships = list(set(agha.FlagShip.list_flagship_enum())-{agha.FlagShip.UNKNOWN.preferred_code(), agha.FlagShip.UNKNOWN.preferred_code()})
 
 
 class Report:
