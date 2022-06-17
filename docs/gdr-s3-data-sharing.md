@@ -75,7 +75,7 @@ We need to create what actions allowed for the permissions.
 1. Click on the S3 bucket with the name you created on top. (Could use search bucket name if needed)
 2. On the tabs, click on `Permissions`. Scroll to see `Bucket policy`, and click on edit.
   <br/><img src="./screenshot/s3-policy.png" width="500px"/><br/>
-3. Copy the following JSON or append with the following policy. Change the `REPLACE_HERE` below (for `Resource`) value with the bucket ARN above. NOTE: One of the `Resource` value a postfix of `/*`.  
+3. Copy the following JSON or append with the following policy. Change the `REPLACE_HERE` below (for `Resource`) value with the bucket ARN above. NOTE: One of the `Resource` value has a postfix of `/*`.  
     ```json
     {
       "Version": "2012-10-17",
