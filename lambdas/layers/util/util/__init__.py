@@ -1,4 +1,4 @@
-import datetime
+import pytz
 import json
 import logging
 import os
@@ -16,11 +16,14 @@ FEXT_FASTQ = {'.fq', '.fq.gz', '.fastq', '.fastq.gz'}
 FEXT_BAM = {'.bam'}
 FEXT_CRAM = {'.cram'}
 FEXT_VCF = {'.vcf.gz', '.gvcf.gz'}
-FEXT_ACCEPTED = {*FEXT_FASTQ, *FEXT_BAM,  *FEXT_CRAM, *FEXT_VCF}
+FEXT_ACCEPTED = {*FEXT_FASTQ, *FEXT_BAM, *FEXT_CRAM, *FEXT_VCF}
+
+MELBOURNE_TZ = 'Australia/Melbourne'  # Options: `print(pytz.all_timezones)`
+TIME_ZONE = pytz.timezone(MELBOURNE_TZ)
 
 
 class StreamHandlerNewLine(logging.StreamHandler):
-    '''Override emit so that we can use '\n' in file logs'''
+    """Override emit so that we can use '\n' in file logs"""
 
     def emit(self, record):
         try:
@@ -37,7 +40,7 @@ class StreamHandlerNewLine(logging.StreamHandler):
 
 
 class FileHandlerNewLine(logging.FileHandler):
-    '''Override emit so that we can use '\n' in file logs'''
+    """Override emit so that we can use '\n' in file logs"""
 
     def emit(self, record):
         if self.stream is None:
@@ -130,11 +133,11 @@ def get_datetimestamp():
 
 
 def get_timestamp():
-    return '{:%H%M%S}'.format(datetime.datetime.now())
+    return '{:%H%M%S}'.format(datetime.datetime.now(TIME_ZONE))
 
 
 def get_datestamp():
-    return '{:%Y%m%d}'.format(datetime.datetime.now())
+    return '{:%Y%m%d}'.format(datetime.datetime.now(TIME_ZONE))
 
 
 def execute_command(command):
