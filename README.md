@@ -377,7 +377,7 @@ Recommended invoke lambda asynchronously
 aws lambda invoke \
     --function-name {function_name} \
     --cli-binary-format raw-in-base64-out \
-	--invocation-type Event \
+	  --invocation-type Event \
     --payload '{
       "manifest_fp": "Cardiac/20210711_170230/manifest.txt",
       "manifest_dynamodb_key_prefix": "Cardiac/20210711_170230/"

@@ -201,6 +201,15 @@ def handler(event, context):
                                                    value=batch.StatusBatchResult.RUNNING.value)
             dynamodb_result_update.append(running_status)
 
+    # Update status of dynamodb to RUNNING (To flush dydb if previous result is in dynamodb)
+    # Must be executed before batch submitted, in case submitting batch loop takes time to finish. And the first job
+    # completed, it will override with RUNNING status
+    if not event.get('skip_update_dynamodb') == 'true':
+        dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME, records=dynamodb_result_update)
+        dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
+                                            records=dynamodb_result_update,
+                                            archive_log='ObjectCreated')
+
     # Submit Batch jobs
     logger.info(f'Submitting batch job to queue. batch job data list: {json.dumps(batch_job_data, indent=4)}')
     for job_data in batch_job_data:
@@ -209,12 +218,7 @@ def handler(event, context):
         logger.debug(f'Submit batch job res: {batch_res}')
     logger.info(f'Batch job has executed. Submit {len(batch_job_data)} number of job')
 
-    # # Update status of dynamodb to RUNNING (Need to configure which task to set to running)
-    if not event.get('skip_update_dynamodb') == 'true':
-        dynamodb.batch_write_records(table_name=DYNAMODB_RESULT_TABLE_NAME, records=dynamodb_result_update)
-        dynamodb.batch_write_record_archive(table_name=DYNAMODB_ARCHIVE_RESULT_TABLE_NAME,
-                                            records=dynamodb_result_update,
-                                            archive_log='ObjectCreated')
+
 
 
 def validate_event_data(event_record):
