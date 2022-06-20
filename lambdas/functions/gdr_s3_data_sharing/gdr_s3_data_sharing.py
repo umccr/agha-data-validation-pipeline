@@ -48,7 +48,7 @@ def handler(event, context):
     validate_event(event)
 
     # Parsing
-    destination_s3_arn = event['destination_s3_arn'].strip('/*')
+    destination_s3_arn = event['destination_s3_arn'].strip('*').strip('/')
     source_s3_key_list = event['source_s3_key_list']
     destination_s3_key_prefix = event['destination_s3_key_prefix'].strip('/')
     destination_bucket_name = destination_s3_arn.split(':::')[-1]
@@ -101,7 +101,6 @@ def handler(event, context):
             ]
         )
 
-        print(create_policy_response)
         logger.debug(
             f'New policy created. Response: {json.dumps(create_policy_response, indent=4, cls=util.JsonSerialEncoder)}')
         policy_arn = create_policy_response["Policy"]["Arn"]
@@ -126,7 +125,11 @@ def handler(event, context):
     for source_s3_key in source_s3_key_list:
         filename = s3.get_s3_filename_from_s3_key(source_s3_key)
 
-        destination_s3_key = f"{destination_s3_key_prefix}/{curr_datetimestamp}/{filename}"
+        # Adding trailing '/' to construct s3-key
+        prefix_s3_key = f"{destination_s3_key_prefix}/" if destination_s3_key_prefix else ""  # Empty if none specified
+        prefix_timestamp = f"{curr_datetimestamp}/"  # Adding trailing / for
+
+        destination_s3_key = f"{prefix_s3_key}{prefix_timestamp}{filename}"
 
         batch_job = create_cli_s3_object_batch_job(source_bucket_name=STORE_BUCKET, source_s3_key=source_s3_key,
                                                    destination_bucket_name=destination_bucket_name,
