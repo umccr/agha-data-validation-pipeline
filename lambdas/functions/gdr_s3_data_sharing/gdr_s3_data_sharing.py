@@ -16,7 +16,6 @@ IAM_CLIENT = util.get_client('iam')
 JOB_NAME_RE = re.compile(r'[.\\/]')
 
 # Environment Variables
-S3_DATA_SHARING_BATCH_INSTANCE_ROLE_NAME = os.environ.get('S3_DATA_SHARING_BATCH_INSTANCE_ROLE_NAME')
 S3_DATA_SHARING_BATCH_QUEUE_NAME = os.environ.get('S3_DATA_SHARING_BATCH_QUEUE_NAME')
 S3_DATA_SHARING_JOB_DEFINITION_ARN = os.environ.get('S3_DATA_SHARING_JOB_DEFINITION_ARN')
 STORE_BUCKET = os.environ.get('STORE_BUCKET')
@@ -65,56 +64,6 @@ def handler(event, context):
         message = f"Expected in 'ap-southeast-2'"
         logger.error(message)
         return message
-
-    ################################################
-    # Add this S3 ARN to instance role to allow batch push data to destination
-
-    new_iam_policy = {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Effect": "Allow",
-                "Action": [
-                    "s3:GetObject",
-                    "s3:PutObject",
-                    "s3:PutObjectAcl"
-                ],
-                "Resource": [
-                    destination_s3_arn,
-                    f"{destination_s3_arn}/*"
-                ]
-            }
-        ]
-    }
-
-    # Create new policy
-    try:
-        create_policy_response = IAM_CLIENT.create_policy(
-            PolicyName=f"gdr-s3-sharing-{destination_bucket_name}-put-bucket-policy",
-            PolicyDocument=json.dumps(new_iam_policy),
-            Description='The policy to allow push object to s3',
-            Tags=[
-                {
-                    'Key': 'Stack',
-                    'Value': 'lambda-agha-gdr-s3-data-sharing'
-                },
-            ]
-        )
-
-        logger.debug(
-            f'New policy created. Response: {json.dumps(create_policy_response, indent=4, cls=util.JsonSerialEncoder)}')
-        policy_arn = create_policy_response["Policy"]["Arn"]
-
-        # Attach policy to the instance role
-        response_attach_policy = IAM_CLIENT.attach_role_policy(
-            RoleName=S3_DATA_SHARING_BATCH_INSTANCE_ROLE_NAME,
-            PolicyArn=policy_arn
-        )
-        logger.info(f"Successfully add new policy to the '{S3_DATA_SHARING_BATCH_INSTANCE_ROLE_NAME}' role.")
-
-    except IAM_CLIENT.exceptions.EntityAlreadyExistsException:
-        logger.info('Policy has exist, proceeding to batch submission.')
-        pass
 
     ################################################
     # Find what needs to be transfer and create batch job
@@ -197,15 +146,15 @@ def validate_event(event):
         sys.exit(0)
 
     # Check payload content
-    if isinstance(event['destination_s3_arn'], str) and not event['destination_s3_arn'].startswith("arn:aws:s3:::"):
+    if not isinstance(event['destination_s3_arn'], str) and not event['destination_s3_arn'].startswith("arn:aws:s3:::"):
         logger.error('Invalid `destination_s3_arn` payload.')
         sys.exit(0)
 
-    if isinstance(event['destination_s3_key_prefix'], str):
+    if not isinstance(event['destination_s3_key_prefix'], str):
         logger.error('Invalid `destination_s3_key_prefix` payload.')
         sys.exit(0)
 
-    if isinstance(event['source_s3_key_list'], list):
+    if not isinstance(event['source_s3_key_list'], list):
         logger.error('Invalid `source_s3_key_list` payload.')
         sys.exit(0)
 
