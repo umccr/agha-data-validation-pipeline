@@ -50,6 +50,25 @@ class S3DataSharing(core.NestedStack):
             }
         )
 
+        self.gdr_s3_sharing_policy = iam.Policy(
+            self,
+            'S3GDRPutSharingPolicy',
+            statements=[iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["s3:*"],
+                not_resources=[
+                    f"arn:aws:s3:::{bucket_name['store_bucket']}",
+                    f"arn:aws:s3:::{bucket_name['store_bucket']}/*",
+                    f"arn:aws:s3:::{bucket_name['staging_bucket']}",
+                    f"arn:aws:s3:::{bucket_name['staging_bucket']}/*",
+                    f"arn:aws:s3:::{bucket_name['results_bucket']}",
+                    f"arn:aws:s3:::{bucket_name['results_bucket']}/*"
+                ]
+            )],
+            policy_name="gdr-s3-sharing-put-bucket-policy",
+            roles=[self.s3_data_sharing_task_role]
+        )
+
         self.gdr_s3_sharing_job_queue = batch.JobQueue(
             self,
             f"GdrS3SharingJobQueue",
@@ -153,7 +172,7 @@ class S3DataSharing(core.NestedStack):
             retry_attempts=0,
             code=lambda_.Code.from_asset('lambdas/functions/gdr_s3_data_sharing'),
             environment={
-                # Batch ec3 instance role
+                # Batch ec2 instance role
                 'S3_DATA_SHARING_BATCH_INSTANCE_ROLE_NAME': self.s3_data_sharing_task_role.role_name,
                 # Table
                 'DYNAMODB_STORE_TABLE_NAME': dynamodb_table["store-bucket"],
