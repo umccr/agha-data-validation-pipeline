@@ -21,7 +21,7 @@ DYNAMODB_STAGING_TABLE = "agha-gdr-staging-bucket"
 DYNAMODB_STORE_TABLE = "agha-gdr-store-bucket"
 
 flagships = list(set(agha.FlagShip.list_flagship_enum()) - {agha.FlagShip.UNKNOWN.preferred_code(),
-                                                            agha.FlagShip.UNKNOWN.preferred_code()})
+                                                            agha.FlagShip.TEST.preferred_code()})
 
 
 class Report:
