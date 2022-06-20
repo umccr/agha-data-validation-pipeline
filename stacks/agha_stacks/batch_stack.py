@@ -82,14 +82,14 @@ class BatchStack(core.NestedStack):
             ]
         )
 
-        batch_instance_profile = iam.CfnInstanceProfile(
+        self.batch_instance_profile = iam.CfnInstanceProfile(
             self,
             'BatchInstanceProfile',
             roles=[self.batch_instance_role.role_name],
             instance_profile_name='agha-batch-instance-profile-2.0',
         )
 
-        batch_spot_fleet_role = iam.Role(
+        self.batch_spot_fleet_role = iam.Role(
             self,
             'BatchSpotFleetRole',
             assumed_by=iam.ServicePrincipal('spotfleet.amazonaws.com'),
@@ -98,7 +98,7 @@ class BatchStack(core.NestedStack):
             ]
         )
 
-        batch_security_group = ec2.SecurityGroup(
+        self.batch_security_group = ec2.SecurityGroup(
             self,
             'SecruityGroupOutBoundOnly',
             vpc=vpc,
@@ -108,6 +108,7 @@ class BatchStack(core.NestedStack):
         )
 
         batch_queue_dict = {}
+        batch_compute_environment_dict = {}
 
         # Defining ebs storage
         for compute_environment_spec in compute_environment_spec_list:
@@ -144,12 +145,12 @@ class BatchStack(core.NestedStack):
                     vpc=vpc,
                     allocation_strategy=batch.AllocationStrategy.SPOT_CAPACITY_OPTIMIZED,
                     desiredv_cpus=0,
-                    instance_role=batch_instance_profile.attr_arn,
+                    instance_role=self.batch_instance_profile.attr_arn,
                     instance_types=[ec2.InstanceType(it) for it in compute_environment_spec['instance_type']],
                     launch_template=batch_launch_template_spec,
                     maxv_cpus=32,
-                    security_groups=[batch_security_group],
-                    spot_fleet_role=batch_spot_fleet_role,
+                    security_groups=[self.batch_security_group],
+                    spot_fleet_role=self.batch_spot_fleet_role,
                     type=batch.ComputeResourceType.SPOT,
                 )
             )
@@ -167,8 +168,10 @@ class BatchStack(core.NestedStack):
             )
 
             batch_queue_dict[compute_environment_spec['queue_name']] = batch_job_queue
+            batch_compute_environment_dict[compute_environment_spec['type']] = batch_compute_environment
 
         self.batch_job_queue = batch_queue_dict
+        self.batch_compute_environment = batch_compute_environment_dict
 
         ################################################################################################################
         # Definition for batch job

@@ -4,6 +4,7 @@ from aws_cdk import (
 
 from stacks.agha_stacks.lambda_stack import LambdaStack
 from stacks.agha_stacks.batch_stack import BatchStack
+from stacks.agha_stacks.s3_data_sharing_stack import S3DataSharing
 
 class AghaStack(core.Stack):
 
@@ -23,5 +24,11 @@ class AghaStack(core.Stack):
             batch=batch
         )
 
+        # S3 Data Sharing
+        data_sharing_stack = S3DataSharing(
+            self,
+            'DataSharingStack',
+            batch_stack=batch
+        )
 
         
