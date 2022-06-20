@@ -78,10 +78,15 @@ fi
 
 # Update manifest.txt file for each submission
 if [ "$UPDATE_MANIFEST_TXT" == true ] && [ "$BUCKET_LOCATION" == $STORE_BUCKET ]; then
-  echo "Updating manifest.txt file (in source and target submission)"
-  python manifest_txt_update.py --s3_key_object "$SOURCE_SORT_KEY"
-  python manifest_txt_update.py --s3_key_object "$TARGET_SORT_KEY"
-
+  if [ "$SOURCE_SORT_KEY" == "$TARGET_SORT_KEY" ];
+    then
+      echo "Updating manifest.txt file once ( source and target key is the same)"
+      python manifest_txt_update.py --s3_key_object "$SOURCE_SORT_KEY"
+    else
+      echo "Updating manifest.txt file (in source and target submission)"
+      python manifest_txt_update.py --s3_key_object "$SOURCE_SORT_KEY"
+      python manifest_txt_update.py --s3_key_object "$TARGET_SORT_KEY"
+  fi
 fi
 
 # Move '__results.json' location
