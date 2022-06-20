@@ -172,8 +172,6 @@ class S3DataSharing(core.NestedStack):
             retry_attempts=0,
             code=lambda_.Code.from_asset('lambdas/functions/gdr_s3_data_sharing'),
             environment={
-                # Batch ec2 instance role
-                'S3_DATA_SHARING_BATCH_INSTANCE_ROLE_NAME': self.s3_data_sharing_task_role.role_name,
                 # Table
                 'DYNAMODB_STORE_TABLE_NAME': dynamodb_table["store-bucket"],
                 # Batch
