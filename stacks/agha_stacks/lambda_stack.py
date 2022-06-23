@@ -196,6 +196,7 @@ class LambdaStack(core.NestedStack):
             role=notification_lambda_role,
             memory_size=1769,
             layers=[
+                runtime_layer,
                 util_layer,
             ]
         )
