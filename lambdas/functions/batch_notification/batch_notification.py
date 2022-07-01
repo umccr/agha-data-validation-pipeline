@@ -99,7 +99,7 @@ def handler(event, context):
                           "```" \
                           f"""aws lambda invoke \\\n""" \
                           f"""\t--cli-binary-format raw-in-base64-out \\\n""" \
-                          f"""\t----invocation-type Event \\\n""" \
+                          f"""\t--invocation-type Event \\\n""" \
                           f"""\t--function-name agha-gdr-validation-pipeline-data-transfer-manager \\\n""" \
                           f"""\t--payload '{{\n""" \
                           f"""\t\t"flagship_code": "{flagship_code}",\n""" \
@@ -188,7 +188,7 @@ def handler(event, context):
                                  "```" \
                                  f"""aws lambda invoke \\\n""" \
                                  f"""\t--cli-binary-format raw-in-base64-out \\\n""" \
-                                 f"""\t----invocation-type Event \\\n""" \
+                                 f"""\t--invocation-type Event \\\n""" \
                                  f"""\t--function-name agha-gdr-validation-pipeline-cleanup-manager \\\n""" \
                                  f"""\t--payload '{{\n""" \
                                  f"""\t\t"submission_directory": "{submission_prefix}"\n""" \
