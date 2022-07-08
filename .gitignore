@@ -38,3 +38,4 @@ var/
 foo.py
 /scripts/rerun-checksum/
 *cdk.context.json
+/scripts/generate_presign_url/presigned-urls.txt

@@ -56,21 +56,21 @@ def get_argument():
                         required=True,
                         nargs='+',
                         help="AGHA study ID(s) to retrieve files for. Space separated if more than one.")
-    flagship_list = list(set(agha.FlagShip.list_flagship_enum())-{'UNKNOWN', 'TEST'})
+    flagship_list = list(set(agha.FlagShip.list_flagship_enum()) - {'UNKNOWN', 'TEST'})
     parser.add_argument('-f', '--flagship',
                         required=True,
                         choices=flagship_list,
                         help="Code of the flagship the sample belongs to.")
     args = parser.parse_args()
 
-    print("######################"*6)
+    print("######################" * 6)
     print('Running the following')
     print(f"Filetype : {args.filetype}")
     print(f"Flagship : {args.flagship}")
     print(f"IDs      : {args.study_ids}")
     print(f"DryRun   : {args.dryrun}")
     print(f"OutFile  : {args.out_file}")
-    print("######################"*6)
+    print("######################" * 6)
 
     return args
 
@@ -112,28 +112,39 @@ def generate_presign_s3_url(agha_study_id_list: List[str],
     if dry_run:
         return
 
-    # Generate pre-sign url from metadata list
+    # Fetch additional field needed
     for file_metadata in file_metadata_list:
         s3_key = file_metadata['sort_key']
+
+        # Generate presigned-url
         presigned_url = CLIENT_S3.generate_presigned_url(
             ClientMethod='get_object',
             Params={'Bucket': STORE_BUCKET, 'Key': s3_key},
             ExpiresIn=604800  # 7 full days
         )
-        # Append presign_url to metadata
         file_metadata['presigned_url'] = presigned_url
+
+        # Get fileSize
+        object_s3_metadata = dynamodb.get_item_from_exact_pk_and_sk(table_name=DYNAMODB_STORE_TABLE_NAME,
+                                                                    partition_key=dynamodb.FileRecordPartitionKey.FILE_RECORD.value,
+                                                                    sort_key=s3_key)
+        if object_s3_metadata['Count'] != 1:
+            raise ValueError('Cannot retrieve size')
+        size_in_bytes = object_s3_metadata['Items'][0]['size_in_bytes']
+        file_metadata['size_in_bytes'] = size_in_bytes
 
     # Write output file
     f = open(out_file, 'w')
-    f.write("agha_study_id\tfilename\tchecksum\tpresigned_url\n")
+    f.write("agha_study_id\tfilename\tsize_in_bytes\tchecksum\tpresigned_url\n")
     for metadata in file_metadata_list:
         # parse data
         study_id = metadata["agha_study_id"]
         filename = metadata["filename"]
         checksum = metadata["provided_checksum"]
         presigned_url = metadata["presigned_url"]
+        size_in_bytes = metadata["size_in_bytes"]
 
-        f.write(f"{study_id}\t{filename}\t{checksum}\t{presigned_url}\n")
+        f.write(f"{study_id}\t{filename}\t{size_in_bytes}\t{checksum}\t{presigned_url}\n")
     f.close()
 
     print(f"PresignUrl generated. Checkout: {out_file}")
@@ -161,7 +172,6 @@ def run_filetype_sanitize(filetype_list: List[str]):
 
 
 if __name__ == '__main__':
-
     args = get_argument()
     generate_presign_s3_url(agha_study_id_list=args.study_ids,
                             flagship=args.flagship,
