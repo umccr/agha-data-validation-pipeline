@@ -4,7 +4,7 @@ import sys
 import argparse
 import pandas as pd
 from enum import Enum
-from typing import Dict, List
+from typing import List
 from boto3.dynamodb.conditions import Attr
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))

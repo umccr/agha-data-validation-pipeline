@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 import time
 from boto3.dynamodb.conditions import Attr
 import pandas as pd

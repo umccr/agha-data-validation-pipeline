@@ -15,3 +15,33 @@ After done filling the information, execute the script with:
 ```
 ./execute.sh
 ```
+
+## The setup before executing the script
+
+1. Clone this repository
+
+   ```
+    git clone https://github.com/umccr/agha-data-validation-pipeline.git
+   ```
+
+2. Go to this directory
+
+    ```
+    cd scripts/handle_duplicates
+    ```
+3. Setup an virtual environment and install packages
+   ```
+   python3 -mvenv .venv
+   source .venv/bin/activate  # This might be different for non-unix shell
+   pip install -r requirements.txt
+   ```
+4. Setup AWS_PROFILE.
+   ```
+   export AWS_PROFILE=agha
+   ```
+
+   or
+
+   ```
+   aws configure
+   ```

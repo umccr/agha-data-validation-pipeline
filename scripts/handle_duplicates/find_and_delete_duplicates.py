@@ -15,7 +15,7 @@ SOURCE_PATH = os.path.join(
 sys.path.append(SOURCE_PATH)
 
 import util
-from util import agha, s3, dynamodb
+from util import agha, s3
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
