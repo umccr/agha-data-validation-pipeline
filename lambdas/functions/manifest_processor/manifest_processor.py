@@ -343,10 +343,23 @@ def handler(event, context):
 
         # Update dynamodb batch if not skipped
         if not event.get('skip_update_dynamodb'):
+            # Clear previous result if any (will happen if manifest get re-upload)
+            exiting_manifest_record = dynamodb.get_batch_item_from_pk_and_sk(
+                table_name=DYNAMODB_STAGING_TABLE_NAME,
+                partition_key=dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
+                sort_key_prefix=data.submission_prefix)
+            dynamodb.batch_delete_from_dictionary(table_name=DYNAMODB_STAGING_TABLE_NAME,
+                                                  dictionary_list=exiting_manifest_record)
+            dynamodb.batch_write_objects_archive(table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
+                                                 object_list=archive_staging_dynamodb_batch_write_list,
+                                                 archive_log='ObjectRemoved')
+
+            # Append new result
             dynamodb.batch_write_objects(table_name=DYNAMODB_STAGING_TABLE_NAME,
                                          object_list=staging_dynamodb_batch_write_list)
-            dynamodb.batch_write_objects(table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
-                                         object_list=archive_staging_dynamodb_batch_write_list)
+            dynamodb.batch_write_objects_archive(table_name=DYNAMODB_ARCHIVE_STAGING_TABLE_NAME,
+                                                 object_list=archive_staging_dynamodb_batch_write_list,
+                                                 archive_log='ObjectCreated')
         else:
             logger.info(f'\'skip_update_dynamodb\' payload is True. Skipping ...')
 
