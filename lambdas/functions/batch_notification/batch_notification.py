@@ -182,15 +182,11 @@ def handler(event, context):
             logger.info(
                 "Total number of expected and current files match exclude manifest."
             )
-            # Check store check via report lambda
-            store_bucket_check = call_report_lambda(
-                {
-                    "report_type": "store_bucket_check",
-                    "payload": {"submission_prefix": submission_prefix},
-                }
+            missing_store_file = batch.run_manifest_orig_store_check(submission_prefix)
+            logger.info(
+                f"Missing store file: {json.dumps(missing_store_file, indent=4)}"
             )
-            logger.info(f"Report check from report lambda: {store_bucket_check}")
-            if store_bucket_check != "OK. All file matched with original manifest.":
+            if len(missing_store_file) > 0:
                 message = (
                     "File in store does *not* contain all files defined in the original manifest. "
                     "Please check the submission manually. \n"
@@ -234,15 +230,6 @@ def handler(event, context):
                     },
                 )
                 return
-
-
-def call_report_lambda(payload: dict):
-    response = LAMBDA_CLIENT.invoke(
-        FunctionName=REPORT_LAMBDA_ARN,
-        InvocationType="RequestResponse",
-        Payload=json.dumps(payload),
-    )
-    return json.loads(response["Payload"].read().decode("utf-8"))
 
 
 def send_slack_notification(heading: str, title: str, message: str):

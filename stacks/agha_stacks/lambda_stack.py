@@ -594,7 +594,6 @@ class LambdaStack(core.NestedStack):
             iam.PolicyStatement(
                 actions=["lambda:InvokeFunction"],
                 resources=[
-                    self.report_lambda.function_arn,
                     self.data_transfer_manager_lambda.function_arn,
                     self.cleanup_manager_lambda.function_arn,
                 ],

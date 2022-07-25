@@ -192,8 +192,8 @@ class BatchNotificationUnitTestCase(unittest.TestCase):
     )
     @mock.patch("batch_notification.util.call_lambda", new=raise_error_lambda_payload)
     @mock.patch(
-        "batch_notification.call_report_lambda",
-        mock.MagicMock(return_value="OK. All file matched with original manifest."),
+        "batch_notification.batch.run_manifest_orig_store_check",
+        mock.MagicMock(return_value=[]),
     )
     def test_cleanup_lambda_invoked(self):
         key = "FlagShip/20220222/filename.fastq.gz"
@@ -228,8 +228,8 @@ class BatchNotificationUnitTestCase(unittest.TestCase):
     )
     @mock.patch("batch_notification.util.call_lambda", new=raise_error_lambda_payload)
     @mock.patch(
-        "batch_notification.call_report_lambda",
-        mock.MagicMock(return_value="OK. All file matched with original manifest."),
+        "batch_notification.batch.run_manifest_orig_store_check",
+        mock.MagicMock(return_value=[]),
     )
     def test_cleanup_store_terminated(self):
         key = "FlagShip/20220222/filename.fastq.gz"
