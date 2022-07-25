@@ -235,10 +235,11 @@ A quick summary for each function.
     - Could check if all files listed in orignal manifest file is in STORE bucket
     - Could check staging file should only contain indexed and uncompressed files
     - Could give report wich submission are ready to be transferred by the data-transfer-manager lambda
-- **batch_notification** - Will notify via slack when batch job completed
+- **batch_notification** - Will notify via slack when batch job completed and invoke other function.
     - The lambda will notify when batch job has completed with validation or have completed move from staging to store
       bucket.
     - The lambda will be invoked after updating dynamodb (s3_event_recorder lambda)
+    - Will **invoked** cleanup/data_transfer manager lambda to automate the manual work.
 - **gdr_s3_data_sharing** - Will share data via s3 from store bucket to destination bucket
     - The lambda will add new policy to batch instance role for s3-data-sharing.
     - The lambda will create and submit batch job to copy over files to s3.
@@ -390,7 +391,7 @@ necessary.
 
 ## Database
 
-There are 7 tables for this pipeline which include archive tables.  
+There are 7 tables for this pipeline which include archive tables.
 Archive tables is the history table, it will record all changes to the current state of changes happening on the main
 table.
 
