@@ -27,7 +27,7 @@ def handler(event, context):
         "skip_manifest_check": True
     }
     """
-
+    logger.info("event:", event)
     submission_directory = event.get("submission_directory")
     skip_manifest_check = event.get("skip_manifest_check")
 
@@ -44,8 +44,13 @@ def handler(event, context):
     # Check if store bucket contain all files in manifest.orig
     if not skip_manifest_check:
         missing_store_file = batch.run_manifest_orig_store_check(submission_directory)
+        logger.info(
+            f"Missing file from manifest.orig in store bucket: {json.dumps(missing_store_file, indent=4)}"
+        )
         if len(missing_store_file) > 0:
             logger.error("Missing file from in store bucket from manifest.orig")
+    else:
+        logger.info("Skipping original manifest check.")
 
     try:
         metadata_list = s3.get_s3_object_metadata(
