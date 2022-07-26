@@ -216,7 +216,7 @@ A quick summary for each function.
     - Check if the manifest has complete/correct data/format
     - Trigger `notification` lambda for the validation result
     - If enabled, trigger `file_validation_manager` lambda to create batch job for the files.
-- **s3_event_recorder** - Would record s3 event and update Dynamodb accordingly. This gives ease of access to lookup
+- **s3_event_recorder** - Would record s3 event and update Dynamodb accordingly. This give ease of access to lookup
   from DynamoDb than opening individual files.
     - Record file properties across all bucket. (such as filetype, filesize, filename)
     - Record the content of the data in the result bucket.(such as results from validation).
@@ -236,10 +236,11 @@ A quick summary for each function.
     - Could check staging file should only contain indexed and uncompressed files
     - Could give report which submission are ready to be transferred by the data-transfer-manager lambda
 - **batch_notification** - Will notify via slack when batch job completed and invoke other function.
-    - The lambda will notify when batch job has completed with validation or have completed move from staging to store
-      bucket.
-    - The lambda will be invoked after updating dynamodb (s3_event_recorder lambda)
-    - _New_: Will **invoked** cleanup/data_transfer manager lambda to automate the manual work.
+    - The lambda will notify when batch job has completed. (`Data Validation` or `S3 Move`). It will only notify for:
+      - Any FAILED result
+      - Final SUCCESS data store for the submission
+    - The lambda will be invoked from `s3_event_recorder` lambda
+    - _New_: Will **invoke** cleanup/data_transfer manager lambda to automate the manual work.
 - **gdr_s3_data_sharing** - Will share data via s3 from store bucket to destination bucket
     - The lambda will add new policy to batch instance role for s3-data-sharing.
     - The lambda will create and submit batch job to copy over files to s3.
