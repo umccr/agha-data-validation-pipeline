@@ -104,11 +104,13 @@ def handler(event, context):
                 message = "Data validation check succeeded for this submission. Moving this to store bucket.\n"
 
                 logger.info(message)
-                send_slack_notification(
-                    heading=f"Data Validation Check (`{submission_prefix}`)",
-                    title="Status: SUCCEEDED",
-                    message=message,
-                )
+
+                # Will ignore notification to slack and just proceed with moving the data
+                # send_slack_notification(
+                #     heading=f"Data Validation Check (`{submission_prefix}`)",
+                #     title="Status: SUCCEEDED",
+                #     message=message,
+                # )
 
                 # Invoking lambda automatically
                 util.call_lambda(
@@ -215,7 +217,7 @@ def handler(event, context):
                     logger.info(message)
                     return
 
-                message = "File in store has all files defined in original manifest. Cleaning the staging bucket."
+                message = "Files in this submission are successfully stored."
                 send_slack_notification(
                     heading=f"Data S3 Store (`{submission_prefix}`)",
                     title="Status: SUCCEEDED",
