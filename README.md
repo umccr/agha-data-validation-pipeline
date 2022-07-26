@@ -92,7 +92,7 @@ cdk deploy AGHADynamoDBStack
 cdk deploy AGHAValidationCodePipeline
 ```
 
-Make sure to setup aws profile by `export AWS_PROFILE=${PROFIE_NAME}` or add `--porfile=${PROFIE_NAME}` flag
+Make sure to set up aws profile by `export AWS_PROFILE=${PROFIE_NAME}` or add `--porfile=${PROFIE_NAME}` flag
 
 The app have three stacks:
 
@@ -223,7 +223,7 @@ A quick summary for each function.
 - **file_validation_manager** - This will trigger validation batch job. This will take data from the manifest record
   created in `manifest_processor` lambda.
 - **data_transfer_manager** - This will trigger `data_transfer` batch job.
-    - Will check all data has exit successfully from batch job
+    - Will check all data has exited successfully from batch job
     - Will check results produced from the batch job succeed
     - Unlock s3 policy (set by the folderlock lambda)
     - Trigger data transfer batch job.
@@ -232,13 +232,14 @@ A quick summary for each function.
     - Delete unnecessary files from submissions (Removing indexed files and uncompressed files)
     - Added README.txt to note to directory submissions has completed.
 - **Report** - Will generate report from dynamoDb/Bucket
-    - Could check if all files listed in orignal manifest file is in STORE bucket
+    - Could check if all files listed in original manifest file is in STORE bucket
     - Could check staging file should only contain indexed and uncompressed files
-    - Could give report wich submission are ready to be transferred by the data-transfer-manager lambda
-- **batch_notification** - Will notify via slack when batch job completed
+    - Could give report which submission are ready to be transferred by the data-transfer-manager lambda
+- **batch_notification** - Will notify via slack when batch job completed and invoke other function.
     - The lambda will notify when batch job has completed with validation or have completed move from staging to store
       bucket.
     - The lambda will be invoked after updating dynamodb (s3_event_recorder lambda)
+    - _New_: Will **invoked** cleanup/data_transfer manager lambda to automate the manual work.
 - **gdr_s3_data_sharing** - Will share data via s3 from store bucket to destination bucket
     - The lambda will add new policy to batch instance role for s3-data-sharing.
     - The lambda will create and submit batch job to copy over files to s3.
@@ -390,7 +391,7 @@ necessary.
 
 ## Database
 
-There are 7 tables for this pipeline which include archive tables.  
+There are 7 tables for this pipeline which include archive tables.
 Archive tables is the history table, it will record all changes to the current state of changes happening on the main
 table.
 
