@@ -290,6 +290,7 @@ class LambdaStack(core.NestedStack):
                 resources=[
                     self.notification_lambda.function_arn,
                     self.validation_manager_lambda.function_arn,
+                    self.folder_lock_lambda.function_arn,
                 ],
             )
         )
@@ -307,6 +308,7 @@ class LambdaStack(core.NestedStack):
                 # Lambda ARN
                 "NOTIFICATION_LAMBDA_ARN": self.notification_lambda.function_arn,
                 "VALIDATION_MANAGER_LAMBDA_ARN": self.validation_manager_lambda.function_arn,
+                "FOLDER_LOCK_LAMBDA_ARN": self.folder_lock_lambda.function_arn,
                 # Table
                 "DYNAMODB_STAGING_TABLE_NAME": dynamodb_table["staging-bucket"],
                 "DYNAMODB_ARCHIVE_STAGING_TABLE_NAME": dynamodb_table[
