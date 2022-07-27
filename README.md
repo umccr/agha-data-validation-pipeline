@@ -206,7 +206,11 @@ A quick summary for each function.
   by S3.
     - Manifest file event, would trigger `folder-lock` lambda and `manifest_processor` lambda.
     - All events, would trigger `s3_event_recorder` lambda
-- **folder_lock** - would lock (prevent put/delete) directory from the event received
+- **folder_lock**:
+  - Would lock/unlock directory to prevent modification at the submission.
+  - UseCases (Must be triggered from other lambda):
+    - Triggering lock when data is fully completed
+    - Triggering unlock when validation detects any failure
 - **notification** - would send messages via email/slack with the given payload.
 - **manifest_processor:** Would do a quick validation from the manifest received. The lambda would update dynamodb from
   the manifest.txt content for easy access via DynamoDb. In general, the lambda would do the following:
@@ -240,7 +244,7 @@ A quick summary for each function.
       - Any FAILED result
       - Final SUCCESS data store for the submission
     - The lambda will be invoked from `s3_event_recorder` lambda
-    - _New_: Will **invoke** cleanup/data_transfer manager lambda to automate the manual work.
+    - _New_: Will **invoke** cleanup/data_transfer manager lambda to automate the manual work. (This feature is beyond on what the lambda name suggest)
 - **gdr_s3_data_sharing** - Will share data via s3 from store bucket to destination bucket
     - The lambda will add new policy to batch instance role for s3-data-sharing.
     - The lambda will create and submit batch job to copy over files to s3.
