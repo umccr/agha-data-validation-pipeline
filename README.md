@@ -220,6 +220,7 @@ A quick summary for each function.
     - Check if the manifest has complete/correct data/format
     - Trigger `notification` lambda for the validation result
     - If enabled, trigger `file_validation_manager` lambda to create batch job for the files.
+    - Trigger `folder_lock` lambda to unlock submission if manifest validation failed.
 - **s3_event_recorder** - Would record s3 event and update Dynamodb accordingly. This give ease of access to lookup
   from DynamoDb than opening individual files.
     - Record file properties across all bucket. (such as filetype, filesize, filename)
