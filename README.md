@@ -207,22 +207,22 @@ A quick summary for each function.
     - Manifest file event, would trigger `folder-lock` lambda and `manifest_processor` lambda.
     - All events, would trigger `s3_event_recorder` lambda
 - **folder_lock**:
-  - Would lock/unlock directory to prevent modification at the submission.
-  - UseCases (Must be triggered from other lambda):
-    - Triggering lock when data is fully completed
-    - Triggering unlock when validation detects any failure
+    - Would lock/unlock directory to prevent modification at the submission.
+    - UseCases (Must be triggered from other lambda):
+        - Triggering lock when data is fully completed
+        - Triggering unlock when validation detects any failure
 - **notification** - would send messages via email/slack with the given payload.
 - **manifest_processor:** Would do a quick validation from the manifest received. The lambda would update dynamodb from
   the manifest.txt content for easy access via DynamoDb. In general, the lambda would do the following:
     - Add manifest data (agha_study_id and checksum) to DynamoDB
     - Check if all data in manifest exist
-    - Check if the same eTag has existed (warn and pause if exist)
+    - Check if the same eTag has existed (error returned if exist)
     - Check if the manifest has complete/correct data/format
     - Trigger `notification` lambda for the validation result
     - If enabled, trigger `file_validation_manager` lambda to create batch job for the files.
-    - Trigger `folder_lock` lambda to unlock submission if manifest validation failed.
-- **s3_event_recorder** - Would record s3 event and update Dynamodb accordingly. This give ease of access to lookup
-  from DynamoDb than opening individual files.
+    - Trigger `folder_lock` lambda to unlock submission if manifest validation failed or any file duplication.
+- **s3_event_recorder** - Would record s3 event and update Dynamodb accordingly. This give ease of access to lookup from
+  DynamoDb than opening individual files.
     - Record file properties across all bucket. (such as filetype, filesize, filename)
     - Record the content of the data in the result bucket.(such as results from validation).
 - **file_validation_manager** - This will trigger validation batch job. This will take data from the manifest record
@@ -242,10 +242,11 @@ A quick summary for each function.
     - Could give report which submission are ready to be transferred by the data-transfer-manager lambda
 - **batch_notification** - Will notify via slack when batch job completed and invoke other function.
     - The lambda will notify when batch job has completed. (`Data Validation` or `S3 Move`). It will only notify for:
-      - Any FAILED result
-      - Final SUCCESS data store for the submission
+        - Any FAILED result
+        - Final SUCCESS data store for the submission
     - The lambda will be invoked from `s3_event_recorder` lambda
-    - _New_: Will **invoke** cleanup/data_transfer manager lambda to automate the manual work. (This feature is beyond on what the lambda name suggest)
+    - _New_: Will **invoke** cleanup/data_transfer manager lambda to automate the manual work. (This feature is beyond
+      on what the lambda name suggest)
 - **gdr_s3_data_sharing** - Will share data via s3 from store bucket to destination bucket
     - The lambda will add new policy to batch instance role for s3-data-sharing.
     - The lambda will create and submit batch job to copy over files to s3.
@@ -299,6 +300,7 @@ The following are arguments supported on each lambda. Recommended invoking lambd
 | skip_update_dynamodb       | Allow skipping dynamodb update                | Boolean        | true                               |
 | skip_send_notification     | Allow skipping notification trigger           | Boolean        | true                               |
 | skip_checksum_validation   | Allow skipping checksum validation            | Boolean        | true                               |
+| skip_duplication_check     | Allow skipping checksum validation            | Boolean        | true                               |
 | exception_postfix_filename | Skip checking on file in this list of postfix | List of string | ["metadata.txt", ".md5", etc.]     |
 
 ### validation_manager
@@ -397,9 +399,8 @@ necessary.
 
 ## Database
 
-There are 7 tables for this pipeline which include archive tables.
-Archive tables is the history table, it will record all changes to the current state of changes happening on the main
-table.
+There are 7 tables for this pipeline which include archive tables. Archive tables is the history table, it will record
+all changes to the current state of changes happening on the main table.
 
 _**All archive table data will have exact same field with the main tables, with the addition of `archive_log` which will
 contain the description of the record added/removed._

@@ -38,11 +38,11 @@ def handler(event, context):
     """
     The lambda is to do a quick validation upon manifest file upload event and record to the database.
 
-    What this lambda do:
+    What this lambda does:
     - check validity of the manifest
     - add Checksum from manifest to dynamodb
     - add StudyID from manifest to dynamodb
-    - check and warn if file with the same etag has exist
+    - Raise an error and unlock bucket if manifest check failed / any duplicate file
 
     Entry point for S3 event processing. An S3 event is essentially a dict with a list of S3 Records:
     {
@@ -77,6 +77,7 @@ def handler(event, context):
         "skip_update_dynamodb": "true",
         "skip_send_notification": "true",
         "skip_checksum_validation": "true",
+        "skip_duplication_check": "true",
         "exception_postfix_filename": ["metadata.txt", ".md5", etc.],
     }
 
@@ -90,6 +91,10 @@ def handler(event, context):
 
     logger.info(f"Start processing S3 event:")
     logger.info(json.dumps(event, indent=4, cls=util.JsonSerialEncoder))
+
+    ####################################################
+    # Validate event
+    ####################################################
 
     # If trigger manually, construct the same s3 format
     if event.get("manifest_fp") is not None:
@@ -123,6 +128,12 @@ def handler(event, context):
         skip_auto_validation = True
     else:
         skip_auto_validation = False
+
+    # Triggering validation lambda options
+    if event.get("skip_duplication_check"):
+        skip_duplication_check = True
+    else:
+        skip_duplication_check = False
 
     s3_records = event.get("Records")
     if not s3_records:
@@ -165,6 +176,9 @@ def handler(event, context):
             f"Current manifest filename data: {json.dumps(data.manifest_data['filename'].tolist(), indent=4)}"
         )
 
+        ####################################################
+        # Validate Manifest
+        ####################################################
         try:
             file_list, data.files_extra = submission_data.validate_manifest(
                 data, exception_filename, skip_checksum_check=skip_checksum_validation
@@ -322,6 +336,10 @@ def handler(event, context):
         #     "manifest_dynamodb_key_prefix": "cardiac/20210711_170230/"
         # }
 
+        ####################################################
+        # Exception payload
+        ####################################################
+
         # Construct payload
         validation_payload = {
             "manifest_fp": event_record["s3"]["object"]["key"],
@@ -379,48 +397,65 @@ def handler(event, context):
         notification.log_and_store_message(
             f"<br>Number of duplicates file found in this submission with other submissions: {number_of_duplicates}"
         )
-        if number_of_duplicates > 0:
-            report_info = {
-                "topic": "Duplicate files found in this submission with other submissions",
-                "data": duplicate_etag_list,
-            }
 
-            if isinstance(manifest_status_record.additional_information, list):
-                manifest_status_record.additional_information.append(report_info)
-            else:
-                manifest_status_record.additional_information = [report_info]
+        ####################################################
+        # Check for duplication
+        ####################################################
+        if skip_duplication_check:
+            logger.info("Skipping duplication check")
+            continue
+        else:
+            if number_of_duplicates > 0:
+                report_info = {
+                    "topic": "Duplicate files found in this submission with other submissions",
+                    "data": duplicate_etag_list,
+                }
 
-            notification.MESSAGE_STORE.append("")  # Appending empty line
-            notification.log_and_store_message(
-                "Trigger of validation pipeline has been disabled due to duplicate submission has been found.",
-                "critical",
-            )
-            notification.log_and_store_message(
-                f"Please check/resubmit submitted file to prevent duplication",
-                "critical",
-            )
-            notification.log_and_store_message(
-                f"To unlock bucket for resubmission, please contact the GDR administrator.",
-                "critical",
-            )
-            notification.log_and_store_message(
-                f"If the duplication file is intended, "
-                f"please contact the data manager for further actions.",
-                "critical",
-            )
+                if isinstance(manifest_status_record.additional_information, list):
+                    manifest_status_record.additional_information.append(report_info)
+                else:
+                    manifest_status_record.additional_information = [report_info]
 
-            # List all duplicates file
-            notification.log_and_store_message(
-                "The following list are files with the same eTag at multiple location.<br>"
-            )
-            list_of_duplicate_files_email_format = json.dumps(
-                duplicate_etag_list, indent=4, sort_keys=True
-            )
-            notification.log_and_store_message(list_of_duplicate_files_email_format)
+                critical_message = (
+                    "Trigger of validation pipeline has been disabled due to duplicate submission has been found."
+                    + "\n"
+                    + "Please check/resubmit submitted file to prevent duplication"
+                    + "\n"
+                    + "If the duplication file is intended,please contact the data manager for further actions."
+                )
 
-            # Skip the auto validation
-            skip_auto_validation = True
+                notification.log_and_store_message(
+                    critical_message,
+                    "critical",
+                )
+                notification.log_and_store_message(
+                    f"Please check/resubmit submitted file to prevent duplication",
+                    "critical",
+                )
 
+                # List all duplicates file
+                notification.log_and_store_message(
+                    "The following list are files with the same eTag at multiple location.<br>"
+                )
+                list_of_duplicate_files_email_format = json.dumps(
+                    duplicate_etag_list, indent=4, sort_keys=True
+                )
+                notification.log_and_store_message(list_of_duplicate_files_email_format)
+
+                # UNLOCK submission in staging bucket to be fixed
+                payload = {
+                    "task": "FOLDER_UNLOCK",
+                    "submission_prefix": data.manifest_s3_key,
+                }
+                util.call_lambda(FOLDER_LOCK_LAMBDA_ARN, payload)
+                notification.log_and_store_message(f"Unlocking submission directory.")
+
+                notification.notify_and_exit()
+                raise ValueError("Duplication found. Terminating...")
+
+        ####################################################
+        # Update DynamoDb data
+        ####################################################
         staging_dynamodb_batch_write_list.append(manifest_status_record.__dict__)
         archive_staging_dynamodb_batch_write_list.append(
             manifest_status_record.create_archive_dictionary("Create/Update")
@@ -457,6 +492,9 @@ def handler(event, context):
         else:
             logger.info(f"'skip_update_dynamodb' payload is True. Skipping ...")
 
+        ####################################################
+        # Trigerring other lambda
+        ####################################################
         if AUTORUN_VALIDATION_JOBS == "yes" and not skip_auto_validation:
 
             notification.MESSAGE_STORE.append("")
@@ -517,6 +555,7 @@ def validate_manual_trigger_payload(event_payload: dict) -> None:
         "skip_update_dynamodb",
         "skip_send_notification",
         "skip_checksum_validation",
+        "skip_duplication_check",
         "exception_postfix_filename",
     ]:
 
