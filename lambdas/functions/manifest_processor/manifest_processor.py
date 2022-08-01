@@ -22,7 +22,7 @@ AUTORUN_VALIDATION_JOBS = os.environ.get("AUTORUN_VALIDATION_JOBS")
 
 # NOTE(SW): it seems reasonable to require some structuring of uploads in the format of
 # <FLAGSHIP>/<DATE_TS>/<FILES ...>. Outcomes on upload wrt directory structure:
-#   1. meets prescribed structure and we automatically launch validation jobs
+#   1. meets prescribed structure, and we automatically launch validation jobs
 #   2. differs from prescribed structure and data manager is notified to fix and then launch jobs
 #
 # Similarly, this logic could be applied to anything that might block or interfere with validation
@@ -403,7 +403,7 @@ def handler(event, context):
         ####################################################
         if skip_duplication_check:
             logger.info("Skipping duplication check")
-            continue
+            pass
         else:
             if number_of_duplicates > 0:
                 report_info = {
@@ -493,7 +493,7 @@ def handler(event, context):
             logger.info(f"'skip_update_dynamodb' payload is True. Skipping ...")
 
         ####################################################
-        # Trigerring other lambda
+        # Triggering other lambda
         ####################################################
         if AUTORUN_VALIDATION_JOBS == "yes" and not skip_auto_validation:
 
