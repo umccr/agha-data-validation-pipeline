@@ -87,6 +87,17 @@ MOCK_DATA_FILE = {
     "filetype": "FASTQ",
     "s3_key": "FlagShip/20220222/filename.fastq.gz",
 }
+MOCK_DATA_DUPLICATE_FILE = {
+    "filename": "filename01.fastq.gz",
+    "date_modified": "2022_02_22",
+    "partition_key": "TYPE:FILE",
+    "bucket_name": "agha-gdr-staging-2.0",
+    "sort_key": "FlagShip/20220222/filename01.fastq.gz",
+    "size_in_bytes": "222",
+    "etag": "3d274bd263f1e0dcf0950a5ba24e676c",
+    "filetype": "FASTQ",
+    "s3_key": "FlagShip/20220222/filename.fastq.gz",
+}
 MOCK_DATA_MANIFEST_FILE = {
     "filename": "filename.fastq.gz",
     "is_in_manifest": "True",
@@ -127,6 +138,22 @@ MOCK_S3_METADATA_LIST = [
         "Owner": {"DisplayName": "string", "ID": "string"},
     },
 ]
+
+MOCK_ETAG = {
+    "partition_key": "3d274bd263f1e0dcf0950a5ba24e676c",
+    "sort_key": "BUCKET:agha-gdr-staging-2.0:S3_KEY:FlagShip/20220222/filename.fastq.gz",
+    "bucket_name": "agha-gdr-staging-2.0",
+    "etag": "3d274bd263f1e0dcf0950a5ba24e676c",
+    "s3_key": "FlagShip/20220222/filename.fastq.gz",
+}
+
+MOCK_DUPLICATE_ETAG = {
+    "partition_key": "3d274bd263f1e0dcf0950a5ba24e676c",
+    "sort_key": "BUCKET:agha-gdr-staging-2.0:S3_KEY:FlagShip/20220222/filename01.fastq.gz",
+    "bucket_name": "agha-gdr-staging-2.0",
+    "etag": "3d274bd263f1e0dcf0950a5ba24e676c",
+    "s3_key": "FlagShip/20220222/filename01.fastq.gz",
+}
 
 
 def get_folder_lock_lambda_payload(lambda_arn, payload):
@@ -206,6 +233,43 @@ class ManifestProcessorUnitTestCase(unittest.TestCase):
         exception_raise = json.loads(str(context.exception))
         self.assertTrue(ordered(expected_payload) == ordered(exception_raise))
         return
+
+    @mock.patch(
+        "manifest_processor.s3.get_s3_object_metadata",
+        mock.MagicMock(return_value=MOCK_S3_METADATA_LIST),
+    )
+    @mock.patch(
+        "manifest_processor.submission_data.retrieve_manifest_data",
+        mock.MagicMock(return_value=MOCK_MANIFEST_DATA),
+    )
+    @mock.patch(
+        "manifest_processor.util.call_lambda", new=get_folder_lock_lambda_payload
+    )
+    @mock.patch("manifest_processor.notification.send_notifications", new=None)
+    def test_duplicate_files(self):
+        """Will test for duplicate data."""
+        key = "FlagShip/20220222/manifest.txt"
+        expected_payload = {"task": "FOLDER_UNLOCK", "submission_prefix": key}
+        event_payload = {
+            "bucket_name": "agha-gdr-staging-2.0",
+            "manifest_fp": key,
+            "email_report_to": "example@email.com",
+            "skip_send_notification": True,
+        }
+
+        # Insert mock data
+        dynamodb.batch_write_objects(
+            "agha-gdr-staging-bucket",
+            [MOCK_DATA_FILE, MOCK_DATA_MANIFEST_FILE, MOCK_DATA_DUPLICATE_FILE],
+        )
+        dynamodb.batch_write_objects("agha-gdr-e-tag", [MOCK_ETAG, MOCK_DUPLICATE_ETAG])
+
+        with self.assertRaises(Exception) as context:
+            handler(event_payload, {})
+        exception_raise = json.loads(str(context.exception))
+
+        # Assertion expected from folder unlock and from terminating the validation
+        self.assertTrue(exception_raise)
 
 
 if __name__ == "__main__":
