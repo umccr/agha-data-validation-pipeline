@@ -213,7 +213,7 @@ def handler(event, context):
                 "submission_prefix": data.manifest_s3_key,
             }
             util.call_lambda(FOLDER_LOCK_LAMBDA_ARN, payload)
-            notification.log_and_store_message(f"Unlocking submission directory.")
+            notification.log_and_store_message(f"Submission directory unlocked.")
 
             notification.notify_and_exit()
             raise ValueError(e)
