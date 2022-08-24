@@ -2,6 +2,16 @@
 
 This is a step-by-step guide for AGHA-GDR data sharing via [AWS S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/GetStartedWithS3.html) (Cloud storage service).
 
+- [AWS AGHA-GDR S3 DATA SHARING](#aws-agha-gdr-s3-data-sharing)
+  - [Step 1 - Do you have an AWS account?](#step-1---do-you-have-an-aws-account)
+  - [Step 2 - Prepare an S3 bucket](#step-2---prepare-an-s3-bucket)
+    - [Creating the S3 bucket](#creating-the-s3-bucket)
+    - [Getting the S3 ARN (Amazon Resource Number)](#getting-the-s3-arn-amazon-resource-number)
+  - [Step 3 - Permission for the AGHA AWS account to send data to your s3 bucket](#step-3---permission-for-the-agha-aws-account-to-send-data-to-your-s3-bucket)
+    - [Creating Policy on S3 bucket](#creating-policy-on-s3-bucket)
+  - [Step 4 - Let the AGHA-GDR administrator know](#step-4---let-the-agha-gdr-administrator-know)
+  - [Notes](#notes)
+
 The AGHA-GDR data is currently available on AWS S3. If we need to share this data outside the AWS environment, there will be an egress cost as data will be transferred to the public internet. We can avoid this cost if we transfer data within the AWS environment. If you decide to view or process data within AWS, you will not have any egress costs unless you transfer data between AWS regions.
 
 ## Step 1 - Do you have an AWS account?
