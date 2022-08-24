@@ -7,24 +7,24 @@ The AGHA-GDR data is currently available on AWS S3. If we need to share this dat
 ## Step 1 - Do you have an AWS account?
 [Yes, I have. Skipping ...](#step-2---prepare-an-s3-bucket)
 
-In order to transfer data to your S3 bucket, you must have an AWS account - get your credit card handy as it is needed for the setup!
+In order to transfer data to your S3 bucket, you must have an AWS account - have your **credit card** details ready as they are needed for the setup!
 
 This is the official guide from AWS:
 https://aws.amazon.com/premiumsupport/knowledge-center/create-and-activate-aws-account/
 
 In summary:
 
-- Go to <https://aws.amazon.com/>.
-- Click on the `Create an AWS Account` button at the top right.
-  <br/><img src="./screenshot/sign-in-button.png" width="300px"/><br/>
-- Fill in the form with the information needed (for support plan, you could choose `Basic support - Free`).
-  <br/><img src="./screenshot/sign-up-page.png" width="300px"/> <img src="./screenshot/support-plan-page.png" width="300px"/><br/>
-- You may need to verify your account (check your email). After you have verified the email, go to your AWS console.
-  <br/><img src="./screenshot/sign-up-complete.png" width="300px"/><br/>
-  You could click on the `Go to the AWS Management Console` button or head back to https://aws.amazon.com/ and click on the `Sign In` button.
-- Select `Root user`, and fill in the email and password to log in as a root user.
-  <br/><img src="./screenshot/sign-in-page.png" width="300px"/><br/>
-- Your AWS account is created! You are now logged in as a root user (user with **full** access).
+1. Go to <https://aws.amazon.com/>.
+2. Click on the `Create an AWS Account` button at the top right.
+   <br/><img src="./screenshot/sign-in-button.png" width="300px"/><br/>
+3. Fill in the form with the information needed (for support plan, you could choose `Basic support - Free`).
+   <br/><img src="./screenshot/sign-up-page.png" width="300px"/> <img src="./screenshot/support-plan-page.png" width="300px"/><br/>
+4. You may need to verify your account (check your email). After you have verified the email, go to your AWS console.
+   <br/><img src="./screenshot/sign-up-complete.png" width="300px"/><br/>
+   You could click on the `Go to the AWS Management Console` button or head back to https://aws.amazon.com/ and click on the `Sign In` button.
+5. Select `Root user`, and fill in the email and password to log in as a root user.
+   <br/><img src="./screenshot/sign-in-page.png" width="300px"/><br/>
+6. Your AWS account is created! You are now logged in as a root user (user with **full** access).
 
 **NOTE**:
 In AWS, you need to have permissions to create/use/modify services (including S3 buckets).
