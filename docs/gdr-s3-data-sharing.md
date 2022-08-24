@@ -1,90 +1,84 @@
 # AWS AGHA-GDR S3 DATA SHARING
 
-This is a step-by-step for AGHA-GDR data sharing via [AWS s3-bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/GetStartedWithS3.html) (Cloud storage service).
+This is a step-by-step guide for AGHA-GDR data sharing via [AWS S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/GetStartedWithS3.html) (Cloud storage service).
 
-The AGHA-GDR data is currently sitting on AWS S3. If we need to share this data outside the AWS environment, there will be an egress cost as data will be transferred to the public internet. We would avoid this cost and decided to transfer within aws environment. If you decided to view or process data in AWS, you will not have any egress cost unless you are transfering between regions.
-
+The AGHA-GDR data is currently available on AWS S3. If we need to share this data outside the AWS environment, there will be an egress cost as data will be transferred to the public internet. We can avoid this cost if we transfer data within the AWS environment. If you decide to view or process data within AWS, you will not have any egress costs unless you transfer data between AWS regions.
 
 ## Step 1 - Do you have an AWS account?
 [Yes, I have. Skipping ...](#step-2---prepare-an-s3-bucket)
 
-In order to transfer to your S3 bucket, you must have an AWS account. Skip if you already have AWS Account.
+In order to transfer data to your S3 bucket, you must have an AWS account - get your credit card handy as it is needed for the setup!
 
-Get your credit card handy as it is needed for the setup.
-
-There are a lot of existing blogs to set up AWS accounts. This is the official one from AWS
+This is the official guide from AWS:
 https://aws.amazon.com/premiumsupport/knowledge-center/create-and-activate-aws-account/
 
 In summary:
-1. Go to https://aws.amazon.com/
-2. You clicked on the create an AWS Account button on the top right.
+
+- Go to <https://aws.amazon.com/>.
+- Click on the `Create an AWS Account` button at the top right.
   <br/><img src="./screenshot/sign-in-button.png" width="300px"/><br/>
-3. Fill in the form with the information needed. (For support plan, you could choose `Basic support - Free`)
-4. <br/><img src="./screenshot/sign-up-page.png" width="300px"/> <img src="./screenshot/support-plan-page.png" width="300px"/><br/>
-5. You may need to verify your account (Check your email). After you have verified the email, go to your aws console.
+- Fill in the form with the information needed (for support plan, you could choose `Basic support - Free`).
+  <br/><img src="./screenshot/sign-up-page.png" width="300px"/> <img src="./screenshot/support-plan-page.png" width="300px"/><br/>
+- You may need to verify your account (check your email). After you have verified the email, go to your AWS console.
   <br/><img src="./screenshot/sign-up-complete.png" width="300px"/><br/>
-  You could click on the `Go to the AWS Management Console` or head back to https://aws.amazon.com/ and click `Sign In` button.
-5. Select `Root user` , and fill in the email and password to logged in as a root-user.
+  You could click on the `Go to the AWS Management Console` button or head back to https://aws.amazon.com/ and click on the `Sign In` button.
+- Select `Root user`, and fill in the email and password to log in as a root user.
   <br/><img src="./screenshot/sign-in-page.png" width="300px"/><br/>
+- Your AWS account is created! You are now logged in as a root user (user with **full** access).
 
-6. Your AWS account is created! You are now logged in as a root user (user with all access).
-
-
-NOTE:
-In AWS, you would need to have permissions in order to create/use/modify services (including the S3 bucket).
-
-If you are not logged in a root-account, you will need full access to S3 service from your administrator / `Root user` to setup the S3 bucket.
-Please refer to IAM policy for S3 managed service for details.
+**NOTE**:
+In AWS, you need to have permissions to create/use/modify services (including S3 buckets).
+If you are not logged in a root account, you will need full access to the S3 service from your administrator / `Root user` to setup the S3 bucket.
+Please refer to IAM policy for S3 managed service for details:
 https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-iam-awsmanpol.html
 
-If you are in the root-account, you do not need to worry about this.
-
+If you are in the root account, you do not need to worry about this.
 
 ## Step 2 - Prepare an S3 bucket
 
-**TL;DR**
+**TL;DR**:
 Prepare an `ap-southeast-2` S3 bucket that will store the data.
 
-___
+---
 
-There is a documentation from AWS and some tutorial provided by AWS. You could have a read through and familiarize with the service.
+The AWS documentation describes how to create an S3 bucket. Have a read through and familiarise yourself with the service:
 https://docs.aws.amazon.com/AmazonS3/latest/userguide/GetStartedWithS3.html
 
 
 ### Creating the S3 bucket
 
-1. Search on S3 on the search bar, and open the S3 service console.
+1. Search on S3 in the search bar, and open the S3 service console.
 2. Click on the `Create bucket` button.
-3. Enter a Bucket name, that is globally unique. Meaning no other people will have this name even on different AWS account. There is some bucket naming rules that need to be followed ([Check it here](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html)).
-4. Select AWS Region to `Asia Pacific (Sydney) ap-southeast-2`. Do **NOT** miss this step.
-5. You leave the rest as default and hit the `Create bucket` button.
+3. Enter a Bucket name that is globally unique (yes, this means you have to come up with a name that is unique amongst all the AWS S3 buckets available in the world).
+   There are some bucket naming rules that need to be followed (see them [here](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html)).
+4. **Critical**: under AWS Region, select `Asia Pacific (Sydney) ap-southeast-2`. Do **NOT** miss this step.
+5. Leave the rest of the options as default and click the `Create bucket` button.
 6. Your bucket is created!
 
-### Taking the S3 ARN (Amazon Resource Number)
-In AWS, every resource is labeled with an ID called Amazon Resource Number. We need this so that we could refer this resource in the future.
+### Getting the S3 ARN (Amazon Resource Number)
+In AWS, every resource is labeled with an ID called Amazon Resource Number. We need this so that we can refer to this resource in the future.
 
-1. Click on the S3 bucket with the name you created on top. (Could use search bucket name if needed)
-2. On the tabs, click on properties. You could see this arn values. Copy this ARN value
+1. Click on the S3 bucket with the name you created on top (could use search bucket name if needed).
+2. Click on the `Properties` tab, and you should be able to copy the bucket's ARN value.
   <br/><img src="./screenshot/s3-arn.png" width="300px"/><br/>
-
 
 ## Step 3 - Permission for the AGHA AWS account to send data to your s3 bucket
 
-**TL;DR**
+**TL;DR**:
 Allow AGHA-Service account to upload to S3.
 
 AWS AGHA account number: `602836945884`
 
-___
+---
 
-Before we can send you the data requested to your S3 bucket. You need to give us access to do so.
+Before we can send you the data requested to your S3 bucket, you need to give us access to do so.
 
 ### Creating Policy on S3 bucket
-We need to create what actions allowed for the permissions.
-1. Click on the S3 bucket with the name you created on top. (Could use search bucket name if needed)
-2. On the tabs, click on `Permissions`. Scroll to see `Bucket policy`, and click on edit.
+We need to specify which actions are allowed under the bucket permissions.
+1. Click on the S3 bucket with the name you created above (could use search bucket name if needed).
+2. Click on the `Permissions` tab, scroll to the `Bucket policy` section, and click on the `Edit` button.
   <br/><img src="./screenshot/s3-policy.png" width="500px"/><br/>
-3. Copy the following JSON or append it with the following policy. Change the `REPLACE_HERE` below (for `Resource`) value with the bucket ARN above. NOTE: One of the `Resource` values has a postfix of `/*`.
+3. Copy the following JSON or append it with the following policy. Change the `REPLACE_HERE` below (for `Resource`) value with the bucket ARN above. Note that the second `Resource` value has a `/*` suffix.
     ```json
     {
       "Version": "2012-10-17",
@@ -112,11 +106,9 @@ We need to create what actions allowed for the permissions.
 ## Step 4 - Let the AGHA-GDR administrator know
 
 Your account is ready for the files to be transferred.
-
 Send us your bucket ARN, and we will be able to copy files over to your bucket.
-
 
 ## Notes
 
-- When we copy the data to your S3 bucket. The data belongs to you, and you will be charged for s3 storage. You could try to save costs if you change S3 classes. Ref: [S3 classes](https://aws.amazon.com/s3/storage-classes/), [S3 pricing](https://aws.amazon.com/s3/pricing/)
-- Data transferred within AWS at the same region (ap-southeast-2) will incur no fee, for example, if you open the file via AWS ec2 (Virtual Machine). But if you decide to download this file somewhere else. This will attract egress costs.
+- When we copy the data to your S3 bucket, the data belongs to you, and you will be charged for S3 storage. You could try to save costs if you change S3 classes. See: [S3 classes](https://aws.amazon.com/s3/storage-classes/), [S3 pricing](https://aws.amazon.com/s3/pricing/)
+- Data transferred within AWS in the same region (`ap-southeast-2`) will incur no fee e.g. if you access the file via AWS EC2 (Virtual Machine). But if you decide to download this file somewhere else, it will attract egress costs.
