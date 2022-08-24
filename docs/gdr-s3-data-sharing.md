@@ -88,7 +88,7 @@ We need to specify which actions are allowed under the bucket permissions.
 1. Click on the S3 bucket with the name you created above (could use search bucket name if needed).
 2. Click on the `Permissions` tab, scroll to the `Bucket policy` section, and click on the `Edit` button.
   <br/><img src="./screenshot/s3-policy.png" width="500px"/><br/>
-3. Copy the following JSON or append it with the following policy. Change the `REPLACE_HERE` below (for `Resource`) value with the bucket ARN above. Note that the second `Resource` value has a `/*` suffix.
+3. Copy the following JSON or append it with the following policy. Change the `REPLACE_HERE` below (for `Resource`) with the bucket ARN created above (Refer to [Step 2](#getting-the-s3-arn-amazon-resource-number) on how to get the bucket ARN). Note that the second `Resource` value has a `/*` suffix.
     ```json
     {
       "Version": "2012-10-17",
@@ -112,6 +112,10 @@ We need to specify which actions are allowed under the bucket permissions.
       ]
     }
     ```
+Explanation of the JSON policy:
+This policy will tell the bucket (specified as the ARN in the `Resource` payload) to allow the AGHA's AWS account (specified as the AGHA's account number in the `Principal` payload) to do the following actions:
+-  Get/Put Object to the bucket.
+-  Get the bucket location. This is to ensure the AGHA's account will only send within the `Asia Pacific (Sydney) ap-southeast-2` region.
 
 ## Step 4 - Let the AGHA-GDR administrator know
 
