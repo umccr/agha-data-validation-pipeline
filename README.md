@@ -128,7 +128,7 @@ Again, make sure aws profile is correctly set up as mentioned above.
 
 ###### # Setting Up
 
-Create virtual enviroment
+Create virtual environment
 
 ```bash
 python3 -m venv .venv
@@ -212,7 +212,7 @@ A quick summary for each function.
         - Triggering lock when data is fully completed
         - Triggering unlock when validation detects any failure
 - **notification** - would send messages via email/slack with the given payload.
-- **manifest_processor:** Would do a quick validation from the manifest received. The lambda would update dynamodb from
+- **manifest-processor:** Would do a quick validation from the manifest received. The lambda would update dynamodb from
   the manifest.txt content for easy access via DynamoDb. In general, the lambda would do the following:
     - Add manifest data (agha_study_id and checksum) to DynamoDB
     - Check if all data in manifest exist
@@ -221,13 +221,13 @@ A quick summary for each function.
     - Trigger `notification` lambda for the validation result
     - If enabled, trigger `file_validation_manager` lambda to create batch job for the files.
     - Trigger `folder_lock` lambda to unlock submission if manifest validation failed or any file duplication.
-- **s3_event_recorder** - Would record s3 event and update Dynamodb accordingly. This give ease of access to lookup from
+- **s3-event-recorder** - Would record s3 event and update Dynamodb accordingly. This give ease of access to lookup from
   DynamoDb than opening individual files.
     - Record file properties across all bucket. (such as filetype, filesize, filename)
     - Record the content of the data in the result bucket.(such as results from validation).
-- **file_validation_manager** - This will trigger validation batch job. This will take data from the manifest record
+- **file-validation-manager** - This will trigger validation batch job. This will take data from the manifest record
   created in `manifest_processor` lambda.
-- **data_transfer_manager** - This will trigger `data_transfer` batch job.
+- **data-transfer-manager** - This will trigger `data_transfer` batch job.
     - Will check all data has exited successfully from batch job
     - Will check results produced from the batch job succeed
     - Unlock s3 policy (set by the folderlock lambda)
@@ -240,17 +240,16 @@ A quick summary for each function.
     - Could check if all files listed in original manifest file is in STORE bucket
     - Could check staging file should only contain indexed and uncompressed files
     - Could give report which submission are ready to be transferred by the data-transfer-manager lambda
-- **batch_notification** - Will notify via slack when batch job completed and invoke other function.
+- **batch-notification** - Will notify via slack when batch job completed and invoke other function.
     - The lambda will notify when batch job has completed. (`Data Validation` or `S3 Move`). It will only notify for:
         - Any FAILED result
         - Final SUCCESS data store for the submission
     - The lambda will be invoked from `s3_event_recorder` lambda
     - _New_: Will **invoke** cleanup/data_transfer manager lambda to automate the manual work. (This feature is beyond
       on what the lambda name suggest)
-- **gdr_s3_data_sharing** - Will share data via s3 from store bucket to destination bucket
-    - The lambda will add new policy to batch instance role for s3-data-sharing.
-    - The lambda will create and submit batch job to copy over files to s3.
-      _*arguments are defined below_
+- **s3-data-sharing** - Will send store data to destination S3 bucket.
+    - The lambda will create a batch job and copy over S3 object to the given payload
+_*arguments are defined below_
 
 ##### Lambdas layer
 
@@ -276,7 +275,7 @@ A quick summary for each function.
 
 The following are arguments supported on each lambda. Recommended invoking lambda asynchronously.
 
-### data_transfer_manager
+### data-transfer-manager
 
 | Argument                    | Description                                                                                                                            | Type           | Example                        |
 |-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------|
@@ -289,7 +288,7 @@ The following are arguments supported on each lambda. Recommended invoking lambd
 | validation_check_only       | Only validation check only and return fail result.                                                                                     | Boolean        | true                           |
 | exception_postfix_filename  | Skip move file for the following list of postfix                                                                                       | List of string | ["metadata.txt", ".md5", etc.] |
 
-### manifest_processor
+### manifest-processor
 
 | Argument                   | Description                                   | Type           | Example                            |
 |----------------------------|-----------------------------------------------|----------------|------------------------------------|
@@ -303,7 +302,7 @@ The following are arguments supported on each lambda. Recommended invoking lambd
 | skip_duplication_check     | Allow skipping checksum validation            | Boolean        | true                               |
 | exception_postfix_filename | Skip checking on file in this list of postfix | List of string | ["metadata.txt", ".md5", etc.]     |
 
-### validation_manager
+### validation-manager
 
 There are multiple ways to trigger this function, defined as follows. Optional arguments can be used on top of the
 primary arguments.
@@ -334,7 +333,7 @@ Optional Arguments
 | Argument                   | Description                                                                                                                                              | Type           | Example                        |
 |----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------|
 | skip_update_dynamodb       | Allow skipping dynamodb update                                                                                                                           | Boolean        | true                           |
-| tasks_skipped              | Allow skipping some tasks. By default, it will run all tasks. List of tasks: ['CHECKSUM_VALIDATION','FILE_VALIDATION','CREATE_INDEX', 'CREATE_COMPRESS'] | List of string | ['CHECKSUM_VALIDATION']        |
+| tasks_skipped              | Allow skipping some tasks. By default, it will run all tasks. List of tasks: ['CHECKSUM_VALIDATION','FILE_VALIDATION','CREATE_INDEX', 'CREATE_COMPRESS'] | List of string | ["CHECKSUM_VALIDATION"]        |
 | exception_postfix_filename | Skip checking on file in this list of postfix                                                                                                            | List of string | ["metadata.txt", ".md5", etc.] |
 
 ### report
@@ -364,19 +363,19 @@ Payload needed for check:
 |---------------------------------|------------------------------------------|----------------|-------------|
 | exception_postfix_filename_list | Any particular postfix file name to skip | String of list | ["xxx.tsv"] |
 
-### cleanup_manager
+### cleanup-manager
 
 | Argument                    | Description                  | Type           | Example          |
 |-----------------------------|------------------------------|----------------|------------------|
 | directory_prefix [REQUIRED] | Directory prefix to clean up | String         | "AC/2022-02-02/" |
 
-### gdr_s3_data_sharing
+### s3-data-sharing
 
-| Argument                             | Description                                     | Type   | Example                             |
-|--------------------------------------|-------------------------------------------------|--------|-------------------------------------|
-| destination_s3_arn [REQUIRED]        | Destination bucket ARN                          | String | "arn:aws:s3:::bucket_name/key_name" |
-| destination_s3_key_prefix [REQUIRED] | Destination key prefix if any. Put `/` for None | String | "/"                                 |
-| source_s3_key_list [REQUIRED]        | A list of data to transfer                      | String | ["AC/20222-02-22/ABCDE.fastq.gz"]   |
+| Argument                             | Description                                     | Type           | Example                             |
+|--------------------------------------|-------------------------------------------------|----------------|-------------------------------------|
+| destination_s3_arn [REQUIRED]        | Destination bucket ARN                          | String         | "arn:aws:s3:::bucket_name/key_name" |
+| destination_s3_key_prefix [REQUIRED] | Destination key prefix if any. Put `/` for None | String         | "/"                                 |
+| source_s3_key_list [REQUIRED]        | A list of data to transfer                      | List of string | ["AC/20222-02-22/ABCDE.fastq.gz"]   |
 
 #### Invoke function example
 

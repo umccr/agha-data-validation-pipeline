@@ -102,6 +102,7 @@ We need to specify which actions are allowed under the bucket permissions.
               "s3:GetObject",
               "s3:PutObject",
               "s3:PutObjectAcl",
+              "s3:ListBucket",
               "s3:GetBucketLocation"
           ],
           "Resource": [
@@ -115,7 +116,8 @@ We need to specify which actions are allowed under the bucket permissions.
 Explanation of the JSON policy:
 This policy will tell the bucket (specified as the ARN in the `Resource` payload) to allow the AGHA's AWS account (specified as the AGHA's account number in the `Principal` payload) to do the following actions:
 -  Get/Put Object to the bucket.
--  Get the bucket location. This is to ensure the AGHA's account will only send within the `Asia Pacific (Sydney) ap-southeast-2` region.
+-  List objects in your bucket, we wanted to make sure all data has been transferred successfully to your bucket.
+-  Get your bucket location, we need to check if your bucket is in the `Asia Pacific (Sydney) ap-southeast-2` region.
 
 ## Step 4 - Let the AGHA-GDR administrator know
 
