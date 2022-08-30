@@ -88,7 +88,7 @@ def handler(event, context):
             bucket_name=destination_bucket_name, s3_key=destination_s3_key
         )
 
-        s3_sync_command = s3.create_s3_sync_command_from_s3_uri(
+        s3_sync_command = s3.create_s3_cp_command_from_s3_uri(
             source_s3_uri, destination_s3_uri
         )
 

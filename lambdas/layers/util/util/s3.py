@@ -248,11 +248,7 @@ def get_s3_location(bucket_name: str) -> str:
     return response["LocationConstraint"]
 
 
-def create_s3_sync_command_from_s3_uri(
+def create_s3_cp_command_from_s3_uri(
     source_s3_uri: str, destination_s3_uri: str
 ) -> str:
-    filename = get_s3_filename_from_s3_key(source_s3_uri)
-
-    source_s3_uri = source_s3_uri.strip(filename)
-    target_s3_uri = destination_s3_uri.strip(filename)
-    return f"s3 sync {source_s3_uri} {target_s3_uri} --exclude='*' --include='*/{filename}'"
+    return f"s3 cp {source_s3_uri} {destination_s3_uri}"

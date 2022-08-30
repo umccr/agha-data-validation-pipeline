@@ -34,13 +34,10 @@ class TestS3Layer(unittest.TestCase):
     def test_create_s3_cp_command_from_s3_uri(self):
         source_uri = "s3://source/puppy.jpg"
         target_uri = "s3://target/puppy.jpg"
-        filename = "puppy.jpg"
 
-        expected_result = (
-            f"s3 sync s3://source/ s3://target/ --exclude='*' --include='*/{filename}'"
-        )
+        expected_result = f"s3 cp {source_uri} {target_uri}"
 
-        response_func = s3.create_s3_sync_command_from_s3_uri(source_uri, target_uri)
+        response_func = s3.create_s3_cp_command_from_s3_uri(source_uri, target_uri)
         self.assertEqual(
             expected_result, response_func, "Does not match with expected command"
         )
