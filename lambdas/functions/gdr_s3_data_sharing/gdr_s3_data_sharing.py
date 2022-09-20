@@ -70,15 +70,13 @@ def handler(event, context):
     batch_job_list = []
     curr_datetimestamp = util.get_datetimestamp()
     for source_s3_key in source_s3_key_list:
-        filename = s3.get_s3_filename_from_s3_key(source_s3_key)
-
         # Construct destination S3 key
         destination_s3_key_prefix = (
             f"{destination_s3_key_prefix}/" if destination_s3_key_prefix else ""
         )
-        destination_timestamp_prefix = f"{curr_datetimestamp}/"  # Adding trailing / for
+        destination_timestamp_prefix = f"{curr_datetimestamp}/"  # Adding trailing /
         destination_s3_key = (
-            f"{destination_s3_key_prefix}{destination_timestamp_prefix}{filename}"
+            f"{destination_s3_key_prefix}{destination_timestamp_prefix}{source_s3_key}"
         )
 
         source_s3_uri = s3.create_s3_uri_from_bucket_name_and_key(
@@ -88,12 +86,12 @@ def handler(event, context):
             bucket_name=destination_bucket_name, s3_key=destination_s3_key
         )
 
-        s3_sync_command = s3.create_s3_cp_command_from_s3_uri(
+        s3_cp_command = s3.create_s3_cp_command_from_s3_uri(
             source_s3_uri, destination_s3_uri
         )
 
         batch_job = create_s3_data_sharing_batch_job_from_s3_cli_command(
-            source_s3_key=source_s3_key, s3_cli_command=s3_sync_command
+            source_s3_key=source_s3_key, s3_cli_command=s3_cp_command
         )
 
         batch_job_list.append(batch_job)
