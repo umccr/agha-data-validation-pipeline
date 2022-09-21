@@ -34,7 +34,7 @@ def handler(event, context):
     event payload expected:
     {
         destination_s3_arn: '',
-        destination_s3_key_prefix: '',
+        sharing_timestamp: '',
         source_s3_key_list :[ 'ABCDE/121212/filename.fastq.gz']
     }
     """
@@ -47,7 +47,7 @@ def handler(event, context):
     # Parsing Input
     destination_s3_arn = event["destination_s3_arn"].strip("*").strip("/")
     source_s3_key_list = event["source_s3_key_list"]
-    destination_s3_key_prefix = event["destination_s3_key_prefix"].strip("/")
+    destination_s3_key_prefix = event["sharing_timestamp"].strip("/")
     destination_bucket_name = destination_s3_arn.split(":::")[-1]
 
     ################################################
@@ -68,16 +68,12 @@ def handler(event, context):
     logger.info("List of jobs need to be copied")
 
     batch_job_list = []
-    curr_datetimestamp = util.get_datetimestamp()
     for source_s3_key in source_s3_key_list:
         # Construct destination S3 key
         destination_s3_key_prefix = (
             f"{destination_s3_key_prefix}/" if destination_s3_key_prefix else ""
         )
-        destination_timestamp_prefix = f"{curr_datetimestamp}/"  # Adding trailing /
-        destination_s3_key = (
-            f"{destination_s3_key_prefix}{destination_timestamp_prefix}{source_s3_key}"
-        )
+        destination_s3_key = f"{destination_s3_key_prefix}{source_s3_key}"
 
         source_s3_uri = s3.create_s3_uri_from_bucket_name_and_key(
             bucket_name=STORE_BUCKET, s3_key=source_s3_key
@@ -137,8 +133,8 @@ def validate_event(event):
     if "destination_s3_arn" not in event:
         logger.error("Invalid event. `destination_s3_arn` is expected")
         sys.exit(0)
-    if "destination_s3_key_prefix" not in event:
-        logger.error("Invalid event. `destination_s3_key_prefix` is expected")
+    if "sharing_timestamp" not in event:
+        logger.error("Invalid event. `sharing_timestamp` is expected")
         sys.exit(0)
     if "source_s3_key_list" not in event:
         logger.error("Invalid event. `source_s3_key_list` is expected")
@@ -151,8 +147,8 @@ def validate_event(event):
         logger.error("Invalid `destination_s3_arn` payload.")
         sys.exit(0)
 
-    if not isinstance(event["destination_s3_key_prefix"], str):
-        logger.error("Invalid `destination_s3_key_prefix` payload.")
+    if not isinstance(event["sharing_timestamp"], str):
+        logger.error("Invalid `sharing_timestamp` payload.")
         sys.exit(0)
 
     if not isinstance(event["source_s3_key_list"], list):
