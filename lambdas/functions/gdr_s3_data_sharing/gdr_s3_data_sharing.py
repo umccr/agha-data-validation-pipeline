@@ -6,6 +6,8 @@ import uuid
 import re
 import sys
 
+import botocore.exceptions
+
 import util
 from util import s3
 
@@ -67,8 +69,24 @@ def handler(event, context):
     # Prepare batch jobs
     logger.info("List of jobs need to be copied")
 
+    # Check which key exist from given prefix
+    destination_key_exist = []
+    try:
+        existing_key = s3.get_s3_object_metadata(
+            bucket_name=destination_bucket_name,
+            directory_prefix=f"{destination_s3_key_prefix}/",
+        )
+        for metadata in existing_key:
+            key = metadata["Key"].lstrip(destination_s3_key_prefix).strip("/")
+            destination_key_exist.append(key)
+
+    except botocore.exceptions.ClientError:
+        logger.critical("Unable to fetch existing destination key")
+    # Find missing key
+    key_to_transfer = list(set(source_s3_key_list) - set(destination_key_exist))
+
     batch_job_list = []
-    for source_s3_key in source_s3_key_list:
+    for source_s3_key in key_to_transfer:
         # Construct destination S3 key
         destination_s3_key_prefix = (
             f"{destination_s3_key_prefix}/" if destination_s3_key_prefix else ""
