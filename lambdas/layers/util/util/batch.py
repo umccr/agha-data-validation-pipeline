@@ -225,8 +225,8 @@ def run_status_result_check(submission_directory: str, exception_list=None) -> l
                 items.append(sort_key)
         if len(items) > 0:
             fail_s3_key.extend(items)
-
-    return fail_s3_key
+    set_fail_s3_key = set(fail_s3_key)
+    return list(set_fail_s3_key)
 
 
 def run_batch_check(staging_directory_prefix: str, exception_list=None) -> list:
