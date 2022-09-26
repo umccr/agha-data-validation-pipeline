@@ -249,6 +249,7 @@ A quick summary for each function.
       on what the lambda name suggest)
 - **s3-data-sharing** - Will send store data to destination S3 bucket.
     - The lambda will create a batch job and copy over S3 object to the given payload
+    - Destination key will be constructed from source key along with a manually generated timestamp
 _*arguments are defined below_
 
 ##### Lambdas layer
@@ -371,11 +372,11 @@ Payload needed for check:
 
 ### s3-data-sharing
 
-| Argument                             | Description                                     | Type           | Example                             |
-|--------------------------------------|-------------------------------------------------|----------------|-------------------------------------|
-| destination_s3_arn [REQUIRED]        | Destination bucket ARN                          | String         | "arn:aws:s3:::bucket_name/key_name" |
-| destination_s3_key_prefix [REQUIRED] | Destination key prefix if any. Put `/` for None | String         | "/"                                 |
-| source_s3_key_list [REQUIRED]        | A list of data to transfer                      | List of string | ["AC/20222-02-22/ABCDE.fastq.gz"]   |
+| Argument                      | Description                                             | Type           | Example                           |
+|-------------------------------|---------------------------------------------------------|----------------|-----------------------------------|
+| destination_s3_arn [REQUIRED] | Destination bucket ARN                                  | String         | "arn:aws:s3:::bucket_name"        |
+| sharing_timestamp [REQUIRED]  | A manually generated timestamp for this sharing request | String         | "20220921/"                       |
+| source_s3_key_list [REQUIRED] | A list of data to transfer                              | List of string | ["AC/20222-02-22/ABCDE.fastq.gz"] |
 
 #### Invoke function example
 
