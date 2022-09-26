@@ -221,7 +221,7 @@ def handler(event, context):
             )
             dynamodb_result_update.append(running_status)
 
-    # Clear the result object in the Result bucket if exists. This to prevent mix results between re-run and new validations
+    # Clear result objects in the Result bucket if exists. (To prevent mix results between old and new validations)
     existing_object_metadata_results = s3.get_s3_object_metadata(
         bucket_name=RESULTS_BUCKET, directory_prefix=f"{data.submission_prefix}/"
     )
