@@ -221,11 +221,14 @@ def handler(event, context):
             )
             dynamodb_result_update.append(running_status)
 
-    # Clear the result object in the Result bucket if exist
+    # Clear the result object in the Result bucket if exists. This to prevent mix results between re-run and new validations
     existing_object_metadata_results = s3.get_s3_object_metadata(
         bucket_name=RESULTS_BUCKET, directory_prefix=f"{data.submission_prefix}/"
     )
     list_of_keys = [metadata["Key"] for metadata in existing_object_metadata_results]
+    logger.info(
+        f"List of keys to be deleted in results bucket: {json.dumps(list_of_keys, indent=4, cls=util.JsonSerialEncoder)}"
+    )
     s3.delete_s3_object_from_key(bucket_name=RESULTS_BUCKET, key_list=list_of_keys)
 
     # Update status of dynamodb to RUNNING (To flush dydb if previous result is in dynamodb)
@@ -250,6 +253,11 @@ def handler(event, context):
         batch_res = batch.submit_batch_job(job_data)
         logger.debug(f"Submit batch job res: {batch_res}")
     logger.info(f"Batch job has executed. Submit {len(batch_job_data)} number of job")
+
+
+################################################################
+# Helper function
+################################################################
 
 
 def validate_event_data(event_record):
