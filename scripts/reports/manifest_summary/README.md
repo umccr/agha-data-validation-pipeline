@@ -10,7 +10,7 @@ Parameter needed for the script to run:
 Example of executing the script:
 
 ```bash
-python main.py --sort-key-prefix 'NMD/'
+python main.py --sort-key-prefix NMD/
 ```
 
 Data will be generated at the same directory of this file with a post fix with the datestamp.
@@ -50,6 +50,10 @@ A0000003	2	0	0	2	0	0	0	0
 
 ## The setup before executing the script
 
+Prerequisite:
+- `aws-cli` available with least version 2
+- `python3` available with at least version 3.8
+
 1. Clone this repository
 
    ```
@@ -59,7 +63,7 @@ A0000003	2	0	0	2	0	0	0	0
 2. Go to this directory
 
     ```
-    cd scripts/reports/bucket_summary
+    cd scripts/reports/manifest_summary
     ```
 3. Setup an virtual environment and install packages
    ```
