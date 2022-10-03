@@ -51,7 +51,7 @@ A0000003	2	0	0	2	0	0	0	0
 ## The setup before executing the script
 
 Prerequisite:
-- `aws-cli` available with least version 2
+- `aws-cli` available with at least version 2
 - `python3` available with at least version 3.8
 
 1. Clone this repository
