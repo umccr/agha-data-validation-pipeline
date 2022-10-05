@@ -71,7 +71,7 @@ Prerequisite:
    source .venv/bin/activate  # This might be different for non-unix shell
    pip install -r requirements.txt
    ```
-4. Setup AWS_PROFILE. This aws profile must have the right permission to tag S3 object and update Dynamodb
+4. Setup AWS_PROFILE. This aws profile must have the right permission to access the AG GDR buckets, tag S3 object and update Dynamodb. <br>**(NOTE)** If you have used AWS CLI before and your default user profile contains your AG GDR credentials, you may skip this step.
    ```
    export AWS_PROFILE=agha
    ```
