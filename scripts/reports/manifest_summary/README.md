@@ -71,12 +71,13 @@ Prerequisite:
    source .venv/bin/activate  # This might be different for non-unix shell
    pip install -r requirements.txt
    ```
-4. Setup AWS_PROFILE. This aws profile must have the right permission to access the AG GDR buckets, tag S3 object and update Dynamodb. <br>**(NOTE)** If you have used AWS CLI before and your default user profile contains your AG GDR credentials, you may skip this step.
-   ```
-   export AWS_PROFILE=agha
-   ```
+4. Setup AWS Credentials.
 
-   or
+   The aws credentials must have read access for the AG GDR buckets and Dynamodb.
+
+   The script will look at the AWS credentials used in the terminal, else the default AWS credential will be used. If this is your first time configuring AWS CLI, you could run the following command to set as a default AWS credentials. For more information, please refer to the [AWS CLI guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
+
+   **(NOTE)** If you have used AWS CLI before and your default user profile contains your AG GDR credentials, you may skip this step.
 
    ```
    aws configure
