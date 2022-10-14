@@ -222,18 +222,26 @@ def handler(event, context):
             dynamodb_result_update.append(running_status)
 
     # Clear result objects in the Result bucket if exists. (To prevent mix results between old and new validations)
-    existing_object_metadata_results = s3.get_s3_object_metadata(
-        bucket_name=RESULTS_BUCKET, directory_prefix=f"{data.submission_prefix}/"
-    )
-    list_of_keys = [metadata["Key"] for metadata in existing_object_metadata_results]
     logger.info(
-        f"List of keys to be deleted in results bucket: {json.dumps(list_of_keys, indent=4, cls=util.JsonSerialEncoder)}"
+        "Check results bucket if any object need to be deleted to prevent validation result overlap."
     )
-    s3.delete_s3_object_from_key(bucket_name=RESULTS_BUCKET, key_list=list_of_keys)
+    try:
+        existing_object_metadata_results = s3.get_s3_object_metadata(
+            bucket_name=RESULTS_BUCKET, directory_prefix=f"{data.submission_prefix}/"
+        )
+        list_of_keys = [
+            metadata["Key"] for metadata in existing_object_metadata_results
+        ]
+        logger.info(
+            f"List of keys to be deleted in results bucket: {json.dumps(list_of_keys, indent=4, cls=util.JsonSerialEncoder)}"
+        )
+        s3.delete_s3_object_from_key(bucket_name=RESULTS_BUCKET, key_list=list_of_keys)
+    except ValueError:
+        logger.info(f"No existing results found in '{RESULTS_BUCKET}' bucket.")
 
     # Update status of dynamodb to RUNNING (To flush dydb if previous result is in dynamodb)
-    # Must be executed before batch submitted, in case submitting batch loop takes time to finish. And the first job
-    # completed, it will override with RUNNING status
+    # Executed before batch submitted, in case submitting batch from lambda takes time and the first job submitted
+    # has completed, it will override with RUNNING status
     if not event.get("skip_update_dynamodb") == "true":
         dynamodb.batch_write_records(
             table_name=DYNAMODB_RESULT_TABLE_NAME, records=dynamodb_result_update
@@ -319,7 +327,7 @@ def validate_event_data(event_record):
     # TODO: check that output_prefix is prefix only - no bucket name
     # TODO: require filepaths to have the same prefix i.e. be in the same directory
 
-    # Only allow exclude or include at one time
+    # Only allow to exclude or include at one time
     if "exclude_fns" in event_record and "include_fns" in event_record:
         logger.critical("you cannot specify both 'exclude_fns' and 'include_fns'")
         raise ValueError

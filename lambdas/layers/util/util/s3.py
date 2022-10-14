@@ -122,7 +122,7 @@ def get_s3_object_metadata(bucket_name: str, directory_prefix: str):
 
     if not (object_metadata := response.get("Contents")):
         raise ValueError(
-            f"Something went wrong. List response: {json.dumps(response, indent=4, cls=util.JsonSerialEncoder)}"
+            f"No content found! API response: {json.dumps(response, indent=4, cls=util.JsonSerialEncoder)}"
         )
     else:
         results.extend(object_metadata)
