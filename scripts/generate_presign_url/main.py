@@ -102,11 +102,12 @@ def get_argument():
 
     print("######################" * 6)
     print("Running the following")
-    print(f"Filetype : {args.filetype}")
-    print(f"Flagship : {args.flagship}")
-    print(f"IDs      : {args.study_ids}")
-    print(f"DryRun   : {args.dryrun}")
-    print(f"OutFile  : {args.out_file}")
+    print(f"Release Id: {args.study_ids}")
+    print(f"Flagship  : {args.flagship}")
+    print(f"Study Ids : {args.study_ids}")
+    print(f"Filetype  : {args.filetype}")
+    print(f"OutFile   : {args.out_file}")
+    print(f"DryRun    : {args.dryrun}")
     print("######################" * 6)
 
     return args
