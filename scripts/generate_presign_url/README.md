@@ -10,6 +10,7 @@ Parameter passed as an arguments in calling the python scripts. Parameter are as
 - `--flagship`: `str` - The flagship preferred code. [Check on the FlagShip class](../../lambdas/layers/util/util/agha.py#L9)
 - `--filetype`: `str` - The filetype that the script will find. Space seperated for multiple ids. (Options: VCF, BAM, FASTQ, CRAM). Default: all filetypes.
 - `--dryrun`: `bool` - only print the s3 key associated with the above query.
+- `--release-id`: `str` - A unique ID to identify the sharing request. This ID will be inserted as a custom parameter in the presignedUrl for access tracking.
 
 To execute the script, just call main.py and include the parameter.
 
@@ -21,12 +22,13 @@ NOTE: Make sure use correct AWS credentials that valid up to 7 days.
 
 ###### Command example for the following parameter
 
-study_id : A00001, A00002, A00003  
-flagship : GI  
-filetype : BAM, FASTQ
+study_id    : A00001, A00002, A00003
+flagship    : GI
+filetype    : BAM, FASTQ
+release_id  : USER007
 
 ```
-python3 main.py --study-ids A00001 A00002 A00003 --flagship GI --filetype BAM FASTQ
+python3 main.py --study-ids A00001 A00002 A00003 --flagship GI --filetype BAM FASTQ --release-id USER007
 ```
 
 ## The setup before executing the script
