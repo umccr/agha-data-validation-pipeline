@@ -4,6 +4,7 @@ from enum import Enum
 from typing import List
 import os
 import uuid
+import math
 
 import util
 
@@ -204,14 +205,25 @@ def delete_s3_object_from_key(bucket_name: str, key_list: list):
 
     # Delete the key in s3
     s3_client = util.get_client("s3")
-    res = s3_client.delete_objects(
-        Bucket=bucket_name,
-        Delete={
-            "Objects": objects_of_key,
-        },
-    )
 
-    return res
+    resArr = []
+
+    # Due to limit of 1000 keys from boto3 to delete object, splitting this to loops.
+    # Ref: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.delete_objects
+    limit = 1000
+    for i in range(math.ceil(len(objects_of_key) / limit)):
+        sta = i * limit
+        stp = (i + 1) * limit
+
+        res = s3_client.delete_objects(
+            Bucket=bucket_name,
+            Delete={
+                "Objects": objects_of_key[sta:stp],
+            },
+        )
+        resArr.append(res)
+
+    return resArr
 
 
 def upload_s3_object_local_file(

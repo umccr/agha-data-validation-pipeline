@@ -97,7 +97,7 @@ def handler(event, context):
             res = s3.delete_s3_object_from_key(
                 bucket_name=STAGING_BUCKET, key_list=deletion_key_list
             )
-            logger.debug(f"Deletion response {res}")
+            logger.debug(f"Deletion response: {json.dumps(res, indent=4)}")
             logger.info(f"Deletion job success!")
 
         except Exception as e:
