@@ -102,6 +102,11 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
     columns_present = set(data.manifest_data.columns.tolist())
     columns_missing = MANIFEST_REQUIRED_COLUMNS.difference(columns_present)
 
+    is_checksum_unique = data.manifest_data["checksum"].is_unique
+
+    if not is_checksum_unique:
+        raise ValueError(json.dumps("Manifest contain duplicated checksums", indent=4, cls=util.JsonSerialEncoder))
+
     if columns_missing:
         plurality = 'column' if len(columns_missing) == 1 else 'columns'
         cmissing_str = '\r\t'.join(columns_missing)
@@ -210,7 +215,7 @@ def validate_manifest(data: SubmissionData, postfix_exception_list: list, skip_c
     # Check for error messages, exit in strict mode otherwise just emit warnings
     if messages_error:
         plurality = 'message' if len(messages_error) == 1 else 'messages'
-        notification.MESSAGE_STORE.append('----------'*3)  # Extra line before messages
+        notification.MESSAGE_STORE.append('----------' * 3)  # Extra line before messages
         message_base = f'Manifest failed validation with the following {plurality}:'
         messages_error.insert(0, message_base)
         notification.log_and_store_list_message(messages_error, level='critical')

@@ -1,7 +1,7 @@
 """
 To run the testcase
 
-Change directory the the s3_event_router
+Change directory the s3_event_router
 cmd from root directory: cd lambdas/functions/manifest_processor
 
 Run python test command:
