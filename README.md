@@ -1,14 +1,15 @@
 # AGHA data validation stack
 
 This is the active branch of the pipeline (version 2).
+
 ---
 This stack is used to handle and validate data received as part of the AGHA GDR project. The primary functions are:
 
 1. take receipt of genomic files in a staging area
 2. validate genomic files, and generate indexes if required
 3. store file validation results in a database
-4. move genomic files to a data store along with indexes _[planned]_
-5. generate validation reports _[planned]_
+4. move genomic files to a data store along with indexes
+5. generate validation reports
 
 ## Table of contents
 
@@ -17,7 +18,7 @@ This stack is used to handle and validate data received as part of the AGHA GDR 
 * [How it works](#how-it-works)
 * [Prerequisites](#prerequisites)
 * [Deployment](#deployment)
-* [Usage](#usage)
+* [Usage](#usage)**
 * [Lambda](#lambda)
 * [Database (DynamoDb)](#database)
 * [Batch](#batch)
@@ -25,43 +26,40 @@ This stack is used to handle and validate data received as part of the AGHA GDR 
 
 ## S3 Data Sharing
 
-We support S3 data sharing for data in store to other S3 in the same `ap-southeast-2` region. Instructions are at the
-docs folder ([click here](./docs/gdr-s3-data-sharing.md)).
+We support S3 data sharing for data in-store to other S3 in the same `ap-southeast-2` region. Instructions are in the docs folder ([click here](./docs/gdr-s3-data-sharing.md)).
 
 ## Schematic
 
-<p align="center"><img src="images/schematic2.0.png" width="80%"></p>
+![schematic](docs/images/schematic.drawio.svg)
 
 ## How it works
 
 In summary,
 
 1. Every uploaded file in the bucket
-    1. A dynamodb record store file metadata for easy access.
-2. If manifest uploaded to the staging bucket
-    1. The bucket change the submission to read-only
-    2. Manifest check are triggered
-    3. Notification is triggered to the data manager, and submitter.
-    4. File validation through _AWS batch job_ with
+    1. A dynamodb record stores file metadata for easy access.
+2. If the manifest file is uploaded to the staging bucket
+    1. The bucket for that flagship will turn to read-only
+    2. The system will validate the manifest file
+    3. A notification is triggered to the data manager and submitter (if provided).
+    4. The System will validate the submitted file through _AWS batch job_ with
        the [python script](https://github.com/umccr/agha-data-validation-scripts) at is triggered.
-3. When triggered batch job triggered
+3. During data validation
     1. Results and logs are output to the result bucket
-    2. Event listener will read these files and input to dynamodb for easy file access.
-4. When all run accordingly, moving could start by invoking _data_transfer_manager_ lambda
-    1. It will remove bucket locks
-    2. Copy data over, including maniefst record at staging bucket
-    3. Trigger move operation via AWS CLI in batch
+    2. Write results to dynamodb for easy access.
+4. After validation is completed successfully
+    1. Copy data over including manifest file from staging to the store bucket
 
 _NOTE: Validation script is located at a different repository.
 Repository: [UMCCR/agha-data-validation-scripts](https://github.com/umccr/agha-data-validation-scripts)_
 
 ## Simpler Diagrams
 
-This diagram will describe each flows.
-<p align="center"><img src="images/SimplifyDiagram-submitting.png" width="80%"></p>
-<p align="center"><img src="images/SimplifyDiagram-storing.png" width="80%"></p>
-<p align="center"><img src="images/SimplifyDiagram-checking.png" width="80%"></p>
-<p align="center"><img src="images/SimplifyDiagram-cleanup.png" width="80%"></p>
+This diagram will describe each flow.
+<p align="center"><img src="docs/images/SimplifyDiagram-submitting.png" width="80%"></p>
+<p align="center"><img src="docs/images/SimplifyDiagram-storing.png" width="80%"></p>
+<p align="center"><img src="docs/images/SimplifyDiagram-checking.png" width="80%"></p>
+<p align="center"><img src="docs/images/SimplifyDiagram-cleanup.png" width="80%"></p>
 
 ## Prerequisites
 
@@ -79,13 +77,12 @@ The stack has some software requirements for deploy:
 
 ### Configure
 
-The cdk application will mostly configure the infrastructure as shown in the picture. Just make sure constants props
-defined in app.py are correct.
+The cdk application will mostly configure the infrastructure as shown in the picture. Just make sure the constants props defined in app.py are correct.
 
 ### Deploy stack
 
-The stack contain a pipeline will take source code from the repository and self-update the pipeline when new code commit
-is detected to this repository. Initialize setup of pipeline is necessary and only be done once.
+The stack contains a pipeline that will take source code from the repository and self-update the pipeline when a new code commit
+is detected to this repository. Initialize setup of the pipeline is necessary and only be done once.
 
 ```bash
 cdk deploy AGHADynamoDBStack
@@ -93,10 +90,9 @@ cdk deploy AGHAValidationCodePipeline
 ```
 
 Make sure to set up aws profile by `export AWS_PROFILE=${PROFIE_NAME}` or add `--porfile=${PROFIE_NAME}` flag
+The app has three stacks:
 
-The app have three stacks:
-
-- **AGHADynamoDBStack** - The stack for dynamodb table only. Need to be defined once and is seperated from all other
+- **AGHADynamoDBStack** - The stack for dynamodb table only. Need to be defined once and is separated from all other
   stacks.
 - **AGHAValidationCodePipeline** - The stack for the self-update codepipeline and will listen to GitHub commit event.
 - **AGHAValidationCodePipeline/AGHAValidationPipelineStage/agha-gdr-validation-pipeline** - The application stack where
@@ -104,13 +100,13 @@ The app have three stacks:
 
 ###### Deploying Manually [Not Necessary]
 
-You could skip this part if you do not want to deploy this manyually.
+You could skip this part if you do not want to deploy this manually.
 
 The application stack could be compiled and deployed manually, with the pre-requisite _AGHADynamoDBStack_ stack must be
 deployed once before deploying manually.
 
-To deploy Manually, please make sure lambda layers are correctly build and in the correct location. The following
-command is to build the layers. (Please make sure docker are available.)
+To deploy Manually, please make sure lambda layers are correctly built and in the correct location. The following
+command is to build the layers. (Please make sure docker is available.)
 
 ```
 for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d);do /bin/bash ./build_lambda_layers.sh ${dir}; done
@@ -163,7 +159,7 @@ make loaddata
 
 ###### # Finishing
 
-To shut local development
+To shut down local development
 
 ```bash
 make down
@@ -180,20 +176,20 @@ flagships.
 Upload the corresponding submissions with `manifest.txt` to be uploaded the last. This is important as it will lock the
 bucket from further upload, and will trigger the downstream process.
 
-This Lambda function when manifest is uploaded:
+This Lambda function when the manifest file is uploaded:
 
 * Add bucket policy to read-only
 * Validate manifest data structure (e.g. correct format, no black data)
 * Send notification about the submission.
 * Create records in DynamoDB for file properties along with manifest data for ease of access
-* Run validate validate file batch job (if automation is enabled)
+* Run file validation batch job
 
 The validation results, logs, and indexes are uploaded to the results S3 bucket using a key prefix matching the input
 `manifest.txt` and with run directory e.g. `Cardiac/2021_08_25/<rundate>_<runtime>_<uid>/`.
 
 ### Manual triggering
 
-In general, all lambdas could be run manually with a specific payload. This is useful if lambdas have an error, or any
+All lambdas could be run manually with a specific payload. This is useful if lambdas have an error, or any
 of the validation needs any re-triggering to be done.
 
 ### Lambda
@@ -215,7 +211,7 @@ A quick summary for each function.
 - **manifest-processor:** Would do a quick validation from the manifest received. The lambda would update dynamodb from
   the manifest.txt content for easy access via DynamoDb. In general, the lambda would do the following:
     - Add manifest data (agha_study_id and checksum) to DynamoDB
-    - Check if all data in manifest exist
+    - Check if all data in the manifest exist
     - Check if the same eTag has existed (error returned if exist)
     - Check if the manifest has complete/correct data/format
     - Trigger `notification` lambda for the validation result
@@ -291,17 +287,17 @@ The following are arguments supported on each lambda. Recommended invoking lambd
 
 ### manifest-processor
 
-| Argument                   | Description                                   | Type           | Example                            |
-|----------------------------|-----------------------------------------------|----------------|------------------------------------|
-| bucket_name [REQUIRED]     | Bucket name to check                          | String         | "somebucketname"                   |
-| manifest_fp [REQUIRED]     | Manifest filepath                             | String         | "FLAGSHIP/SUBMISSION/manifest.txt" |
-| email_report_to            | Configure this for email notification         | String         | "john.doe@email.com"               |
-| skip_auto_validation       | Disable triggering validation manager lambda  | Boolean        | true                               |
-| skip_update_dynamodb       | Allow skipping dynamodb update                | Boolean        | true                               |
-| skip_send_notification     | Allow skipping notification trigger           | Boolean        | true                               |
-| skip_checksum_validation   | Allow skipping checksum validation            | Boolean        | true                               |
-| skip_duplication_check     | Allow skipping checksum validation            | Boolean        | true                               |
-| exception_postfix_filename | Skip checking on file in this list of postfix | List of string | ["metadata.txt", ".md5", etc.]     |
+| Argument                      | Description                                   | Type           | Example                            |
+|-------------------------------|-----------------------------------------------|----------------|------------------------------------|
+| bucket_name [REQUIRED]        | Bucket name to check                          | String         | "somebucketname"                   |
+| manifest_fp [REQUIRED]        | Manifest filepath                             | String         | "FLAGSHIP/SUBMISSION/manifest.txt" |
+| email_report_to    [REQUIRED] | Configure this for email notification         | String         | "john.doe@email.com"               |
+| skip_auto_validation          | Disable triggering validation manager lambda  | Boolean        | true                               |
+| skip_update_dynamodb          | Allow skipping dynamodb update                | Boolean        | true                               |
+| skip_send_notification        | Allow skipping notification trigger           | Boolean        | true                               |
+| skip_checksum_validation      | Allow skipping checksum validation            | Boolean        | true                               |
+| skip_duplication_check        | Allow skipping checksum validation            | Boolean        | true                               |
+| exception_postfix_filename    | Skip checking on file in this list of postfix | List of string | ["metadata.txt", ".md5", etc.]     |
 
 ### validation-manager
 
