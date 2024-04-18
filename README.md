@@ -18,7 +18,7 @@ This stack is used to handle and validate data received as part of the AGHA GDR 
 * [How it works](#how-it-works)
 * [Prerequisites](#prerequisites)
 * [Deployment](#deployment)
-* [Usage](#usage)**
+* [Usage](#usage)
 * [Lambda](#lambda)
 * [Database (DynamoDb)](#database)
 * [Batch](#batch)
