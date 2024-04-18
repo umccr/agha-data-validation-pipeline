@@ -60,7 +60,7 @@ def handler(event, context):
         recipients = [MANAGER_EMAIL]
         submitter_email = submitter_info.get("email", None)
 
-        if submitter_email is not None:
+        if submitter_email:
             recipients.append(submitter_email)
 
         logger.info(f"""Sending email: {recipients}>""")
