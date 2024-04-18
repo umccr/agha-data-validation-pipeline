@@ -95,7 +95,7 @@ def validate_manifest(
     columns_present = set(data.manifest_data.columns.tolist())
     columns_missing = MANIFEST_REQUIRED_COLUMNS.difference(columns_present)
 
-    is_checksum_unique = data.manifest_data["checksum"].is_unique
+    is_checksum_unique = data.manifest_data["checksum"].dropna().is_unique
 
     if not is_checksum_unique:
         raise ValueError(

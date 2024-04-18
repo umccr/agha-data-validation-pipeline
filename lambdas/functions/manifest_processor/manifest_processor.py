@@ -280,7 +280,7 @@ def handler(event, context):
 
             file_etag = query_submission_df["etag"].values[0]
 
-            # Check if the file eTag has appear else than this staging bucket and warn if so.
+            # Check if the file eTag has appeared else than this staging bucket and warn if so.
             logger.info("Check if the same Etag has exist in the database")
             etag_response = dynamodb.get_item_from_pk(
                 DYNAMODB_ETAG_TABLE_NAME, file_etag

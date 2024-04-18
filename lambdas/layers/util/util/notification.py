@@ -101,9 +101,8 @@ def notify_and_exit():
         logger.info(f"SUBMITTER_INFO has been found with email:{SUBMITTER_INFO.email}")
         send_notifications()
     else:
-        logger.warning(f"Could not find Submitter Information:")
-
-    raise Exception
+        logger.warning(f"Could not find Submitter Information.")
+        send_notifications()
 
 
 ########################################################################################################################

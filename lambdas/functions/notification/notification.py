@@ -39,7 +39,11 @@ def handler(event, context):
     {
         "messages": messages,
         "subject" : subject,
-        "submitter_info": submitter_info.__init__
+        "submitter_info": {
+            "name": str,
+            "email":str, // OPTIONAL
+            "submission_prefix": str
+        }
     }
 
     :param event: S3 event to parse user
@@ -53,11 +57,15 @@ def handler(event, context):
     submitter_info = event["submitter_info"]
 
     if EMAIL_NOTIFY == "yes":
-        logger.info(
-            f'Sending email to {submitter_info["name"]} <{submitter_info["email"]}>'
-        )
+        recipients = [MANAGER_EMAIL]
+        submitter_email = submitter_info.get("email", None)
+
+        if submitter_email:
+            recipients.append(submitter_email)
+
+        logger.info(f"""Sending email: {recipients}>""")
+
         logger.info("\r".join(messages))
-        recipients = [MANAGER_EMAIL, submitter_info["email"]]
         email_body = make_email_body_html(
             submitter_info["submission_prefix"], submitter_info["name"], messages
         )
