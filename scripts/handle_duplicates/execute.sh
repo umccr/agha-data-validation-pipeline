@@ -43,5 +43,3 @@ aws sts get-caller-identity >/dev/null 2>&1 || {
 python find_and_delete_duplicates.py --bucket_name ${BUCKET_NAME} --flagship ${FLAGSHIP}
 
 echo "Script Execute Successfully"
-
-

@@ -1,14 +1,10 @@
-from aws_cdk import (
-    aws_dynamodb as dynamodb,
-    core
-)
+from aws_cdk import aws_dynamodb as dynamodb, core
 
 
 class DynamoDBStack(core.Stack):
-
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
-        
+
         dynamodb_table = self.node.try_get_context("dynamodb_table")
 
         ################################################################################
@@ -17,18 +13,18 @@ class DynamoDBStack(core.Stack):
 
         self.dynamodb_staging_bucket = dynamodb.Table(
             self,
-            'DynamoDBTableStagingBucket',
-            table_name=dynamodb_table['staging-bucket'],
+            "DynamoDBTableStagingBucket",
+            table_name=dynamodb_table["staging-bucket"],
             partition_key=dynamodb.Attribute(
-                name='partition_key',
+                name="partition_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='sort_key',
+                name="sort_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,
-            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
         )
 
         ################################################################################
@@ -38,64 +34,64 @@ class DynamoDBStack(core.Stack):
 
         self.dynamodb_staging_bucket_archive = dynamodb.Table(
             self,
-            'DynamoDBTableStagingBucketArchive',
-            table_name=dynamodb_table['staging-bucket-archive'],
+            "DynamoDBTableStagingBucketArchive",
+            table_name=dynamodb_table["staging-bucket-archive"],
             partition_key=dynamodb.Attribute(
-                name='partition_key',
+                name="partition_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='sort_key',
+                name="sort_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,
-            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
         )
 
         ################################################################################
         # Table for result bucket dynamodb table
         # Partition Key: S3 key
         # Sort Key: Combination of output, validation type
-        #           (e.g. Output may be file and the type validation is checksum. 
+        #           (e.g. Output may be file and the type validation is checksum.
         #            sort key would be FILE:CHECKSUM:LOG )
 
         self.dynamodb_result_bucket = dynamodb.Table(
             self,
-            'DynamoDBTableResultBucket',
-            table_name=dynamodb_table['result-bucket'],
+            "DynamoDBTableResultBucket",
+            table_name=dynamodb_table["result-bucket"],
             partition_key=dynamodb.Attribute(
-                name='partition_key',
+                name="partition_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='sort_key',
+                name="sort_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,
-            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
         )
 
         ################################################################################
         # Archived Table for result bucket dynamodb table
         # Partition Key: S3 key with timestamp
         # Sort Key: Combination of output, validation type
-        #           (e.g. Output may be file and the type validation is checksum. 
+        #           (e.g. Output may be file and the type validation is checksum.
         #            sort key would be FILE:CHECKSUM:LOG )
 
         self.dynamodb_result_bucket_archive = dynamodb.Table(
             self,
-            'DynamoDBTableResultBucketArchive',
-            table_name=dynamodb_table['result-bucket-archive'],
+            "DynamoDBTableResultBucketArchive",
+            table_name=dynamodb_table["result-bucket-archive"],
             partition_key=dynamodb.Attribute(
-                name='partition_key',
+                name="partition_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='sort_key',
+                name="sort_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,
-            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
         )
 
         ################################################################################
@@ -104,18 +100,18 @@ class DynamoDBStack(core.Stack):
 
         self.dynamodb_store_bucket = dynamodb.Table(
             self,
-            'DynamoDBTableStoreBucket',
-            table_name=dynamodb_table['store-bucket'],
+            "DynamoDBTableStoreBucket",
+            table_name=dynamodb_table["store-bucket"],
             partition_key=dynamodb.Attribute(
-                name='partition_key',
+                name="partition_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='sort_key',
+                name="sort_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,
-            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
         )
 
         ################################################################################
@@ -125,18 +121,18 @@ class DynamoDBStack(core.Stack):
 
         self.dynamodb_store_bucket_archive = dynamodb.Table(
             self,
-            'DynamoDBTableStoreBucketArchive',
-            table_name=dynamodb_table['store-bucket-archive'],
+            "DynamoDBTableStoreBucketArchive",
+            table_name=dynamodb_table["store-bucket-archive"],
             partition_key=dynamodb.Attribute(
-                name='partition_key',
+                name="partition_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='sort_key',
+                name="sort_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,
-            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
         )
 
         ################################################################################
@@ -147,16 +143,16 @@ class DynamoDBStack(core.Stack):
 
         self.dynamodb_e_tag = dynamodb.Table(
             self,
-            'DynamoDBTableETag',
-            table_name=dynamodb_table['e-tag'],
+            "DynamoDBTableETag",
+            table_name=dynamodb_table["e-tag"],
             partition_key=dynamodb.Attribute(
-                name='partition_key',
+                name="partition_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name='sort_key',
+                name="sort_key",
                 type=dynamodb.AttributeType.STRING,
             ),
             removal_policy=core.RemovalPolicy.RETAIN,
-            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
         )

@@ -12,11 +12,12 @@ from enum import Enum
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-DYNAMODB_RESOURCE = ''
+DYNAMODB_RESOURCE = ""
 
 
 ########################################################################################################################
 # Table: agha-gdr-e-tag
+
 
 class ETagFileRecord:
     """
@@ -27,7 +28,7 @@ class ETagFileRecord:
     - bucket_name: Name of the bucket stored
     """
 
-    def __init__(self, etag='', s3_key='', bucket_name=''):
+    def __init__(self, etag="", s3_key="", bucket_name=""):
         self.partition_key = etag
         self.sort_key = self.construct_etag_table_sort_key(bucket_name, s3_key)
         self.etag = etag
@@ -36,7 +37,7 @@ class ETagFileRecord:
 
     @staticmethod
     def construct_etag_table_sort_key(bucket_name, s3_key):
-        return f'BUCKET:{bucket_name}:S3_KEY:{s3_key}'
+        return f"BUCKET:{bucket_name}:S3_KEY:{s3_key}"
 
 
 ########################################################################################################################
@@ -77,31 +78,32 @@ class ManifestFileRecordAttribute(Enum):
 
 
 class FileRecordPartitionKey(Enum):
-    FILE_RECORD = 'TYPE:FILE'
-    MANIFEST_FILE_RECORD = 'TYPE:MANIFEST'
-    STATUS_MANIFEST = 'STATUS:MANIFEST'
+    FILE_RECORD = "TYPE:FILE"
+    MANIFEST_FILE_RECORD = "TYPE:MANIFEST"
+    STATUS_MANIFEST = "STATUS:MANIFEST"
 
     def __str__(self):
         return self.value
 
 
 class ManifestStatusCheckValue(Enum):
-    FAIL = 'FAIL'
-    PASS = 'PASS'
-    NOT_COMPLETED = 'NOT_COMPLETED'
+    FAIL = "FAIL"
+    PASS = "PASS"
+    NOT_COMPLETED = "NOT_COMPLETED"
 
     def __str__(self):
         return self.value
 
 
 class ManifestStatusCheckRecord:
-
-    def __init__(self,
-                 partition_key=FileRecordPartitionKey.STATUS_MANIFEST.value,
-                 sort_key="",
-                 status=ManifestStatusCheckValue.NOT_COMPLETED.value,
-                 additional_information=None,
-                 date_modified=util.get_datetimestamp()):
+    def __init__(
+        self,
+        partition_key=FileRecordPartitionKey.STATUS_MANIFEST.value,
+        sort_key="",
+        status=ManifestStatusCheckValue.NOT_COMPLETED.value,
+        additional_information=None,
+        date_modified=util.get_datetimestamp(),
+    ):
         self.partition_key = partition_key
         self.sort_key = sort_key
         self.status = status
@@ -110,9 +112,9 @@ class ManifestStatusCheckRecord:
 
     def create_archive_dictionary(self, archive_log: str):
         archive_dict = self.__dict__.copy()
-        new_sort_key = archive_dict['sort_key'] + ':' + util.get_datetimestamp()
-        archive_dict['sort_key'] = new_sort_key
-        archive_dict['archive_log'] = archive_log
+        new_sort_key = archive_dict["sort_key"] + ":" + util.get_datetimestamp()
+        archive_dict["sort_key"] = new_sort_key
+        archive_dict["archive_log"] = archive_log
 
         return archive_dict
 
@@ -126,16 +128,18 @@ class FileRecord:
     All other attributes are self explanatory (although some can automatically be derived from the object key)
     """
 
-    def __init__(self,
-                 partition_key="",
-                 sort_key="",
-                 s3_key="",
-                 bucket_name="",
-                 etag="",
-                 filename="",
-                 filetype="",
-                 date_modified="",
-                 size_in_bytes=0):
+    def __init__(
+        self,
+        partition_key="",
+        sort_key="",
+        s3_key="",
+        bucket_name="",
+        etag="",
+        filename="",
+        filetype="",
+        date_modified="",
+        size_in_bytes=0,
+    ):
         self.partition_key = partition_key
         self.sort_key = sort_key
         self.s3_key = s3_key
@@ -170,7 +174,7 @@ class FileRecord:
             filename=filename,
             filetype=filetype.get_name(),
             date_modified=date_modified,
-            size_in_bytes=size_in_bytes
+            size_in_bytes=size_in_bytes,
         )
 
 
@@ -181,17 +185,19 @@ class ArchiveFileRecord(FileRecord):
     There is an archived action to log the status being updated
     """
 
-    def __init__(self,
-                 partition_key="",
-                 sort_key="",
-                 bucket_name="",
-                 s3_key="",
-                 etag="",
-                 filename="",
-                 filetype="",
-                 date_modified="",
-                 size_in_bytes=0,
-                 archive_log=""):
+    def __init__(
+        self,
+        partition_key="",
+        sort_key="",
+        bucket_name="",
+        s3_key="",
+        etag="",
+        filename="",
+        filetype="",
+        date_modified="",
+        size_in_bytes=0,
+        archive_log="",
+    ):
         super().__init__(
             partition_key=partition_key,
             sort_key=sort_key,
@@ -201,13 +207,15 @@ class ArchiveFileRecord(FileRecord):
             filename=filename,
             filetype=filetype,
             date_modified=date_modified,
-            size_in_bytes=size_in_bytes
+            size_in_bytes=size_in_bytes,
         )
         self.archive_log = archive_log
 
     @classmethod
-    def create_archive_file_record_from_file_record(cls, file_record: FileRecord, archive_log):
-        sort_key = file_record.sort_key + ':' + util.get_datetimestamp()
+    def create_archive_file_record_from_file_record(
+        cls, file_record: FileRecord, archive_log
+    ):
+        sort_key = file_record.sort_key + ":" + util.get_datetimestamp()
 
         return cls(
             partition_key=file_record.partition_key,
@@ -219,14 +227,12 @@ class ArchiveFileRecord(FileRecord):
             filetype=file_record.filetype,
             date_modified=util.get_datetimestamp(),
             size_in_bytes=file_record.size_in_bytes,
-            archive_log=archive_log
+            archive_log=archive_log,
         )
 
     @classmethod
     def create_archive_file_record_from_json(cls, file_record_json, archive_log):
-        return cls(
-            **file_record_json, archive_log=archive_log
-        )
+        return cls(**file_record_json, archive_log=archive_log)
 
 
 # Manifest Record
@@ -238,18 +244,20 @@ class ManifestFileRecord:
     All other attributes are self explanatory (although some can automatically be derived from the object key)
     """
 
-    def __init__(self,
-                 partition_key="",
-                 sort_key="",
-                 flagship="",
-                 filename="",
-                 filetype="",
-                 submission="",
-                 date_modified="",
-                 provided_checksum="",
-                 agha_study_id="",
-                 is_in_manifest="",
-                 validation_status=""):
+    def __init__(
+        self,
+        partition_key="",
+        sort_key="",
+        flagship="",
+        filename="",
+        filetype="",
+        submission="",
+        date_modified="",
+        provided_checksum="",
+        agha_study_id="",
+        is_in_manifest="",
+        validation_status="",
+    ):
         self.partition_key = partition_key
         self.sort_key = sort_key
         self.flagship = flagship
@@ -274,20 +282,21 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
     There is an archived action to log the status being updated
     """
 
-    def __init__(self,
-                 partition_key="",
-                 sort_key="",
-                 flagship="",
-                 filename="",
-                 filetype="",
-                 submission="",
-                 date_modified="",
-                 provided_checksum="",
-                 agha_study_id="",
-                 validation_status="",
-                 is_in_manifest="",
-                 archive_log=""
-                 ):
+    def __init__(
+        self,
+        partition_key="",
+        sort_key="",
+        flagship="",
+        filename="",
+        filetype="",
+        submission="",
+        date_modified="",
+        provided_checksum="",
+        agha_study_id="",
+        validation_status="",
+        is_in_manifest="",
+        archive_log="",
+    ):
         super().__init__(
             partition_key=partition_key,
             sort_key=sort_key,
@@ -299,13 +308,15 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
             provided_checksum=provided_checksum,
             agha_study_id=agha_study_id,
             is_in_manifest=is_in_manifest,
-            validation_status=validation_status
+            validation_status=validation_status,
         )
         self.archive_log = archive_log
 
     @classmethod
-    def create_archive_manifest_record_from_manifest_record(cls, manifest_record: ManifestFileRecord, archive_log):
-        sort_key = manifest_record.sort_key + ':' + util.get_datetimestamp()
+    def create_archive_manifest_record_from_manifest_record(
+        cls, manifest_record: ManifestFileRecord, archive_log
+    ):
+        sort_key = manifest_record.sort_key + ":" + util.get_datetimestamp()
 
         return cls(
             partition_key=manifest_record.partition_key,
@@ -319,7 +330,7 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
             agha_study_id=manifest_record.agha_study_id,
             validation_status=manifest_record.validation_status,
             is_in_manifest=manifest_record.is_in_manifest,
-            archive_log=archive_log
+            archive_log=archive_log,
         )
 
 
@@ -331,6 +342,7 @@ class ArchiveManifestFileRecord(ManifestFileRecord):
 # 2. ResultRecord class (defined below) to hold the data output of the test. ResultRecord class may contain 2 types. \
 #       Explanation defined at the docstring class
 
+
 class ResultPartitionKey(Enum):
     FILE = "FILE"
     STATUS = "STATUS"
@@ -341,7 +353,7 @@ class ResultPartitionKey(Enum):
 
     @staticmethod
     def create_partition_key_with_result_prefix(data_type, check_type):
-        return f'{data_type}:{check_type}'
+        return f"{data_type}:{check_type}"
 
 
 class ResultRecord:
@@ -360,7 +372,7 @@ class ResultRecord:
 
     """
 
-    def __init__(self, partition_key='', date_modified="", sort_key='', value=''):
+    def __init__(self, partition_key="", date_modified="", sort_key="", value=""):
         self.partition_key = partition_key
         self.sort_key = sort_key
         self.date_modified = date_modified
@@ -368,36 +380,35 @@ class ResultRecord:
 
 
 class ArchiveResultRecord(ResultRecord):
-    def __init__(self,
-                 partition_key="",
-                 sort_key="",
-                 date_modified="",
-                 value="",
-                 archive_log=""
-                 ):
+    def __init__(
+        self, partition_key="", sort_key="", date_modified="", value="", archive_log=""
+    ):
         super().__init__(
             partition_key=partition_key,
             sort_key=sort_key,
             date_modified=date_modified,
-            value=value
+            value=value,
         )
         self.archive_log = archive_log
 
     @classmethod
-    def create_archive_result_record_from_result_record(cls, result_record: ResultRecord, archive_log):
-        sort_key = result_record.sort_key + ':' + util.get_datetimestamp()
+    def create_archive_result_record_from_result_record(
+        cls, result_record: ResultRecord, archive_log
+    ):
+        sort_key = result_record.sort_key + ":" + util.get_datetimestamp()
 
         return cls(
             partition_key=result_record.partition_key,
             sort_key=sort_key,
             date_modified=util.get_datetimestamp(),
             value=result_record.value,
-            archive_log=archive_log
+            archive_log=archive_log,
         )
 
 
 ########################################################################################################################
 # The following will contain function related to boto3 DynamoDB API
+
 
 def find_s3_metadata_from_s3_metadata_list_by_filename(filename, array):
     """
@@ -416,12 +427,12 @@ def find_s3_metadata_from_s3_metadata_list_by_filename(filename, array):
     """
     for each_array in array:
 
-        key = each_array.get('Key')
+        key = each_array.get("Key")
         key_basename = os.path.basename(key)
 
         if key_basename == filename:
             return each_array
-    raise ValueError('No metadata data found at S3')
+    raise ValueError("No metadata data found at S3")
 
 
 def get_resource():
@@ -429,11 +440,12 @@ def get_resource():
     if DYNAMODB_RESOURCE:
         return DYNAMODB_RESOURCE
     else:
-        if os.getenv('AWS_ENDPOINT'):
+        if os.getenv("AWS_ENDPOINT"):
             DYNAMODB_RESOURCE = boto3.resource(
-                service_name='dynamodb', endpoint_url=os.getenv('AWS_ENDPOINT'))
+                service_name="dynamodb", endpoint_url=os.getenv("AWS_ENDPOINT")
+            )
         else:
-            DYNAMODB_RESOURCE = boto3.resource(service_name='dynamodb')
+            DYNAMODB_RESOURCE = boto3.resource(service_name="dynamodb")
         return DYNAMODB_RESOURCE
 
 
@@ -450,18 +462,17 @@ def delete_record_from_record_class(table_name: str, record):
     tbl = ddb.Table(table_name)
 
     delete_res = tbl.delete_item(
-        Key={
-            'partition_key': record.partition_key,
-            'sort_key': record.sort_key
-        },
-        ReturnValues='ALL_OLD'
+        Key={"partition_key": record.partition_key, "sort_key": record.sort_key},
+        ReturnValues="ALL_OLD",
     )
 
-    if 'Attributes' in delete_res:
-        return delete_res['Attributes']
+    if "Attributes" in delete_res:
+        return delete_res["Attributes"]
     else:
-        return ValueError(f"partition_key: {record.partition_key}, sort_key: {record.sort_key}\
-         has not been successfully deleted from table '{table_name}'")
+        return ValueError(
+            f"partition_key: {record.partition_key}, sort_key: {record.sort_key}\
+         has not been successfully deleted from table '{table_name}'"
+        )
 
 
 def delete_record_from_dictionary(table_name: str, dictionary: dict):
@@ -478,17 +489,19 @@ def delete_record_from_dictionary(table_name: str, dictionary: dict):
 
     delete_res = tbl.delete_item(
         Key={
-            'partition_key': dictionary['partition_key'],
-            'sort_key': dictionary['sort_key']
+            "partition_key": dictionary["partition_key"],
+            "sort_key": dictionary["sort_key"],
         },
-        ReturnValues='ALL_OLD'
+        ReturnValues="ALL_OLD",
     )
 
-    if 'Attributes' in delete_res:
-        return delete_res['Attributes']
+    if "Attributes" in delete_res:
+        return delete_res["Attributes"]
     else:
-        return ValueError(f"partition_key: {dictionary['partition_key'],}, sort_key: {dictionary['sort_key']}\
-         has not been successfully deleted from table '{table_name}'")
+        return ValueError(
+            f"partition_key: {dictionary['partition_key'],}, sort_key: {dictionary['sort_key']}\
+         has not been successfully deleted from table '{table_name}'"
+        )
 
 
 def batch_delete_from_dictionary(table_name: str, dictionary_list: list):
@@ -496,24 +509,25 @@ def batch_delete_from_dictionary(table_name: str, dictionary_list: list):
     with tbl.batch_writer() as batch:
         for record in dictionary_list:
             key = {
-                "partition_key": record['partition_key'],
-                "sort_key": record['sort_key'],
+                "partition_key": record["partition_key"],
+                "sort_key": record["sort_key"],
             }
             batch.delete_item(Key=key)
 
 
-def write_main_and_archive_record_from_class(main_table_name: str, archive_table_name: str, record_class,
-                                             archive_log: str):
+def write_main_and_archive_record_from_class(
+    main_table_name: str, archive_table_name: str, record_class, archive_log: str
+):
     dynamodb_resource = get_resource()
 
     dynamodb_table = dynamodb_resource.Table(main_table_name)
     record_dict = record_class.__dict__
-    resp = dynamodb_table.put_item(Item=record_dict, ReturnValues='ALL_OLD')
+    resp = dynamodb_table.put_item(Item=record_dict, ReturnValues="ALL_OLD")
 
     archive_dynamodb_table = dynamodb_resource.Table(archive_table_name)
-    record_dict['sort_key'] = record_dict['sort_key'] + ':' + util.get_datetimestamp()
-    record_dict['archive_log'] = archive_log
-    resp = archive_dynamodb_table.put_item(Item=record_dict, ReturnValues='ALL_OLD')
+    record_dict["sort_key"] = record_dict["sort_key"] + ":" + util.get_datetimestamp()
+    record_dict["archive_log"] = archive_log
+    resp = archive_dynamodb_table.put_item(Item=record_dict, ReturnValues="ALL_OLD")
 
     return resp
 
@@ -522,7 +536,7 @@ def write_record_from_class(table_name, record) -> dict:
     dynamodb_resource = get_resource()
     dynamodb_table = dynamodb_resource.Table(table_name)
 
-    resp = dynamodb_table.put_item(Item=record.__dict__, ReturnValues='ALL_OLD')
+    resp = dynamodb_table.put_item(Item=record.__dict__, ReturnValues="ALL_OLD")
     return resp
 
 
@@ -530,7 +544,7 @@ def write_record_from_dict(table_name, record_dict) -> dict:
     dynamodb_resource = get_resource()
     dynamodb_table = dynamodb_resource.Table(table_name)
 
-    resp = dynamodb_table.put_item(Item=record_dict, ReturnValues='ALL_OLD')
+    resp = dynamodb_table.put_item(Item=record_dict, ReturnValues="ALL_OLD")
     return resp
 
 
@@ -547,7 +561,7 @@ def batch_write_record_archive(table_name: str, records: list, archive_log: str)
         for record in records:
             object = record.__dict__
             object["archive_log"] = archive_log
-            object['sort_key'] = object['sort_key'] + ':' + util.get_datetimestamp()
+            object["sort_key"] = object["sort_key"] + ":" + util.get_datetimestamp()
             batch.put_item(Item=object)
 
 
@@ -562,7 +576,7 @@ def batch_write_objects_archive(table_name: str, object_list: list, archive_log:
     tbl = get_resource().Table(table_name)
     with tbl.batch_writer() as batch:
         for object in object_list:
-            object['sort_key'] = object['sort_key'] + ':' + util.get_datetimestamp()
+            object["sort_key"] = object["sort_key"] + ":" + util.get_datetimestamp()
             object["archive_log"] = archive_log
 
             batch.put_item(Item=object)
@@ -574,14 +588,14 @@ def get_item_from_pk(table_name: str, partition_key: str):
 
     expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key)
 
-    response = tbl.query(
-        KeyConditionExpression=expr
-    )
+    response = tbl.query(KeyConditionExpression=expr)
 
     return response
 
 
-def get_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix: str, filter: str = None):
+def get_item_from_pk_and_sk(
+    table_name: str, partition_key: str, sort_key_prefix: str, filter: str = None
+):
     """
     [DEPRECATED] please use get_batch_item_from_pk_and_sk below. That function will ensure all data from the specific
     query and/or filter is being fetched, while this function will only return the first 1MB of data.
@@ -590,11 +604,10 @@ def get_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix
     tbl = ddb.Table(table_name)
 
     key_expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key) & Key(
-        FileRecordAttribute.SORT_KEY.value).begins_with(sort_key_prefix)
+        FileRecordAttribute.SORT_KEY.value
+    ).begins_with(sort_key_prefix)
 
-    func_parameter = {
-        "KeyConditionExpression": key_expr
-    }
+    func_parameter = {"KeyConditionExpression": key_expr}
 
     if filter:
         func_parameter["FilterExpression"] = filter
@@ -609,17 +622,22 @@ def get_item_from_exact_pk_and_sk(table_name: str, partition_key: str, sort_key:
     tbl = ddb.Table(table_name)
 
     expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key) & Key(
-        FileRecordAttribute.SORT_KEY.value).eq(sort_key)
+        FileRecordAttribute.SORT_KEY.value
+    ).eq(sort_key)
 
-    response = tbl.query(
-        KeyConditionExpression=expr
-    )
+    response = tbl.query(KeyConditionExpression=expr)
 
     return response
 
 
-def get_field_list_from_dynamodb_record(table_name: str, field_name: str, partition_key: str, sort_key_prefix):
-    res = get_item_from_pk_and_sk(table_name=table_name, partition_key=partition_key, sort_key_prefix=sort_key_prefix)
+def get_field_list_from_dynamodb_record(
+    table_name: str, field_name: str, partition_key: str, sort_key_prefix
+):
+    res = get_item_from_pk_and_sk(
+        table_name=table_name,
+        partition_key=partition_key,
+        sort_key_prefix=sort_key_prefix,
+    )
 
     field_list = []
     for record in res["Items"]:
@@ -628,18 +646,19 @@ def get_field_list_from_dynamodb_record(table_name: str, field_name: str, partit
     return field_list
 
 
-def get_batch_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_prefix: str, filter_expr: str = None):
+def get_batch_item_from_pk_and_sk(
+    table_name: str, partition_key: str, sort_key_prefix: str, filter_expr: str = None
+):
     ddb = get_resource()
     tbl = ddb.Table(table_name)
 
     result_item = []
 
     key_expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key) & Key(
-        FileRecordAttribute.SORT_KEY.value).begins_with(sort_key_prefix)
+        FileRecordAttribute.SORT_KEY.value
+    ).begins_with(sort_key_prefix)
 
-    func_parameter = {
-        "KeyConditionExpression": key_expr
-    }
+    func_parameter = {"KeyConditionExpression": key_expr}
 
     if filter_expr:
         func_parameter["FilterExpression"] = filter_expr
@@ -648,13 +667,13 @@ def get_batch_item_from_pk_and_sk(table_name: str, partition_key: str, sort_key_
     response = tbl.query(**func_parameter)
 
     # Extend result with query
-    result_item.extend(response['Items'])
+    result_item.extend(response["Items"])
 
     # Re-fetch until the last
-    while response.get('LastEvaluatedKey') is not None:
-        func_parameter['ExclusiveStartKey'] = response['LastEvaluatedKey']
+    while response.get("LastEvaluatedKey") is not None:
+        func_parameter["ExclusiveStartKey"] = response["LastEvaluatedKey"]
         response = tbl.query(**func_parameter)
-        result_item.extend(response['Items'])
+        result_item.extend(response["Items"])
 
     return result_item
 
@@ -667,16 +686,14 @@ def get_batch_item_from_pk_only(table_name: str, partition_key: str):
 
     key_expr = Key(FileRecordAttribute.PARTITION_KEY.value).eq(partition_key)
 
-    func_parameter = {
-        "KeyConditionExpression": key_expr
-    }
+    func_parameter = {"KeyConditionExpression": key_expr}
     response = tbl.query(**func_parameter)
-    result_item.extend(response['Items'])
+    result_item.extend(response["Items"])
 
     # Re-fetch until the last
-    while response.get('LastEvaluatedKey') is not None:
-        func_parameter['ExclusiveStartKey'] = response['LastEvaluatedKey']
+    while response.get("LastEvaluatedKey") is not None:
+        func_parameter["ExclusiveStartKey"] = response["LastEvaluatedKey"]
         response = tbl.query(**func_parameter)
-        result_item.extend(response['Items'])
+        result_item.extend(response["Items"])
 
     return result_item
