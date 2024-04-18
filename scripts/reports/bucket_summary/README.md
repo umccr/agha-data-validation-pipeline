@@ -24,7 +24,7 @@ General statistic report for 'agha-gdr-store-2.0' bucket at date 20220408.
 Statistic Entire Bucket
 ################################################################################
         File count per file type.
-        
+
         Total number of BAM: 10
         Total number of BAM_INDEX: 10
         Total number of FASTQ: 10
@@ -32,11 +32,11 @@ Statistic Entire Bucket
         Total number of UNSUPPORTED: 10
         Total number of VCF: 10
         Total number of VCF_INDEX: 10
-    
+
     ================================================================================
-    
+
         Total file size in bytes per file type.
-        
+
         Total file size of BAM (in bytes): 10000
         Total file size of BAM_INDEX (in bytes): 10000
         Total file size of FASTQ (in bytes): 10000
@@ -50,7 +50,7 @@ Statistic Entire Bucket
 Checking FlagShip XXX (xxx)
 ################################################################################
         File count per file type.
-        
+
         Total number of BAM: 10
         Total number of BAM_INDEX: 10
         Total number of FASTQ: 10
@@ -58,11 +58,11 @@ Checking FlagShip XXX (xxx)
         Total number of UNSUPPORTED: 10
         Total number of VCF: 10
         Total number of VCF_INDEX: 10
-    
+
     ================================================================================
-    
+
         Total file size in bytes per file type.
-        
+
         Total file size of BAM (in bytes): 10000
         Total file size of BAM_INDEX (in bytes): 10000
         Total file size of FASTQ (in bytes): 10000

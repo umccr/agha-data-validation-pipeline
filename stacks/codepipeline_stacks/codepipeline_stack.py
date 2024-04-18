@@ -9,7 +9,8 @@ from aws_cdk import (
     aws_iam as iam,
     pipelines as pipelines,
 )
-from stacks.agha_stacks.agha_stack import  AghaStack
+from stacks.agha_stacks.agha_stack import AghaStack
+
 
 class AGHAValidationPipelineStage(cdk.Stage):
     def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
@@ -23,15 +24,14 @@ class AGHAValidationPipelineStage(cdk.Stage):
             self,
             namespace,
             tags={
-                'Stack': namespace,
-                'Creator': f"cdk-codepipeline-{namespace}",
+                "Stack": namespace,
+                "Creator": f"cdk-codepipeline-{namespace}",
             },
-            env=aws_env
+            env=aws_env,
         )
 
 
 class CodePipelineStack(cdk.Stack):
-
     def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
@@ -48,10 +48,10 @@ class CodePipelineStack(cdk.Stack):
         pipeline_artifact_bucket = s3.Bucket(
             self,
             "PipelineArtifactBucket",
-            bucket_name = pipeline_props["artifact_bucket_name"],
-            auto_delete_objects = True,
-            removal_policy = cdk.RemovalPolicy.DESTROY,
-            block_public_access= s3.BlockPublicAccess.BLOCK_ALL
+            bucket_name=pipeline_props["artifact_bucket_name"],
+            auto_delete_objects=True,
+            removal_policy=cdk.RemovalPolicy.DESTROY,
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
         )
 
         # Create a pipeline for agha self-mutate
@@ -67,28 +67,30 @@ class CodePipelineStack(cdk.Stack):
         ################################################################################
         # Add Source Stage to pipeline
 
-        codestar_arn = ssm.StringParameter.from_string_parameter_attributes(self, "codestarArn",
-            parameter_name="codestar_github_arn"
+        codestar_arn = ssm.StringParameter.from_string_parameter_attributes(
+            self, "codestarArn", parameter_name="codestar_github_arn"
         ).string_value
 
         github_source_action = codepipeline_actions.CodeStarConnectionsSourceAction(
             action_name="GitHub_Source",
-            owner='umccr',
-            repo=pipeline_props['repository_name'],
+            owner="umccr",
+            repo=pipeline_props["repository_name"],
             connection_arn=codestar_arn,
-            branch=pipeline_props['branch_name'],
-            output=github_source_output
+            branch=pipeline_props["branch_name"],
+            output=github_source_output,
         )
 
         agha_validation_build_pipeline.add_stage(
-            stage_name='GitHub_Source_Stage',
-            actions=[github_source_action], # Might add ECR
+            stage_name="GitHub_Source_Stage",
+            actions=[github_source_action],  # Might add ECR
         )
 
         ################################################################################
         # CDK self mutating pipeline
 
-        code_pipeline_file_set = pipelines.CodePipelineFileSet.from_artifact(github_source_output)
+        code_pipeline_file_set = pipelines.CodePipelineFileSet.from_artifact(
+            github_source_output
+        )
 
         self_mutate_pipeline = pipelines.CodePipeline(
             self,
@@ -100,38 +102,29 @@ class CodePipelineStack(cdk.Stack):
                 commands=[
                     "for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d);"
                     "do /bin/bash ./build_lambda_layers.sh ${dir}; done",
-
                     # CDK synth
-                    "cdk synth AGHAValidationCodePipeline --verbose"
+                    "cdk synth AGHAValidationCodePipeline --verbose",
                 ],
                 install_commands=[
                     "npm install -g aws-cdk",
                     "pip install -r requirements.txt",
-                    "docker -v"
+                    "docker -v",
                 ],
-                primary_output_directory="cdk.out"
+                primary_output_directory="cdk.out",
             ),
             code_build_defaults=pipelines.CodeBuildOptions(
                 build_environment=codebuild.BuildEnvironment(
-                    build_image=codebuild.LinuxBuildImage.STANDARD_5_0,
-                    privileged=True
+                    build_image=codebuild.LinuxBuildImage.STANDARD_5_0, privileged=True
                 ),
                 role_policy=[
                     iam.PolicyStatement(
-                        actions=["ec2:Describe*", "ec2:Get*"],
-                        resources=["*"]
+                        actions=["ec2:Describe*", "ec2:Get*"], resources=["*"]
                     )
-                ]
-            )
+                ],
+            ),
         )
 
         # Deploy infrastructure
         self_mutate_pipeline.add_stage(
-            stage=AGHAValidationPipelineStage(
-                self,
-                "AGHAValidationPipelineStage"
-            )
+            stage=AGHAValidationPipelineStage(self, "AGHAValidationPipelineStage")
         )
-
-
-

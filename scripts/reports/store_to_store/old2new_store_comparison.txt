@@ -1,14 +1,14 @@
 Comparison Report between old/new store (agha-gdr-store / agha-gdr-store-2.0)
     Total number of prefixes (submissions): 100
-    
-    
-    
-    
+
+
+
+
 ################################################################################
 Checking FlagShip ACUTE_CARE_GENOMICS
 ################################################################################
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ACG/2020-01-31/ against agha-gdr-store-2.0/AC/2020-01-31/
         Comparing S3 bucket content
@@ -17,7 +17,7 @@ Checking FlagShip ACUTE_CARE_GENOMICS
         Number of identical records: 304
         Number of records only in agha-gdr-store: 68
         Number of records only in agha-gdr-store-2.0: 66
-        
+
         Checking file only in agha-gdr-store
             53/68 differences explainable (15 unexplained).
             Unexplained differences:
@@ -39,7 +39,7 @@ Checking FlagShip ACUTE_CARE_GENOMICS
                           19W000434-FAM000254.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "0f2be39edb50eefa0cec380398f3bb12-2" 21724388.0 left_only
                            19W00168-FAM000225.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "42e9ca0eb3298dadae787487972b1d34-2" 22639166.0 left_only
             --------------------------------------------------------------------------------
-        
+
         Checking file only in agha-gdr-store-2.0
             51/66 differences explainable (15 unexplained).
             Unexplained differences:
@@ -61,8 +61,8 @@ Checking FlagShip ACUTE_CARE_GENOMICS
                           19W000434-FAM000254.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "bf0dedaed35740079c6d7860f52d9591-3" 21724388.0 right_only
                            19W00168-FAM000225.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "08feeba990f1615d2c6728f96da2276b-3" 22639166.0 right_only
             --------------------------------------------------------------------------------
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ACG/2020-02-30/ against agha-gdr-store-2.0/AC/2020-02-30/
         Comparing S3 bucket content
@@ -71,7 +71,7 @@ Checking FlagShip ACUTE_CARE_GENOMICS
         Number of identical records: 339
         Number of records only in agha-gdr-store: 63
         Number of records only in agha-gdr-store-2.0: 61
-        
+
         Checking file only in agha-gdr-store
             50/63 differences explainable (13 unexplained).
             Unexplained differences:
@@ -91,7 +91,7 @@ Checking FlagShip ACUTE_CARE_GENOMICS
                   19W000746-FAM000277.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "a86af04e723ea25db4a054b4c118b52e-1" 14038576.0 left_only
                   19W000772-FAM000281.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "a6164ab172013af8e2266bf158dedac9-1" 13998859.0 left_only
             --------------------------------------------------------------------------------
-        
+
         Checking file only in agha-gdr-store-2.0
             48/61 differences explainable (13 unexplained).
             Unexplained differences:
@@ -111,8 +111,8 @@ Checking FlagShip ACUTE_CARE_GENOMICS
                   19W000746-FAM000277.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "1a7841569e6439040225f508a67ae203-2" 14038576.0 right_only
                   19W000772-FAM000281.trio.norm.vep.post_filter.vcfanno.cann.vcf.gz "6434efa67df0fa9b011664968b92e457-2" 13998859.0 right_only
             --------------------------------------------------------------------------------
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ACG/2020-09-01/ against agha-gdr-store-2.0/AC/2020-09-01/
         Comparing S3 bucket content
@@ -121,14 +121,14 @@ Checking FlagShip ACUTE_CARE_GENOMICS
         Number of identical records: 242
         Number of records only in agha-gdr-store: 66
         Number of records only in agha-gdr-store-2.0: 64
-        
+
         Checking file only in agha-gdr-store
             66/66 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             64/64 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/acute_care_genomics/ against agha-gdr-store-2.0/AC/2019-05-16/
         Comparing S3 bucket content
@@ -137,7 +137,7 @@ Checking FlagShip ACUTE_CARE_GENOMICS
         Number of identical records: 2546
         Number of records only in agha-gdr-store: 248
         Number of records only in agha-gdr-store-2.0: 498
-        
+
         Checking file only in agha-gdr-store
             247/248 differences explainable (1 unexplained).
             Unexplained differences:
@@ -145,18 +145,18 @@ Checking FlagShip ACUTE_CARE_GENOMICS
                          Key                               ETag     Size    _merge
             manifest.txt.bak "43e01c47c50d2ea504e639b3c993988d" 281162.0 left_only
             --------------------------------------------------------------------------------
-        
+
         Checking file only in agha-gdr-store-2.0
             498/498 differences explainable (0 unexplained).
-    
-    
-    
-    
+
+
+
+
 ################################################################################
 Checking FlagShip BRAIN_MALFORMATIONS
 ################################################################################
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/BM/2020-08-29/ against agha-gdr-store-2.0/BM/2020-08-29/
         Comparing S3 bucket content
@@ -165,14 +165,14 @@ Checking FlagShip BRAIN_MALFORMATIONS
         Number of identical records: 3
         Number of records only in agha-gdr-store: 4
         Number of records only in agha-gdr-store-2.0: 3
-        
+
         Checking file only in agha-gdr-store
             4/4 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             3/3 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/BM/2021-01-16/ against agha-gdr-store-2.0/BM/2021-01-16/
         Comparing S3 bucket content
@@ -181,14 +181,14 @@ Checking FlagShip BRAIN_MALFORMATIONS
         Number of identical records: 57
         Number of records only in agha-gdr-store: 36
         Number of records only in agha-gdr-store-2.0: 51
-        
+
         Checking file only in agha-gdr-store
             36/36 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             51/51 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/BM/2021-05-31/ against agha-gdr-store-2.0/BM/2021-05-31/
         Comparing S3 bucket content
@@ -197,14 +197,14 @@ Checking FlagShip BRAIN_MALFORMATIONS
         Number of identical records: 3
         Number of records only in agha-gdr-store: 3
         Number of records only in agha-gdr-store-2.0: 3
-        
+
         Checking file only in agha-gdr-store
             3/3 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             3/3 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/MCD/2019-09-05/ against agha-gdr-store-2.0/BM/2019-09-05/
         Comparing S3 bucket content
@@ -213,14 +213,14 @@ Checking FlagShip BRAIN_MALFORMATIONS
         Number of identical records: 54
         Number of records only in agha-gdr-store: 16
         Number of records only in agha-gdr-store-2.0: 42
-        
+
         Checking file only in agha-gdr-store
             16/16 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             42/42 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/MCD/2019-09-11/ against agha-gdr-store-2.0/BM/2019-09-11/
         Comparing S3 bucket content
@@ -229,14 +229,14 @@ Checking FlagShip BRAIN_MALFORMATIONS
         Number of identical records: 105
         Number of records only in agha-gdr-store: 19
         Number of records only in agha-gdr-store-2.0: 51
-        
+
         Checking file only in agha-gdr-store
             19/19 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             51/51 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/MCD/2019-09-16/ against agha-gdr-store-2.0/BM/2019-09-16/
         Comparing S3 bucket content
@@ -245,14 +245,14 @@ Checking FlagShip BRAIN_MALFORMATIONS
         Number of identical records: 57
         Number of records only in agha-gdr-store: 13
         Number of records only in agha-gdr-store-2.0: 33
-        
+
         Checking file only in agha-gdr-store
             13/13 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             33/33 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/brain_malformations/ against agha-gdr-store-2.0/BM/2019-07-22/
         Comparing S3 bucket content
@@ -261,21 +261,21 @@ Checking FlagShip BRAIN_MALFORMATIONS
         Number of identical records: 213
         Number of records only in agha-gdr-store: 299
         Number of records only in agha-gdr-store-2.0: 125
-        
+
         Checking file only in agha-gdr-store
             299/299 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             125/125 differences explainable (0 unexplained).
-    
-    
-    
-    
+
+
+
+
 ################################################################################
 Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
 ################################################################################
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2019-11-21/ against agha-gdr-store-2.0/Cardiac/2019-11-21/
         Comparing S3 bucket content
@@ -284,14 +284,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 37
         Number of records only in agha-gdr-store: 7
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             7/7 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2019-12-11/ against agha-gdr-store-2.0/Cardiac/2019-12-11/
         Comparing S3 bucket content
@@ -300,14 +300,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 7
         Number of records only in agha-gdr-store: 3
         Number of records only in agha-gdr-store-2.0: 1
-        
+
         Checking file only in agha-gdr-store
             3/3 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             1/1 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-01-22/ against agha-gdr-store-2.0/Cardiac/2020-01-22/
         Comparing S3 bucket content
@@ -316,14 +316,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 150
         Number of records only in agha-gdr-store: 19
         Number of records only in agha-gdr-store-2.0: 34
-        
+
         Checking file only in agha-gdr-store
             19/19 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             34/34 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-01-23/ against agha-gdr-store-2.0/Cardiac/2020-01-23/
         Comparing S3 bucket content
@@ -332,14 +332,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 28
         Number of records only in agha-gdr-store: 6
         Number of records only in agha-gdr-store-2.0: 8
-        
+
         Checking file only in agha-gdr-store
             6/6 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             8/8 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-03-03/ against agha-gdr-store-2.0/Cardiac/2020-03-03/
         Comparing S3 bucket content
@@ -348,14 +348,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 62
         Number of records only in agha-gdr-store: 30
         Number of records only in agha-gdr-store-2.0: 28
-        
+
         Checking file only in agha-gdr-store
             30/30 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             28/28 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-03-14/ against agha-gdr-store-2.0/Cardiac/2020-03-14/
         Comparing S3 bucket content
@@ -364,14 +364,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 118
         Number of records only in agha-gdr-store: 42
         Number of records only in agha-gdr-store-2.0: 40
-        
+
         Checking file only in agha-gdr-store
             42/42 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             40/40 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-03-21/ against agha-gdr-store-2.0/Cardiac/2020-03-21/
         Comparing S3 bucket content
@@ -380,14 +380,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 12
         Number of records only in agha-gdr-store: 14
         Number of records only in agha-gdr-store-2.0: 12
-        
+
         Checking file only in agha-gdr-store
             14/14 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             12/12 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-03-22/ against agha-gdr-store-2.0/Cardiac/2020-03-22/
         Comparing S3 bucket content
@@ -396,14 +396,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 16
         Number of records only in agha-gdr-store: 18
         Number of records only in agha-gdr-store-2.0: 16
-        
+
         Checking file only in agha-gdr-store
             18/18 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             16/16 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-03-23/ against agha-gdr-store-2.0/Cardiac/2020-03-23/
         Comparing S3 bucket content
@@ -412,14 +412,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 20
         Number of records only in agha-gdr-store: 22
         Number of records only in agha-gdr-store-2.0: 20
-        
+
         Checking file only in agha-gdr-store
             22/22 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             20/20 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-03-24/ against agha-gdr-store-2.0/Cardiac/2020-03-24/
         Comparing S3 bucket content
@@ -428,14 +428,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 16
         Number of records only in agha-gdr-store: 18
         Number of records only in agha-gdr-store-2.0: 16
-        
+
         Checking file only in agha-gdr-store
             18/18 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             16/16 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-03-25/ against agha-gdr-store-2.0/Cardiac/2020-03-25/
         Comparing S3 bucket content
@@ -444,14 +444,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 16
         Number of records only in agha-gdr-store: 18
         Number of records only in agha-gdr-store-2.0: 16
-        
+
         Checking file only in agha-gdr-store
             18/18 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             16/16 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-03-31/ against agha-gdr-store-2.0/Cardiac/2020-03-31/
         Comparing S3 bucket content
@@ -460,14 +460,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 104
         Number of records only in agha-gdr-store: 42
         Number of records only in agha-gdr-store-2.0: 40
-        
+
         Checking file only in agha-gdr-store
             42/42 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             40/40 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-04-22/ against agha-gdr-store-2.0/Cardiac/2020-04-22/
         Comparing S3 bucket content
@@ -476,14 +476,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 68
         Number of records only in agha-gdr-store: 26
         Number of records only in agha-gdr-store-2.0: 24
-        
+
         Checking file only in agha-gdr-store
             26/26 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             24/24 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-04-23/ against agha-gdr-store-2.0/Cardiac/2020-04-23/
         Comparing S3 bucket content
@@ -492,14 +492,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 122
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-05-01/ against agha-gdr-store-2.0/Cardiac/2020-05-01/
         Comparing S3 bucket content
@@ -508,14 +508,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 125
         Number of records only in agha-gdr-store: 23
         Number of records only in agha-gdr-store-2.0: 21
-        
+
         Checking file only in agha-gdr-store
             23/23 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             21/21 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-05-08/ against agha-gdr-store-2.0/Cardiac/2020-05-08/
         Comparing S3 bucket content
@@ -524,14 +524,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 82
         Number of records only in agha-gdr-store: 32
         Number of records only in agha-gdr-store-2.0: 30
-        
+
         Checking file only in agha-gdr-store
             32/32 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             30/30 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-06-01/ against agha-gdr-store-2.0/Cardiac/2020-06-01/
         Comparing S3 bucket content
@@ -540,14 +540,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 4
         Number of records only in agha-gdr-store: 3
         Number of records only in agha-gdr-store-2.0: 2
-        
+
         Checking file only in agha-gdr-store
             3/3 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             2/2 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-07-07/ against agha-gdr-store-2.0/Cardiac/2020-07-07/
         Comparing S3 bucket content
@@ -556,14 +556,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 114
         Number of records only in agha-gdr-store: 36
         Number of records only in agha-gdr-store-2.0: 34
-        
+
         Checking file only in agha-gdr-store
             36/36 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             34/34 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-07-17/ against agha-gdr-store-2.0/Cardiac/2020-07-17/
         Comparing S3 bucket content
@@ -572,14 +572,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 65
         Number of records only in agha-gdr-store: 3
         Number of records only in agha-gdr-store-2.0: 12
-        
+
         Checking file only in agha-gdr-store
             3/3 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             12/12 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-08-01/ against agha-gdr-store-2.0/Cardiac/2020-08-01/
         Comparing S3 bucket content
@@ -588,14 +588,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 28
         Number of records only in agha-gdr-store: 6
         Number of records only in agha-gdr-store-2.0: 4
-        
+
         Checking file only in agha-gdr-store
             6/6 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             4/4 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-09-02/ against agha-gdr-store-2.0/Cardiac/2020-09-02/
         Comparing S3 bucket content
@@ -604,14 +604,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 118
         Number of records only in agha-gdr-store: 20
         Number of records only in agha-gdr-store-2.0: 18
-        
+
         Checking file only in agha-gdr-store
             20/20 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             18/18 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-10-01/ against agha-gdr-store-2.0/Cardiac/2020-10-01/
         Comparing S3 bucket content
@@ -620,14 +620,14 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 104
         Number of records only in agha-gdr-store: 3
         Number of records only in agha-gdr-store-2.0: 10
-        
+
         Checking file only in agha-gdr-store
             3/3 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             10/10 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CARDIAC/2020-10-02/ against agha-gdr-store-2.0/Cardiac/2020-10-02/
         Comparing S3 bucket content
@@ -636,21 +636,21 @@ Checking FlagShip CARDIOVASCULAR_GENETIC_DISORDERS
         Number of identical records: 5
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 1
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             1/1 differences explainable (0 unexplained).
-    
-    
-    
-    
+
+
+
+
 ################################################################################
 Checking FlagShip CHILDRANZ
 ################################################################################
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CHW/2020-10-20/ against agha-gdr-store-2.0/chILDRANZ/2020-10-20/
         Comparing S3 bucket content
@@ -659,14 +659,14 @@ Checking FlagShip CHILDRANZ
         Number of identical records: 66
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CHW/2021-02-15/ against agha-gdr-store-2.0/chILDRANZ/2021-02-15/
         Comparing S3 bucket content
@@ -675,14 +675,14 @@ Checking FlagShip CHILDRANZ
         Number of identical records: 94
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CHW/2021-02-22/ against agha-gdr-store-2.0/chILDRANZ/2021-02-22/
         Comparing S3 bucket content
@@ -691,14 +691,14 @@ Checking FlagShip CHILDRANZ
         Number of identical records: 6
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CHW/2021-03-26/ against agha-gdr-store-2.0/chILDRANZ/2021-03-26/
         Comparing S3 bucket content
@@ -707,14 +707,14 @@ Checking FlagShip CHILDRANZ
         Number of identical records: 12
         Number of records only in agha-gdr-store: 14
         Number of records only in agha-gdr-store-2.0: 12
-        
+
         Checking file only in agha-gdr-store
             14/14 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             12/12 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/CHW/2021-04-16/ against agha-gdr-store-2.0/chILDRANZ/2021-04-16/
         Comparing S3 bucket content
@@ -723,21 +723,21 @@ Checking FlagShip CHILDRANZ
         Number of identical records: 12
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
-    
-    
+
+
+
+
 ################################################################################
 Checking FlagShip EPILEPTIC_ENCEPHALOPATHY
 ################################################################################
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/EE/2019-08-12/ against agha-gdr-store-2.0/EE/2019-08-12/
         Comparing S3 bucket content
@@ -746,14 +746,14 @@ Checking FlagShip EPILEPTIC_ENCEPHALOPATHY
         Number of identical records: 180
         Number of records only in agha-gdr-store: 32
         Number of records only in agha-gdr-store-2.0: 90
-        
+
         Checking file only in agha-gdr-store
             32/32 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             90/90 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/EE/2019-09-05/ against agha-gdr-store-2.0/EE/2019-09-05/
         Comparing S3 bucket content
@@ -762,14 +762,14 @@ Checking FlagShip EPILEPTIC_ENCEPHALOPATHY
         Number of identical records: 110
         Number of records only in agha-gdr-store: 30
         Number of records only in agha-gdr-store-2.0: 84
-        
+
         Checking file only in agha-gdr-store
             30/30 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             84/84 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/EE/2019-09-11/ against agha-gdr-store-2.0/EE/2019-09-11/
         Comparing S3 bucket content
@@ -778,14 +778,14 @@ Checking FlagShip EPILEPTIC_ENCEPHALOPATHY
         Number of identical records: 72
         Number of records only in agha-gdr-store: 16
         Number of records only in agha-gdr-store-2.0: 42
-        
+
         Checking file only in agha-gdr-store
             16/16 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             42/42 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/EE/2019-09-16/ against agha-gdr-store-2.0/EE/2019-09-16/
         Comparing S3 bucket content
@@ -794,14 +794,14 @@ Checking FlagShip EPILEPTIC_ENCEPHALOPATHY
         Number of identical records: 68
         Number of records only in agha-gdr-store: 13
         Number of records only in agha-gdr-store-2.0: 34
-        
+
         Checking file only in agha-gdr-store
             13/13 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             34/34 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/EE/2019-10-19/ against agha-gdr-store-2.0/EE/2019-10-19/
         Comparing S3 bucket content
@@ -810,14 +810,14 @@ Checking FlagShip EPILEPTIC_ENCEPHALOPATHY
         Number of identical records: 3
         Number of records only in agha-gdr-store: 3
         Number of records only in agha-gdr-store-2.0: 3
-        
+
         Checking file only in agha-gdr-store
             3/3 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             3/3 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/EE/2021-01-16/ against agha-gdr-store-2.0/EE/2021-01-16/
         Comparing S3 bucket content
@@ -826,14 +826,14 @@ Checking FlagShip EPILEPTIC_ENCEPHALOPATHY
         Number of identical records: 77
         Number of records only in agha-gdr-store: 44
         Number of records only in agha-gdr-store-2.0: 63
-        
+
         Checking file only in agha-gdr-store
             44/44 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             63/63 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/EE/2021-02-09/ against agha-gdr-store-2.0/EE/2021-02-09/
         Comparing S3 bucket content
@@ -842,21 +842,21 @@ Checking FlagShip EPILEPTIC_ENCEPHALOPATHY
         Number of identical records: 3
         Number of records only in agha-gdr-store: 4
         Number of records only in agha-gdr-store-2.0: 3
-        
+
         Checking file only in agha-gdr-store
             4/4 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             3/3 differences explainable (0 unexplained).
-    
-    
-    
-    
+
+
+
+
 ################################################################################
 Checking FlagShip GENETIC_IMMUNOLOGY
 ################################################################################
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/GI/2019-08-27/ against agha-gdr-store-2.0/GI/2019-08-27/
         Comparing S3 bucket content
@@ -865,7 +865,7 @@ Checking FlagShip GENETIC_IMMUNOLOGY
         Number of identical records: 401
         Number of records only in agha-gdr-store: 454
         Number of records only in agha-gdr-store-2.0: 401
-        
+
         Checking file only in agha-gdr-store
             398/454 differences explainable (56 unexplained).
             Unexplained differences:
@@ -928,11 +928,11 @@ Checking FlagShip GENETIC_IMMUNOLOGY
             CPI-CCG_cohort1_sg1_joint_all.vcf "0247b4a0b5697a599a465fbc2f6fce95-366" 3064973805.0 left_only
             CPI-CCG_cohort2_sg1_joint_all.vcf "242704efd77ac6dd57b5641128ab01a4-377" 3154667093.0 left_only
             --------------------------------------------------------------------------------
-        
+
         Checking file only in agha-gdr-store-2.0
             401/401 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/GI/2019-09-19/ against agha-gdr-store-2.0/GI/2019-09-19/
         Comparing S3 bucket content
@@ -941,7 +941,7 @@ Checking FlagShip GENETIC_IMMUNOLOGY
         Number of identical records: 1
         Number of records only in agha-gdr-store: 4
         Number of records only in agha-gdr-store-2.0: 1
-        
+
         Checking file only in agha-gdr-store
             3/4 differences explainable (1 unexplained).
             Unexplained differences:
@@ -949,11 +949,11 @@ Checking FlagShip GENETIC_IMMUNOLOGY
                      Key                               ETag   Size    _merge
             metadata.txt "fdf9ea2ed7a9efa9017b7b541a1ad791" 1144.0 left_only
             --------------------------------------------------------------------------------
-        
+
         Checking file only in agha-gdr-store-2.0
             1/1 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/GI/2020-06-04/ against agha-gdr-store-2.0/GI/2020-06-04/
         Comparing S3 bucket content
@@ -962,7 +962,7 @@ Checking FlagShip GENETIC_IMMUNOLOGY
         Number of identical records: 232
         Number of records only in agha-gdr-store: 180
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/180 differences explainable (178 unexplained).
             Unexplained differences:
@@ -1147,11 +1147,11 @@ Checking FlagShip GENETIC_IMMUNOLOGY
                             HUM9319_S14_R1_001.fastq.gz "11fabc52dec98d4c666b38fb2bb831d0-696" 5830197394.0 left_only
                             HUM9319_S14_R2_001.fastq.gz "0de2704aa67168f54867d17a67dc19a9-722" 6052000770.0 left_only
             --------------------------------------------------------------------------------
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/GI/2021-04-13/ against agha-gdr-store-2.0/GI/2021-04-13/
         Comparing S3 bucket content
@@ -1160,14 +1160,14 @@ Checking FlagShip GENETIC_IMMUNOLOGY
         Number of identical records: 234
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/GI/2021-05-19/ against agha-gdr-store-2.0/GI/2021-05-19/
         Comparing S3 bucket content
@@ -1176,21 +1176,21 @@ Checking FlagShip GENETIC_IMMUNOLOGY
         Number of identical records: 130
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
-    
-    
+
+
+
+
 ################################################################################
 Checking FlagShip HIDDEN_RENAL_GENETICS
 ################################################################################
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/HIDDEN/2019-09-19/ against agha-gdr-store-2.0/HIDDEN/2019-09-19/
         Comparing S3 bucket content
@@ -1199,14 +1199,14 @@ Checking FlagShip HIDDEN_RENAL_GENETICS
         Number of identical records: 7
         Number of records only in agha-gdr-store: 7
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             7/7 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/HIDDEN/2019-09-20/ against agha-gdr-store-2.0/HIDDEN/2019-09-20/
         Comparing S3 bucket content
@@ -1215,14 +1215,14 @@ Checking FlagShip HIDDEN_RENAL_GENETICS
         Number of identical records: 7
         Number of records only in agha-gdr-store: 7
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             7/7 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/HIDDEN/2019-09-21/ against agha-gdr-store-2.0/HIDDEN/2019-09-21/
         Comparing S3 bucket content
@@ -1231,14 +1231,14 @@ Checking FlagShip HIDDEN_RENAL_GENETICS
         Number of identical records: 7
         Number of records only in agha-gdr-store: 7
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             7/7 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/HIDDEN/2019-09-22/ against agha-gdr-store-2.0/HIDDEN/2019-09-22/
         Comparing S3 bucket content
@@ -1247,14 +1247,14 @@ Checking FlagShip HIDDEN_RENAL_GENETICS
         Number of identical records: 7
         Number of records only in agha-gdr-store: 7
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             7/7 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/HIDDEN/2019-09-23/ against agha-gdr-store-2.0/HIDDEN/2019-09-23/
         Comparing S3 bucket content
@@ -1263,14 +1263,14 @@ Checking FlagShip HIDDEN_RENAL_GENETICS
         Number of identical records: 7
         Number of records only in agha-gdr-store: 7
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             7/7 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/HIDDEN/2019-09-24/ against agha-gdr-store-2.0/HIDDEN/2019-09-24/
         Comparing S3 bucket content
@@ -1279,14 +1279,14 @@ Checking FlagShip HIDDEN_RENAL_GENETICS
         Number of identical records: 7
         Number of records only in agha-gdr-store: 7
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             7/7 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/HIDDEN/2019-09-25/ against agha-gdr-store-2.0/HIDDEN/2019-09-25/
         Comparing S3 bucket content
@@ -1295,14 +1295,14 @@ Checking FlagShip HIDDEN_RENAL_GENETICS
         Number of identical records: 7
         Number of records only in agha-gdr-store: 7
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             7/7 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/HIDDEN/2019-09-26/ against agha-gdr-store-2.0/HIDDEN/2019-09-26/
         Comparing S3 bucket content
@@ -1311,18 +1311,18 @@ Checking FlagShip HIDDEN_RENAL_GENETICS
         Number of identical records: 7
         Number of records only in agha-gdr-store: 7
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             7/7 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     WARNING: could not find new submission for agha-gdr-store/HIDDEN/2019-09-27/
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/HIDDEN/2019-09-28/ against agha-gdr-store-2.0/HIDDEN/2019-09-28/
         Comparing S3 bucket content
@@ -1331,14 +1331,14 @@ Checking FlagShip HIDDEN_RENAL_GENETICS
         Number of identical records: 7
         Number of records only in agha-gdr-store: 7
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             7/7 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/HIDDEN/2019-09-29/ against agha-gdr-store-2.0/HIDDEN/2019-09-29/
         Comparing S3 bucket content
@@ -1347,14 +1347,14 @@ Checking FlagShip HIDDEN_RENAL_GENETICS
         Number of identical records: 7
         Number of records only in agha-gdr-store: 7
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             7/7 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/HIDDEN/2019-09-30/ against agha-gdr-store-2.0/HIDDEN/2019-09-30/
         Comparing S3 bucket content
@@ -1363,21 +1363,21 @@ Checking FlagShip HIDDEN_RENAL_GENETICS
         Number of identical records: 7
         Number of records only in agha-gdr-store: 7
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             7/7 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
-    
-    
+
+
+
+
 ################################################################################
 Checking FlagShip HEREDITARY_CANCERS
 ################################################################################
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2019-09-24/ against agha-gdr-store-2.0/ICCon/2019-09-24/
         Comparing S3 bucket content
@@ -1386,14 +1386,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 108
         Number of records only in agha-gdr-store: 1
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             1/1 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2019-09-25/ against agha-gdr-store-2.0/ICCon/2019-09-25/
         Comparing S3 bucket content
@@ -1402,14 +1402,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 14
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2019-09-26/ against agha-gdr-store-2.0/ICCon/2019-09-26/
         Comparing S3 bucket content
@@ -1418,14 +1418,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 12
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2019-09-27/ against agha-gdr-store-2.0/ICCon/2019-09-27/
         Comparing S3 bucket content
@@ -1434,14 +1434,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 16
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2019-09-28/ against agha-gdr-store-2.0/ICCon/2019-09-28/
         Comparing S3 bucket content
@@ -1450,14 +1450,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 24
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2019-12-13/ against agha-gdr-store-2.0/ICCon/2019-12-13/
         Comparing S3 bucket content
@@ -1466,14 +1466,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 10
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2020-01-20/ against agha-gdr-store-2.0/ICCon/2020-01-20/
         Comparing S3 bucket content
@@ -1482,14 +1482,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 40
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2020-07-06/ against agha-gdr-store-2.0/ICCon/2020-07-06/
         Comparing S3 bucket content
@@ -1498,14 +1498,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 10
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2020-07-13/ against agha-gdr-store-2.0/ICCon/2020-07-13/
         Comparing S3 bucket content
@@ -1514,14 +1514,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 30
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2020-07-14/ against agha-gdr-store-2.0/ICCon/2020-07-14/
         Comparing S3 bucket content
@@ -1530,14 +1530,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 10
         Number of records only in agha-gdr-store: 2
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             2/2 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2020-10-16/ against agha-gdr-store-2.0/ICCon/2020-10-16/
         Comparing S3 bucket content
@@ -1546,14 +1546,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 24
         Number of records only in agha-gdr-store: 1
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             1/1 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2020-11-27/ against agha-gdr-store-2.0/ICCon/2020-11-27/
         Comparing S3 bucket content
@@ -1562,14 +1562,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 74
         Number of records only in agha-gdr-store: 1
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             1/1 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2020-12-16/ against agha-gdr-store-2.0/ICCon/2020-12-16/
         Comparing S3 bucket content
@@ -1578,14 +1578,14 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 10
         Number of records only in agha-gdr-store: 1
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             1/1 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ICCON/2020-12-21/ against agha-gdr-store-2.0/ICCon/2020-12-21/
         Comparing S3 bucket content
@@ -1594,21 +1594,21 @@ Checking FlagShip HEREDITARY_CANCERS
         Number of identical records: 16
         Number of records only in agha-gdr-store: 1
         Number of records only in agha-gdr-store-2.0: 0
-        
+
         Checking file only in agha-gdr-store
             1/1 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             0/0 differences explainable (0 unexplained).
-    
-    
-    
-    
+
+
+
+
 ################################################################################
 Checking FlagShip INTELLECTUAL_DISABILITY
 ################################################################################
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ID/2019-09-05/ against agha-gdr-store-2.0/ID/2019-09-05/
         Comparing S3 bucket content
@@ -1617,14 +1617,14 @@ Checking FlagShip INTELLECTUAL_DISABILITY
         Number of identical records: 18
         Number of records only in agha-gdr-store: 4
         Number of records only in agha-gdr-store-2.0: 10
-        
+
         Checking file only in agha-gdr-store
             4/4 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             10/10 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ID/2019-09-11/ against agha-gdr-store-2.0/ID/2019-09-11/
         Comparing S3 bucket content
@@ -1633,14 +1633,14 @@ Checking FlagShip INTELLECTUAL_DISABILITY
         Number of identical records: 51
         Number of records only in agha-gdr-store: 5
         Number of records only in agha-gdr-store-2.0: 15
-        
+
         Checking file only in agha-gdr-store
             5/5 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             15/15 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ID/2019-09-16/ against agha-gdr-store-2.0/ID/2019-09-16/
         Comparing S3 bucket content
@@ -1649,14 +1649,14 @@ Checking FlagShip INTELLECTUAL_DISABILITY
         Number of identical records: 27
         Number of records only in agha-gdr-store: 3
         Number of records only in agha-gdr-store-2.0: 5
-        
+
         Checking file only in agha-gdr-store
             3/3 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             5/5 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/ID/2020-08-22/ against agha-gdr-store-2.0/ID/2020-08-22/
         Comparing S3 bucket content
@@ -1665,21 +1665,21 @@ Checking FlagShip INTELLECTUAL_DISABILITY
         Number of identical records: 335
         Number of records only in agha-gdr-store: 154
         Number of records only in agha-gdr-store-2.0: 223
-        
+
         Checking file only in agha-gdr-store
             154/154 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             223/223 differences explainable (0 unexplained).
-    
-    
-    
-    
+
+
+
+
 ################################################################################
 Checking FlagShip RENAL_GENETICS
 ################################################################################
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/KidGen/2020-03-03/ against agha-gdr-store-2.0/KidGen/2020-03-03/
         Comparing S3 bucket content
@@ -1688,14 +1688,14 @@ Checking FlagShip RENAL_GENETICS
         Number of identical records: 187
         Number of records only in agha-gdr-store: 96
         Number of records only in agha-gdr-store-2.0: 141
-        
+
         Checking file only in agha-gdr-store
             96/96 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             141/141 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/KidGen/2020-03-04/ against agha-gdr-store-2.0/KidGen/2020-03-04/
         Comparing S3 bucket content
@@ -1704,14 +1704,14 @@ Checking FlagShip RENAL_GENETICS
         Number of identical records: 165
         Number of records only in agha-gdr-store: 92
         Number of records only in agha-gdr-store-2.0: 135
-        
+
         Checking file only in agha-gdr-store
             92/92 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             135/135 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/KidGen/2020-03-05/ against agha-gdr-store-2.0/KidGen/2020-03-05/
         Comparing S3 bucket content
@@ -1720,14 +1720,14 @@ Checking FlagShip RENAL_GENETICS
         Number of identical records: 216
         Number of records only in agha-gdr-store: 114
         Number of records only in agha-gdr-store-2.0: 168
-        
+
         Checking file only in agha-gdr-store
             114/114 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             168/168 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/KidGen/2020-03-06/ against agha-gdr-store-2.0/KidGen/2020-03-06/
         Comparing S3 bucket content
@@ -1736,21 +1736,21 @@ Checking FlagShip RENAL_GENETICS
         Number of identical records: 232
         Number of records only in agha-gdr-store: 118
         Number of records only in agha-gdr-store-2.0: 174
-        
+
         Checking file only in agha-gdr-store
             118/118 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             174/174 differences explainable (0 unexplained).
-    
-    
-    
-    
+
+
+
+
 ################################################################################
 Checking FlagShip LEUKODYSTROPHIES
 ################################################################################
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/LD/2019-09-05/ against agha-gdr-store-2.0/Leuko/2019-09-05/
         Comparing S3 bucket content
@@ -1759,14 +1759,14 @@ Checking FlagShip LEUKODYSTROPHIES
         Number of identical records: 15
         Number of records only in agha-gdr-store: 5
         Number of records only in agha-gdr-store-2.0: 9
-        
+
         Checking file only in agha-gdr-store
             5/5 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             9/9 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/LD/2019-09-11/ against agha-gdr-store-2.0/Leuko/2019-09-11/
         Comparing S3 bucket content
@@ -1775,14 +1775,14 @@ Checking FlagShip LEUKODYSTROPHIES
         Number of identical records: 9
         Number of records only in agha-gdr-store: 3
         Number of records only in agha-gdr-store-2.0: 3
-        
+
         Checking file only in agha-gdr-store
             3/3 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             3/3 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/LD/2019-09-16/ against agha-gdr-store-2.0/Leuko/2019-09-16/
         Comparing S3 bucket content
@@ -1791,14 +1791,14 @@ Checking FlagShip LEUKODYSTROPHIES
         Number of identical records: 40
         Number of records only in agha-gdr-store: 13
         Number of records only in agha-gdr-store-2.0: 32
-        
+
         Checking file only in agha-gdr-store
             13/13 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             32/32 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/LD/2020-08-29/ against agha-gdr-store-2.0/Leuko/2020-08-29/
         Comparing S3 bucket content
@@ -1807,14 +1807,14 @@ Checking FlagShip LEUKODYSTROPHIES
         Number of identical records: 9
         Number of records only in agha-gdr-store: 3
         Number of records only in agha-gdr-store-2.0: 1
-        
+
         Checking file only in agha-gdr-store
             3/3 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             1/1 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/LD/2020-08-31/ against agha-gdr-store-2.0/Leuko/2020-08-31/
         Comparing S3 bucket content
@@ -1823,14 +1823,14 @@ Checking FlagShip LEUKODYSTROPHIES
         Number of identical records: 35
         Number of records only in agha-gdr-store: 16
         Number of records only in agha-gdr-store-2.0: 21
-        
+
         Checking file only in agha-gdr-store
             16/16 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             21/21 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/LD/2020-11-05/ against agha-gdr-store-2.0/Leuko/2020-11-05/
         Comparing S3 bucket content
@@ -1839,14 +1839,14 @@ Checking FlagShip LEUKODYSTROPHIES
         Number of identical records: 38
         Number of records only in agha-gdr-store: 23
         Number of records only in agha-gdr-store-2.0: 32
-        
+
         Checking file only in agha-gdr-store
             23/23 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             32/32 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/LD/2021-01-19/ against agha-gdr-store-2.0/Leuko/2021-01-19/
         Comparing S3 bucket content
@@ -1855,14 +1855,14 @@ Checking FlagShip LEUKODYSTROPHIES
         Number of identical records: 26
         Number of records only in agha-gdr-store: 14
         Number of records only in agha-gdr-store-2.0: 18
-        
+
         Checking file only in agha-gdr-store
             14/14 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             18/18 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/LD/2021-02-26/ against agha-gdr-store-2.0/Leuko/2021-02-26/
         Comparing S3 bucket content
@@ -1871,14 +1871,14 @@ Checking FlagShip LEUKODYSTROPHIES
         Number of identical records: 12
         Number of records only in agha-gdr-store: 10
         Number of records only in agha-gdr-store-2.0: 12
-        
+
         Checking file only in agha-gdr-store
             10/10 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             12/12 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/LD/2021-03-29/ against agha-gdr-store-2.0/Leuko/2021-03-29/
         Comparing S3 bucket content
@@ -1887,14 +1887,14 @@ Checking FlagShip LEUKODYSTROPHIES
         Number of identical records: 11
         Number of records only in agha-gdr-store: 5
         Number of records only in agha-gdr-store-2.0: 9
-        
+
         Checking file only in agha-gdr-store
             5/5 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             9/9 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/leukodystrophies/ against agha-gdr-store-2.0/Leuko/2019-08-12/
         Comparing S3 bucket content
@@ -1903,21 +1903,21 @@ Checking FlagShip LEUKODYSTROPHIES
         Number of identical records: 41
         Number of records only in agha-gdr-store: 57
         Number of records only in agha-gdr-store-2.0: 21
-        
+
         Checking file only in agha-gdr-store
             57/57 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             21/21 differences explainable (0 unexplained).
-    
-    
-    
-    
+
+
+
+
 ################################################################################
 Checking FlagShip MITOCHONDRIAL_DISORDERS
 ################################################################################
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/MITO/2019-08-14/ against agha-gdr-store-2.0/Mito/2019-08-14/
         Comparing S3 bucket content
@@ -1926,14 +1926,14 @@ Checking FlagShip MITOCHONDRIAL_DISORDERS
         Number of identical records: 3
         Number of records only in agha-gdr-store: 3
         Number of records only in agha-gdr-store-2.0: 3
-        
+
         Checking file only in agha-gdr-store
             3/3 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             3/3 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/MITO/2019-09-11/ against agha-gdr-store-2.0/Mito/2019-09-11/
         Comparing S3 bucket content
@@ -1942,14 +1942,14 @@ Checking FlagShip MITOCHONDRIAL_DISORDERS
         Number of identical records: 41
         Number of records only in agha-gdr-store: 11
         Number of records only in agha-gdr-store-2.0: 27
-        
+
         Checking file only in agha-gdr-store
             11/11 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             27/27 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/MITO/2019-09-16/ against agha-gdr-store-2.0/Mito/2019-09-16/
         Comparing S3 bucket content
@@ -1958,14 +1958,14 @@ Checking FlagShip MITOCHONDRIAL_DISORDERS
         Number of identical records: 58
         Number of records only in agha-gdr-store: 8
         Number of records only in agha-gdr-store-2.0: 18
-        
+
         Checking file only in agha-gdr-store
             8/8 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             18/18 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     Checking agha-gdr-store/MITO/2020-08-16/ against agha-gdr-store-2.0/Mito/2020-08-16/
         Comparing S3 bucket content
@@ -1974,13 +1974,13 @@ Checking FlagShip MITOCHONDRIAL_DISORDERS
         Number of identical records: 71
         Number of records only in agha-gdr-store: 44
         Number of records only in agha-gdr-store-2.0: 63
-        
+
         Checking file only in agha-gdr-store
             44/44 differences explainable (0 unexplained).
-        
+
         Checking file only in agha-gdr-store-2.0
             63/63 differences explainable (0 unexplained).
-    
-    
+
+
     ================================================================================
     WARNING: could not find new submission for agha-gdr-store/mitochondrial_disease/

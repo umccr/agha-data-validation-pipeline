@@ -1,7 +1,7 @@
 # Consent Tagging Script
 
 This script is to be used for any new consent request. This script will:
-- Add tagging to S3 object `Consent`:`True` 
+- Add tagging to S3 object `Consent`:`True`
 - Update Dynamodb regards on Consent status of the object
 
 Parameter needed to run this script.
@@ -10,7 +10,7 @@ Parameter needed to run this script.
 - `--action`: `str` - Action to add/remove consent (Options: ADD_CONSENT, REMOVE_CONSENT).
 - `--dryrun`: `bool` - to print the affected files on s3 without modifying anything. Add `--dryrun` to set this to True
 
-The value could be populated at `get_argument()` (`main.py` Line 55) 
+The value could be populated at `get_argument()` (`main.py` Line 55)
 
 Alternatively, could execute script from custom function. See the `parse_from_excel_by_pandas()` at main.py.
 This reads data from excel workbook and call the script based on the Excel workbook.
@@ -25,8 +25,8 @@ NOTE: Make sure use correct AWS credentials that have the permission to modify S
 
 ###### Command example for the following parameter
 
-study_id : A00001, A00002, A00003  
-flagship : GI  
+study_id : A00001, A00002, A00003
+flagship : GI
 action   : ADD_CONSENT
 ```
 python3 main.py --study-ids A00001 A00002 A00003 --flagship GI --filetype BAM FASTQ

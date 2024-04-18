@@ -34,7 +34,7 @@ Example:
 You could create a custom python script to execute the change script. This would be useful if you would need to query a list of files that need to be changed. Example of executing from a python script is from `main.py`.
 
 At the `__main__` function at the bottom of the file, there are 2 functions that could be executed. Choosing one of the function to run depending on what is needed.
-The `execute_change()` function will change on a single file, while `update_files_from_new_manifest()` means you provide a new manifest file to match with the current data.  
+The `execute_change()` function will change on a single file, while `update_files_from_new_manifest()` means you provide a new manifest file to match with the current data.
 _NOTE: You will need to fill information in the variable to execute these functions (There is a section at the beginning of the function)._
 
 Execute this with
@@ -45,7 +45,7 @@ python3 main.py
 ___
 ### Explanation of each file
 
-  
+
 #### script.sh
 This file is the backbone of the script and will run the following order:
 1. Move manifest record file from current s3_key location to desired s3_key location. This includes updated information from the `override_value` arguments.
@@ -61,13 +61,13 @@ Args:
 
 
 #### move_manifest_record.py
-This will move the dynamodb manifest record from old to new file. 
+This will move the dynamodb manifest record from old to new file.
 
 Args:
 - bucket_location
 - partition_key
 - old_sort_key
-- new_sort_key 
+- new_sort_key
 - value_override
 
 #### move_and_modify_result_file.py

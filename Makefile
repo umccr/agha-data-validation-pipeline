@@ -21,4 +21,3 @@ build:
 
 loaddata:
 	@python test_data/insert_data.py
-
