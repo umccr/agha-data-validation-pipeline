@@ -99,7 +99,7 @@ def handler(event, context):
                 # Ready to be stored in the bucket
                 split_list = submission_prefix.strip("/").split("/")
                 flagship_code = split_list[0]
-                submission = split_list[1]
+                submission = "/".join(split_list[1:-1])
 
                 message = "Data validation check succeeded for this submission. Moving this to store bucket.\n"
 
