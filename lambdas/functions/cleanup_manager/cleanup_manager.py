@@ -49,6 +49,7 @@ def handler(event, context):
         )
         if len(missing_store_file) > 0:
             logger.error("Missing file from in store bucket from manifest.orig")
+            raise ValueError("Missing file from in store bucket from manifest.orig")
     else:
         logger.info("Skipping original manifest check.")
 
