@@ -261,9 +261,11 @@ def handler(event, context):
         # Submit job to batch
         batch_res = batch.submit_batch_job(job_data)
 
-        # Sleep for 1 second every 15th job
+        # Sleep for 1 second every 10th job
         # This is to prevent AWS Batch SubmitJob throttling limit of 50 jobs per second
-        # Putting 15 here as it is shared across 3 reserved concurency limit
+        # Putting 10 here as it is shared across 3 reserved concurrency limit, and
+        # 2 lambda function (transfer-manager and validation-manager)
+        # Without sleep, the average of submitting jobs is about 13 jobs per second
         # https://docs.aws.amazon.com/batch/latest/userguide/service_limits.html
         if (i + 1) % 15 == 0:
             time.sleep(1)
