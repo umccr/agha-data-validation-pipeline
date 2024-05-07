@@ -267,7 +267,7 @@ def handler(event, context):
         # 2 lambda function (transfer-manager and validation-manager)
         # Without sleep, the average of submitting jobs is about 13 jobs per second
         # https://docs.aws.amazon.com/batch/latest/userguide/service_limits.html
-        if (i + 1) % 15 == 0:
+        if (i + 1) % 10 == 0:
             time.sleep(1)
 
     logger.info("Batch job has been submitted.")
