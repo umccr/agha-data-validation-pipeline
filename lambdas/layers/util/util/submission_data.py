@@ -98,6 +98,9 @@ def validate_manifest(
     is_checksum_unique = data.manifest_data["checksum"].dropna().is_unique
 
     if not is_checksum_unique:
+        notification.log_and_store_message(
+            "Manifest contain duplicated checksums value", level="critical"
+        )
         raise ValueError(
             json.dumps(
                 "Manifest contain duplicated checksums",
