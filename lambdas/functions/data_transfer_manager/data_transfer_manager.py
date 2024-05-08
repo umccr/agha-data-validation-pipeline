@@ -6,6 +6,7 @@ import re
 import sys
 import uuid
 import boto3
+import time
 from boto3.dynamodb.conditions import Attr
 
 import util
@@ -254,13 +255,31 @@ def handler(event, context):
             f",Error: {e}",
         }
 
+    logger.info(f"Submit AWS Batch Job list ({len(batch_job_data)}):")
+    logger.info(json.dumps(batch_job_data))
+
+    logger.info(f"Update Dynamodb list ({len(dynamodb_job)}):")
+    logger.info(
+        json.dumps([item.__dict__ for item in dynamodb_job], cls=util.JsonSerialEncoder)
+    )
+
     # Submit Batch jobs
     if event.get("skip_submit_batch_job"):
         logger.info("Skip submit batch job flag is raised. Skipping ...")
     else:
-        logger.info(f"Batch Job list: {json.dumps(batch_job_data, indent=4)}")
-        for job_data in batch_job_data:
+        logger.info("Submitting batch job")
+        for i, job_data in enumerate(batch_job_data):
             submit_data_transfer_job(job_data)
+
+            # Sleep for 1 second every 8th job
+            # This is to prevent AWS Batch SubmitJob throttling limit of 50 jobs per second
+            # Putting (50/6=) 8 here as it is shared across 3 reserved concurrency limit, and
+            # 2 lambda function (transfer-manager and validation-manager)
+            # Without sleep, the average of submitting jobs is about 13 jobs per second
+            # https://docs.aws.amazon.com/batch/latest/userguide/service_limits.html
+            if (i + 1) % 8 == 0:
+                time.sleep(1)
+
         logger.info(
             f"Batch job has executed. Submit {len(batch_job_data)} number of job"
         )
@@ -269,9 +288,7 @@ def handler(event, context):
     if event.get("skip_update_dynamodb"):
         logger.info("Skip update dynamodb flag is raised. Skipping ...")
     else:
-        logger.info(
-            f"Dynamodb Job list: {json.dumps([item.__dict__ for item in dynamodb_job], indent=4, cls=util.JsonSerialEncoder)}"
-        )
+        logger.info("Updating DynamoDb to change table location")
         dynamodb.batch_write_records(
             table_name=DYNAMODB_STORE_TABLE_NAME, records=dynamodb_job
         )
@@ -297,7 +314,7 @@ def handler(event, context):
         )
     else:
         # Create new manifest file from dynamodb given
-        logger.info(f"Generate manifest file from dynamodb")
+        logger.info(f"Generating manifest file from dynamodb")
         manifest_item = dynamodb.get_batch_item_from_pk_and_sk(
             DYNAMODB_STORE_TABLE_NAME,
             dynamodb.FileRecordPartitionKey.MANIFEST_FILE_RECORD.value,
@@ -322,7 +339,7 @@ def handler(event, context):
             s3_key_destination=manifest_destination_key,
         )
 
-        logger.info(f"Uploaded dynamodb manifest.txt")
+        logger.info(f"New manifest file has been uploaded")
 
     return "Data Transfer Job has started"
 

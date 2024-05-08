@@ -231,7 +231,8 @@ class LambdaStack(core.NestedStack):
             function_name=f"{namespace}-validation-manager",
             handler="validation_manager.handler",
             runtime=lambda_.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(300),
+            timeout=core.Duration.minutes(10),
+            reserved_concurrent_executions=3,  # To prevent AWS Batch Limit (See the lambda code on AWS BatchSubmitJob)
             retry_attempts=0,
             code=lambda_.Code.from_asset("lambdas/functions/validation_manager"),
             environment={
@@ -500,7 +501,8 @@ class LambdaStack(core.NestedStack):
             function_name=f"{namespace}-data-transfer-manager",
             handler="data_transfer_manager.handler",
             runtime=lambda_.Runtime.PYTHON_3_8,
-            timeout=core.Duration.seconds(300),
+            timeout=core.Duration.minutes(10),
+            reserved_concurrent_executions=3,  # To prevent AWS Batch Limit (See the lambda code on AWS BatchSubmitJob)
             retry_attempts=0,
             code=lambda_.Code.from_asset("lambdas/functions/data_transfer_manager"),
             environment={

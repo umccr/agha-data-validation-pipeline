@@ -2,7 +2,7 @@
 import json
 import logging
 import os
-import sys
+import time
 import pandas as pd
 
 import util
@@ -254,13 +254,23 @@ def handler(event, context):
 
     # Submit Batch jobs
     logger.info(
-        f"Submitting batch job to queue. batch job data list: {json.dumps(batch_job_data, indent=4)}"
+        f"Submitting batch job to queue. batch job data list ({len(batch_job_data)}):"
     )
-    for job_data in batch_job_data:
+    logger.info(json.dumps(batch_job_data))
+    for i, job_data in enumerate(batch_job_data):
         # Submit job to batch
         batch_res = batch.submit_batch_job(job_data)
-        logger.debug(f"Submit batch job res: {batch_res}")
-    logger.info(f"Batch job has executed. Submit {len(batch_job_data)} number of job")
+
+        # Sleep for 1 second every 8th job
+        # This is to prevent AWS Batch SubmitJob throttling limit of 50 jobs per second
+        # Putting (50/6=) 8 here as it is shared across 3 reserved concurrency limit, and
+        # 2 lambda function (transfer-manager and validation-manager)
+        # Without sleep, the average of submitting jobs is about 13 jobs per second
+        # https://docs.aws.amazon.com/batch/latest/userguide/service_limits.html
+        if (i + 1) % 8 == 0:
+            time.sleep(1)
+
+    logger.info("Batch job has been submitted.")
 
 
 ################################################################
