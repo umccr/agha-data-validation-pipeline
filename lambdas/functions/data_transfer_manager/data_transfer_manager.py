@@ -255,10 +255,10 @@ def handler(event, context):
             f",Error: {e}",
         }
 
-    logger.info("Submit AWS Batch Job list:")
+    logger.info(f"Submit AWS Batch Job list ({len(batch_job_data)}):")
     logger.info(json.dumps(batch_job_data))
 
-    logger.info("Update Dynamodb list:")
+    logger.info(f"Update Dynamodb list ({len(dynamodb_job)}):")
     logger.info(
         json.dumps([item.__dict__ for item in dynamodb_job], cls=util.JsonSerialEncoder)
     )
