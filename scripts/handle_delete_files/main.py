@@ -1,4 +1,3 @@
-from util import s3
 import json
 import os
 import sys
@@ -6,6 +5,8 @@ import sys
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 SOURCE_PATH = os.path.join(DIR_PATH, "..", "..", "lambdas", "layers", "util")
 sys.path.append(SOURCE_PATH)
+
+from util import s3
 
 # Environment variable that may be used in Utils
 os.environ["DYNAMODB_ARCHIVE_RESULT_TABLE_NAME"] = "agha-gdr-result-bucket-archive"

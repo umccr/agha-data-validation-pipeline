@@ -2,7 +2,7 @@ import re
 from enum import Enum
 from typing import List
 
-AGHA_ID_PATTERN = re.compile("A\d{7,8}(?:_mat|_pat|_R1|_R2|_R3)?|unknown")
+AGHA_ID_PATTERN = re.compile(r"A\d{7,8}(?:_mat|_pat|_R1|_R2|_R3)?|unknown")
 MD5_PATTERN = re.compile("[0-9a-f]{32}")
 
 
