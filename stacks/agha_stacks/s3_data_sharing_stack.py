@@ -92,7 +92,9 @@ class S3DataSharing(core.NestedStack):
             "S3DataSharingJobDefinition",
             job_definition_name="agha-gdr-s3-data-sharing",
             container=batch.JobDefinitionContainer(
-                image=ecs.ContainerImage.from_registry("amazon/aws-cli:latest"),
+                image=ecs.ContainerImage.from_registry(
+                    "public.ecr.aws/aws-cli/aws-cli:latest"
+                ),
                 command=["true"],
                 memory_limit_mib=200,
                 vcpus=1,
