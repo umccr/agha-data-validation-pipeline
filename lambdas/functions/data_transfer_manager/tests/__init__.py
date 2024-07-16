@@ -20,7 +20,8 @@ os.environ["RESULTS_BUCKET"] = "agha-gdr-results-2.0"
 os.environ["STORE_BUCKET"] = "agha-gdr-store-2.0"
 os.environ[
     "S3_JOB_DEFINITION_ARN"
-] = "arn:aws:batch:ap-southeast-2:843407916570:job-definition/agha-gdr-s3-manipulation:11"
-os.environ[
-    "BATCH_QUEUE_NAME"
-] = '{"small": "agha-gdr-pipeline-job-queue-small", "medium": "agha-gdr-pipeline-job-queue-medium", "large": "agha-gdr-pipeline-job-queue-large", "xlarge": "agha-gdr-pipeline-job-queue-xlarge"}'
+] = "arn:aws:batch:ap-southeast-2:602836945884:job-definition/agha-gdr-s3-manipulation:15"
+os.environ["BATCH_QUEUE_NAME"] = (
+    '{"small": "agha-validation-pipeline-job-queue-small", "medium": "agha-validation-pipeline-job-queue-medium", '
+    '"large": "agha-validation-pipeline-job-queue-large", "xlarge": "agha-validation-pipeline-job-queue-xlarge"} '
+)
