@@ -103,6 +103,7 @@ We need to specify which actions are allowed under the bucket permissions.
               "s3:PutObject",
               "s3:DeleteObject",
               "s3:PutObjectAcl",
+              "s3:PutObjectTagging",
               "s3:ListBucket",
               "s3:GetBucketLocation"
           ],
